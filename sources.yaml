@@ -66,6 +66,14 @@ sources:
     enabled: true
     default_category: social
     default_location: Benjamin Franklin College
+  - id: pauli-murray
+    name: Pauli Murray College
+    type: ical
+    # Embedded on https://paulimurray.yalecollege.yale.edu/calendar-0 (not linked from the homepage).
+    url: https://calendar.google.com/calendar/ical/ekpht4n98o9q1u3ktso0mphvek%40group.calendar.google.com/public/basic.ics
+    enabled: true
+    default_category: social
+    default_location: Pauli Murray College
   - id: pierson
     name: Pierson College
     type: ical
@@ -111,9 +119,13 @@ sources:
     default_category: social
     default_location: Trumbull College
 
-  # No public event listing found on 2026-09-26 (homepage only, or dean's office pages without
-  # events): Berkeley, Branford, Ezra Stiles, Grace Hopper, Jonathan Edwards, Morse, Pauli Murray
-  # (paulimurray.yalecollege.yale.edu), Saybrook. Their events likely go out by email or Instagram.
+  # No public event calendar found (re-surveyed 2026-09-26 via each site's sitemap.xml and nav, plus
+  # the *.yalecollege.yale.edu hosts): Berkeley, Branford, Ezra Stiles, Grace Hopper, Jonathan
+  # Edwards, Morse, Saybrook. Their /events pages are 403/404 or hold only a "past events" stub.
+  # Not events: Berkeley's /college-resources/reservation-schedule embeds room-booking calendars
+  # (two are public, e.g. "Multipurpose Room"), and Morse's "academic calendar" is Yale College's
+  # registrar calendar. Saybrook's intramurals Google Calendar (r3jb5ri3vgom4juerqln0bso44) is
+  # public but empty.
 
   # --- Not yet usable -----------------------------------------------------------------------------
 
