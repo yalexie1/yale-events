@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 import typer
 from sqlalchemy import func, select
 
-from yale_events.adapters.base import PoliteClient, ReplayClient, make_client
+from yale_events.adapters.base import PoliteClient, ReplayClient, make_client, prune_cache
 from yale_events.config import DEFAULT_SOURCES_PATH, load_sources
 from yale_events.db import make_session_factory
 from yale_events.dedupe import dedupe
@@ -15,6 +15,10 @@ from yale_events.models import Event, ScrapeRun
 from yale_events.pipeline import run_source
 
 app = typer.Typer(no_args_is_help=True)
+sources_app = typer.Typer(help="Configured sources and their scrape health.")
+schedule_app = typer.Typer(help="Scrape automatically every few hours (macOS launchd).", no_args_is_help=True)
+app.add_typer(sources_app, name="sources")
+app.add_typer(schedule_app, name="schedule")
 NEW_HAVEN = ZoneInfo("America/New_York")
 
 
@@ -24,6 +28,7 @@ def scrape(
     sources_file: Path = typer.Option(DEFAULT_SOURCES_PATH),
     cache_dir: Path = typer.Option(Path("data/cache"), help="Where raw responses are saved."),
     replay: bool = typer.Option(False, help="Re-process the latest cached responses instead of fetching."),
+    keep_cache_runs: int = typer.Option(3, help="Cached runs to keep per source; older ones are deleted."),
 ):
     """Fetch events from enabled sources and upsert them into the database."""
     logging.basicConfig(level=logging.INFO)
@@ -44,12 +49,16 @@ def scrape(
             )
         dupes = dedupe(session, [s.id for s in all_sources], since=datetime.now(UTC) - timedelta(days=1))
         typer.echo(f"dedupe: {dupes} events hidden as duplicates of another source's listing")
+    if not replay and cache_dir.exists():
+        prune_cache(cache_dir, keep_cache_runs)
     raise typer.Exit(1 if failed else 0)
 
 
-@app.command()
-def sources(sources_file: Path = typer.Option(DEFAULT_SOURCES_PATH)):
+@sources_app.callback(invoke_without_command=True)
+def sources(ctx: typer.Context, sources_file: Path = typer.Option(DEFAULT_SOURCES_PATH)):
     """List configured sources with their last scrape and upcoming event count."""
+    if ctx.invoked_subcommand:
+        return
     Session = make_session_factory()
     now = datetime.now(UTC)
     with Session() as session:
@@ -63,6 +72,70 @@ def sources(sources_file: Path = typer.Option(DEFAULT_SOURCES_PATH)):
             status = f"{last.status} at {last.started_at:%Y-%m-%d %H:%M}Z" if last else "never run"
             flag = "" if cfg.enabled else " (disabled)"
             typer.echo(f"{cfg.id}{flag} [{cfg.type}] {status}, {upcoming} upcoming events")
+
+
+@sources_app.command("check")
+def sources_check(
+    sources_file: Path = typer.Option(DEFAULT_SOURCES_PATH),
+    max_age_hours: float = typer.Option(12, help="Flag sources with no successful scrape in this long."),
+    notify: bool = typer.Option(False, help="Post a macOS notification if anything needs attention."),
+):
+    """Flag enabled sources that are failing, overdue, or suddenly returning far fewer events.
+
+    Exits 1 if any source has an error-level problem."""
+    from yale_events.health import check_sources
+
+    configs = load_sources(sources_file)
+    with make_session_factory()() as session:
+        problems = check_sources(session, configs, datetime.now(UTC), timedelta(hours=max_age_hours))
+    flagged = {p.source_id for p in problems}
+    for cfg in configs:
+        if cfg.enabled and cfg.id not in flagged:
+            typer.echo(f"ok       {cfg.id}")
+    for p in problems:
+        typer.echo(f"{p.level:<8} {p.source_id}: {p.message}")
+    errors = [p for p in problems if p.level == "error"]
+    if notify and problems:
+        from yale_events.schedule import notify as post
+
+        worst = errors[0] if errors else problems[0]
+        more = f" (+{len(problems) - 1} more)" if len(problems) > 1 else ""
+        post("Yale Events: source check", f"{worst.source_id}: {worst.message}{more}")
+    raise typer.Exit(1 if errors else 0)
+
+
+@schedule_app.command("install")
+def schedule_install(every: float = typer.Option(4, help="Hours between scrapes.")):
+    """Install a launchd agent that scrapes now and then every N hours, then runs `sources check --notify`."""
+    from yale_events import schedule
+
+    path = schedule.install(Path.cwd(), every)
+    typer.echo(f"installed {path}; scraping every {every:g}h, log in data/logs/scrape.log")
+
+
+@schedule_app.command("uninstall")
+def schedule_uninstall():
+    """Stop scheduled scrapes."""
+    from yale_events import schedule
+
+    typer.echo("removed" if schedule.uninstall() else "not installed")
+
+
+@schedule_app.command("status")
+def schedule_status():
+    """Whether the scheduled job is loaded, when it last exited, and the tail of its log."""
+    from yale_events import schedule
+
+    info = schedule.status()
+    if info is None:
+        typer.echo("not installed")
+        raise typer.Exit(1)
+    for line in info.splitlines():
+        if any(k in line for k in ("state =", "run interval", "last exit code", "runs =")):
+            typer.echo(line.strip())
+    log = Path("data/logs/scrape.log")
+    if log.exists():
+        typer.echo("\n".join(["", f"--- {log} (last 15 lines)", *log.read_text().splitlines()[-15:]]))
 
 
 @app.command()

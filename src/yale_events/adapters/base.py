@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import time
 from datetime import UTC, datetime
 from pathlib import Path
@@ -92,3 +93,21 @@ class ReplayClient(_Helpers):
             raise FileNotFoundError(f"no cached responses for {source_id} in {self.cache_dir}")
         stamp = first_pages[-1].name.rpartition("-p1.")[0]
         return (self.cache_dir / f"{stamp}-{page_part}").read_bytes()
+
+
+_CACHE_FILE = re.compile(r"^(?P<source>.+)-(?P<stamp>\d{8}T\d{6})-p\d+\.\w+$")
+
+
+def prune_cache(cache_dir: Path, keep_runs: int = 3) -> int:
+    """Delete cached responses except each source's `keep_runs` most recent runs. Returns files removed."""
+    runs: dict[str, dict[str, list[Path]]] = {}
+    for p in cache_dir.glob("*"):
+        if m := _CACHE_FILE.match(p.name):
+            runs.setdefault(m["source"], {}).setdefault(m["stamp"], []).append(p)
+    removed = 0
+    for stamps in runs.values():
+        for stamp in sorted(stamps)[:-keep_runs] if keep_runs > 0 else stamps:
+            for p in stamps[stamp]:
+                p.unlink()
+                removed += 1
+    return removed
