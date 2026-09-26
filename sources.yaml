@@ -1,7 +1,14 @@
 # Registry of event sources. Adapters are chosen by `type`, not by site.
-# events.yale.edu's robots.txt disallows crawling; we use its documented Localist API lightly
-# (scheduled every 4-6h, ~1 req/s). Don't add per-event page fetches.
+# Sources whose adapter doesn't exist yet are listed with `enabled: false` and a note, so this file
+# doubles as the source inventory. Use `yev discover URL...` to check a new site for feeds.
+#
+# Coverage note (surveyed 2026-09-26): events.yale.edu has 187 Localist groups (departments, centers,
+# cultural centers, Yale College, Library, museums, ISM, SOM, ...). `yale-central` already fetches
+# every group, so any department that posts to Localist needs no separate source. The sources below
+# are sites that keep their own calendars.
 sources:
+  # events.yale.edu's robots.txt disallows crawling; we use its documented Localist API lightly
+  # (scheduled every 4-6h, ~1 req/s). Don't add per-event page fetches.
   - id: yale-central
     name: Yale Events Calendar
     type: localist
@@ -9,3 +16,110 @@ sources:
     enabled: true
     options:
       days: 60
+
+  # --- Schools with their own feeds ---------------------------------------------------------------
+
+  # ~100 upcoming events (the feed may cap at 100). One RRULE event. LOCATION values start with a
+  # "Location \n" label, and SUMMARY has HTML entities (&amp;).
+  - id: law
+    name: Yale Law School
+    type: ical
+    url: https://www.law.yale.edu/ylsevents.ics
+    enabled: false  # needs the ical adapter (step 5)
+    default_location: Sterling Law Building
+
+  # 384 events for the season, home and away. Keep home games only; "[W]"/"[L]" result prefixes on
+  # past games. Timed events are UTC; tournaments are all-day dates.
+  - id: athletics
+    name: Yale Athletics
+    type: ical
+    url: https://yalebulldogs.com/calendar.ashx/calendar.ics
+    enabled: false  # needs the ical adapter (step 5)
+    default_category: sports
+    options:
+      location_contains: New Haven
+
+  # Concrete CMS block that POSTs a form to a JSON endpoint: {events: [{id, title, date, startTime,
+  # endTime, link, departments}]}. ~32 upcoming events across all SEAS departments incl. Computer
+  # Science (cpsc.yale.edu redirects here). No location field; it's sometimes in the title.
+  - id: engineering
+    name: Yale Engineering
+    type: engineering
+    url: https://engineering.yale.edu/news-and-events/events/get_events/1421
+    enabled: false  # needs a small custom adapter (step 5)
+
+  # --- Residential colleges -----------------------------------------------------------------------
+
+  # Public Google Calendars embedded on the college sites. calendar.google.com's robots.txt disallows
+  # everything, though these public iCal addresses exist for calendar subscriptions. Awaiting a
+  # decision before fetching them (same situation as events.yale.edu above).
+  - id: franklin
+    name: Benjamin Franklin College
+    type: ical
+    url: https://calendar.google.com/calendar/ical/benjaminfranklincollege%40gmail.com/public/basic.ics
+    enabled: false
+    default_category: social
+    default_location: Benjamin Franklin College
+  - id: pierson
+    name: Pierson College
+    type: ical
+    url: https://calendar.google.com/calendar/ical/a81i9d2jes2upffan9ev02q2us%40group.calendar.google.com/public/basic.ics
+    enabled: false
+    default_category: social
+    default_location: Pierson College
+  - id: silliman
+    name: Silliman College
+    type: ical
+    url: https://calendar.google.com/calendar/ical/414a41e65a878f5141f6f3ba6bea63a3601e213917058d2cd09ff1b91364bfeb%40group.calendar.google.com/public/basic.ics
+    enabled: false
+    default_category: social
+    default_location: Silliman College
+
+  # YaleSites (Drupal) event pages at /events/YYYY-MM-DD-slug with an `event-meta` block and
+  # <time datetime="...">. No feed; one generic `yalesites` HTML adapter covers all of these.
+  - id: timothy-dwight
+    name: Timothy Dwight College
+    type: yalesites
+    url: https://timothydwight.yale.edu/
+    enabled: false  # needs the yalesites adapter (step 5)
+    default_category: social
+    default_location: Timothy Dwight College
+  - id: chaplain
+    name: Chaplain's Office
+    type: yalesites
+    url: https://chaplain.yale.edu/
+    enabled: false  # needs the yalesites adapter (step 5)
+    default_category: religious
+  - id: davenport
+    name: Davenport College
+    type: yalesites
+    url: https://davenport.yale.edu/events
+    enabled: false  # calendar exists but was empty on 2026-09-26
+    default_category: social
+    default_location: Davenport College
+  - id: trumbull
+    name: Trumbull College
+    type: yalesites
+    url: https://trumbull.yalecollege.yale.edu/calendar
+    enabled: false  # calendar page exists; not yet inspected
+    default_category: social
+    default_location: Trumbull College
+
+  # No public event listing found on 2026-09-26 (homepage only, or dean's office pages without
+  # events): Berkeley, Branford, Ezra Stiles, Grace Hopper, Jonathan Edwards, Morse, Pauli Murray
+  # (paulimurray.yalecollege.yale.edu), Saybrook. Their events likely go out by email or Instagram.
+
+  # --- Not yet usable -----------------------------------------------------------------------------
+
+  # Largest missing calendar (YSM + YSPH seminars). React app; the listing loads client-side and only
+  # per-event iCal downloads (/event/feed-event-occurrence-download/<id>) are in the HTML. Needs the
+  # data endpoint found before it can be added.
+  - id: medicine
+    name: Yale School of Medicine
+    type: ysm
+    url: https://medicine.yale.edu/calendar/
+    enabled: false
+
+  # Also checked: drama.yale.edu/events (robots.txt disallows it), dwighthall.org (The Events
+  # Calendar plugin, but 0 upcoming events), som.yale.edu/about/events (no feed; SOM also posts some
+  # events to Localist).

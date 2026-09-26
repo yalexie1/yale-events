@@ -11,6 +11,7 @@ areas:
   science-hill: Science Hill & Hillhouse
   medical: Medical Campus
   west-campus: West Campus
+  athletic-fields: Athletic Fields (Derby Ave)
   off-campus: Off Campus
   online: Online
 
@@ -93,8 +94,9 @@ buildings:
     area: central
     lat: 41.3117
     lon: -72.9281
-    aliases: [Law School, YLS]
+    aliases: [Law School, YLS, SLB]
     addresses: [127 Wall Street]
+    room_codes: [SLB]
   - id: sss
     name: Sheffield-Sterling-Strathcona Hall
     area: central
@@ -434,6 +436,94 @@ buildings:
   - id: west-campus-barn
     name: West Campus Barn
     area: west-campus
+
+  # --- Residential colleges not listed above (coordinates omitted until verified) ---
+  - id: benjamin-franklin-college
+    name: Benjamin Franklin College
+    area: science-hill
+    aliases: [Franklin, Franklin College, Ben Franklin, BF]
+    addresses: [90 Prospect Street]
+  - id: pauli-murray-college
+    name: Pauli Murray College
+    area: science-hill
+    aliases: [Murray, Murray College]
+    addresses: [130 Prospect Street]
+  - id: berkeley-college
+    name: Berkeley College
+    area: central
+    aliases: [Berkeley]
+    addresses: [205 Elm Street]
+  - id: branford-college
+    name: Branford College
+    area: central
+    aliases: [Branford]
+    addresses: [74 High Street]
+  - id: davenport-college
+    name: Davenport College
+    area: central
+    aliases: [Davenport, Dport]
+    addresses: [248 York Street]
+  - id: ezra-stiles-college
+    name: Ezra Stiles College
+    area: arts-district
+    aliases: [Stiles, Ezra Stiles]
+    addresses: [19 Tower Parkway]
+  - id: morse-college
+    name: Morse College
+    area: arts-district
+    aliases: [Morse]
+    addresses: [304 York Street]
+  - id: saybrook-college
+    name: Saybrook College
+    area: central
+    aliases: [Saybrook]
+    addresses: [242 Elm Street]
+  - id: silliman-college
+    name: Silliman College
+    area: central
+    aliases: [Silliman]
+    addresses: [505 College Street]
+  - id: timothy-dwight-college
+    name: Timothy Dwight College
+    area: central
+    aliases: [TD, Timothy Dwight]
+    addresses: [345 Temple Street]
+  - id: trumbull-college
+    name: Trumbull College
+    area: central
+    aliases: [Trumbull]
+    addresses: [241 Elm Street]
+
+  # --- Athletics (venue names as yalebulldogs.com writes them) ---
+  - id: payne-whitney-gym
+    name: Payne Whitney Gymnasium
+    area: arts-district
+    aliases: [Payne Whitney, PWG]
+    addresses: [70 Tower Parkway]
+    rooms: [John J. Lee Amphitheater, Lee Amphitheater, Kiphuth Exhibition Pool, Brady Squash Center]
+  - id: ingalls-rink
+    name: Ingalls Rink
+    area: science-hill
+    aliases: [David S. Ingalls Rink, The Whale]
+    addresses: [73 Sachem Street]
+  - id: yale-bowl
+    name: Yale Bowl
+    area: athletic-fields
+    aliases: [Class of 1954 Field]
+    addresses: [81 Central Avenue]
+  - id: johnson-field
+    name: Johnson Field
+    area: athletic-fields
+  - id: reese-stadium
+    name: Reese Stadium
+    area: athletic-fields
+  - id: cullman-heyman-tennis
+    name: Cullman-Heyman Tennis Center
+    area: athletic-fields
+  - id: yale-golf-course
+    name: Yale Golf Course
+    area: athletic-fields
+    aliases: [The Yale Golf Course]
 
   # --- Off Campus (non-Yale venues that appear often; listed so proximity doesn't mislabel them) ---
   - id: new-haven-museum

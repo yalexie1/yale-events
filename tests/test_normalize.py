@@ -50,6 +50,14 @@ CAT = N.categorizer
         # Unlisted venue right next to a known building takes that building's area.
         ("Some Lab Annex", None, 41.3175, -72.9230, False, (None, "science-hill", None)),
         ("New Haven Museum", None, 41.314, -72.922, False, ("new-haven-museum", "off-campus", None)),
+        # Athletics venues: the city segments are not the room.
+        ("New Haven, Conn. , Ingalls Rink", None, None, None, False, ("ingalls-rink", "science-hill", None)),
+        ("New Haven, Conn., John J. Lee Amphitheater", None, None, None, False,
+         ("payne-whitney-gym", "arts-district", "John J. Lee Amphitheater")),
+        # "Room N" after a room code or a building name.
+        ("SLB Room 127", None, None, None, False, ("law-school", "central", "127")),
+        ("Humanities Quadrangle Room 107", None, None, None, False, ("humanities-quadrangle", "central", "Room 107")),
+        ("Kroon Hall, Rm. 321", None, None, None, False, ("kroon-hall", "science-hill", "Room 321")),
     ],
 )  # fmt: skip
 def test_resolve_location(name, address, lat, lon, virtual, expected):

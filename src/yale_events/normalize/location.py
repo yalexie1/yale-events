@@ -11,6 +11,9 @@ YALE_BBOX = (41.24, 41.34, -73.01, -72.89)  # lat_min, lat_max, lon_min, lon_max
 NEAREST_MAX_METERS = 150
 UNKNOWN_NAMES = {"tbd", "tba", "other", "none", "see description", "various locations"}
 ONLINE_NAMES = {"online", "virtual", "zoom", "webinar"}
+# Segments that name the city, not a room: "New Haven, Conn., Ingalls Rink".
+_CITY_SEGMENT = re.compile(r"^(new haven|conn\.?|ct|connecticut)$", re.IGNORECASE)
+_TRAILING_ROOM = re.compile(r"^(.+?)[\s,]+(?:room|rm\.?)\s*([A-Z]?\d+[A-Z]?)$", re.IGNORECASE)
 
 _STREET_ABBR = {
     "street": "st", "avenue": "ave", "road": "rd", "drive": "dr", "place": "pl", "boulevard": "blvd", "lane": "ln",
@@ -84,7 +87,8 @@ class LocationResolver:
             for code in b.get("room_codes", []):
                 self._room_codes[code.upper()] = b["id"]
         self._room_re = re.compile(
-            r"^(" + "|".join(map(re.escape, self._room_codes)) + r")[\s-]*([A-Z]?\d+[A-Z]?)$", re.IGNORECASE
+            r"^(" + "|".join(map(re.escape, self._room_codes)) + r")[\s-]*(?:room\s*|rm\.?\s*)?([A-Z]?\d+[A-Z]?)$",
+            re.IGNORECASE,
         )
 
     def _match_one(self, name: str) -> tuple[str | None, str | None]:
@@ -92,6 +96,8 @@ class LocationResolver:
             return self._room_codes[m.group(1).upper()], m.group(2)
         if hit := self._rooms.get(norm_name(name)):
             return hit
+        if (m := _TRAILING_ROOM.match(name)) and (bid := self._match_one(m.group(1))[0]):
+            return bid, f"Room {m.group(2)}"
         return self._by_name.get(norm_name(name)) or self._by_address.get(norm_address(name) or ""), None
 
     def _match(self, name: str | None, address: str | None) -> tuple[str | None, str | None]:
@@ -105,7 +111,7 @@ class LocationResolver:
             bid, room = self._match_one(seg)
             if bid:
                 # Whatever precedes the building is usually the room: "Room 101, Kroon Hall".
-                return bid, room or ", ".join(segments[:i]) or None
+                return bid, room or ", ".join(s for s in segments[:i] if not _CITY_SEGMENT.match(s)) or None
         for candidate in (address, name):
             if candidate and (key := norm_address(candidate)) and (bid := self._by_address.get(key)):
                 return bid, None

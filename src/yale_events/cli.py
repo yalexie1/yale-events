@@ -99,6 +99,28 @@ def uncategorized(limit: int = 40):
 
 
 @app.command()
+def discover(urls: list[str]):
+    """Look for event feeds (iCal, RSS, Google Calendar, Localist) on candidate source sites."""
+    from yale_events.discover import Discoverer
+
+    with make_client() as client:
+        d = Discoverer(client)
+        for url in urls:
+            r = d.discover(url)
+            typer.echo(f"\n{url}" + (f" -> {r.final_url}" if r.final_url and r.final_url.rstrip("/") != url.rstrip("/") else ""))
+            for p in r.pages[1:]:
+                typer.echo(f"  followed {p}")
+            for b in r.blocked_by_robots:
+                typer.echo(f"  robots.txt disallows {b}")
+            if r.error:
+                typer.echo(f"  error: {r.error}")
+            for f in r.feeds:
+                typer.echo(f"  {f.kind:<16} {f.url}")
+            if not r.feeds and not r.error:
+                typer.echo(f"  no feeds found (status {r.status})")
+
+
+@app.command()
 def serve(host: str = "127.0.0.1", port: int = 8000, reload: bool = False):
     """Run the API (docs at /docs)."""
     import uvicorn
