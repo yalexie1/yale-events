@@ -1,11 +1,10 @@
 import logging
+from collections import Counter
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import typer
-from collections import Counter
-
 from sqlalchemy import func, select
 
 from yale_events.adapters.base import PoliteClient, ReplayClient, make_client
@@ -64,7 +63,7 @@ def sources(sources_file: Path = typer.Option(DEFAULT_SOURCES_PATH)):
 
 @app.command()
 def events(days: int = 3, limit: int = 20, ongoing: bool = typer.Option(False, help="Include exhibitions.")):
-    """Print upcoming events (a quick check until the API exists)."""
+    """Print upcoming events (a quick look without starting the API)."""
     Session = make_session_factory()
     now = datetime.now(UTC)
     with Session() as session:
@@ -97,6 +96,14 @@ def uncategorized(limit: int = 40):
         typer.echo(f"\n{sum(no_loc.values())}/{len(rows)} occurrences without an area:")
         for name, n in no_loc.most_common(limit):
             typer.echo(f"  {n:4}  {name}")
+
+
+@app.command()
+def serve(host: str = "127.0.0.1", port: int = 8000, reload: bool = False):
+    """Run the API (docs at /docs)."""
+    import uvicorn
+
+    uvicorn.run("yale_events.api.main:create_app", factory=True, host=host, port=port, reload=reload)
 
 
 if __name__ == "__main__":
