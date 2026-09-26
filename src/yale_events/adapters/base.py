@@ -1,3 +1,4 @@
+import json
 import os
 import time
 from pathlib import Path
@@ -40,3 +41,25 @@ class PoliteClient:
             self.cache_dir.mkdir(parents=True, exist_ok=True)
             (self.cache_dir / cache_name).write_bytes(resp.content)
         return resp.json()
+
+
+class ReplayClient:
+    """Serves the most recent cached run instead of the network (for rebuilding after schema/rule changes).
+
+    Cache files are named `<source>-<timestamp>-p<page>.json`; the adapter's requested name tells us
+    which source and page it wants, and we substitute the latest cached run for that source.
+    """
+
+    def __init__(self, cache_dir: Path):
+        self.cache_dir = cache_dir
+
+    def get_json(self, url: str, params: dict, cache_name: str | None = None) -> dict:
+        if not cache_name:
+            raise ValueError("replay needs a cache_name to locate the response")
+        prefix, _, page_part = cache_name.rpartition("-")  # "yale-central-20260926T190400", "p1.json"
+        source_id = prefix.rpartition("-")[0]
+        first_pages = sorted(self.cache_dir.glob(f"{source_id}-[0-9]*T[0-9]*-p1.json"))
+        if not first_pages:
+            raise FileNotFoundError(f"no cached responses for {source_id} in {self.cache_dir}")
+        stamp = first_pages[-1].name.removesuffix("-p1.json")
+        return json.loads((self.cache_dir / f"{stamp}-{page_part}").read_text())

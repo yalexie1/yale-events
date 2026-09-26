@@ -1,0 +1,70 @@
+# Category taxonomy and assignment rules. An event can have several categories.
+# Order of rules: (1) source tags via tag_map; if that yields nothing, (2) keyword rules on the title,
+# then on the start of the description; if still nothing, (3) the source's default_category.
+# Run `yev uncategorized` to see what falls through, then add rules here.
+
+categories:
+  talks: Talks & Lectures
+  arts-performance: Arts & Performance
+  music: Music
+  film: Film
+  exhibitions: Exhibitions & Museums
+  academic: Academic & Workshops
+  career: Career & Professional
+  social: Social
+  cultural: Cultural
+  religious: Religious & Spiritual
+  sports: Sports & Fitness
+  health: Health & Wellness
+  community-service: Community Service
+
+# Localist event types/topics (events.yale.edu) -> our categories. Broad topics such as
+# "Arts & Humanities" or "Social Sciences" are deliberately unmapped: too vague to be useful.
+tag_map:
+  Talks & Lectures: [talks]
+  Panel Discussions & Roundtables: [talks]
+  Colloquia & Symposia: [talks]
+  Conferences Meetings & Seminars: [talks]
+  Readings: [talks, arts-performance]
+  Performances: [arts-performance]
+  Theater: [arts-performance]
+  Dance: [arts-performance]
+  Comedy: [arts-performance]
+  Poetry: [arts-performance]
+  Music: [music]
+  Film & Media Screenings: [film]
+  Exhibitions: [exhibitions]
+  Tours: [exhibitions]
+  Libraries Museums & Galleries: [exhibitions]
+  Classes Demonstrations & Workshops: [academic]
+  Academic Calendar: [academic]
+  Career & Professional Services: [career]
+  Business & Entrepreneurship: [career]
+  Student Life: [social]
+  Festivals: [social]
+  Family Programs: [social]
+  Cultural & International: [cultural]
+  Spiritual & Religious: [religious]
+  Athletics & Recreation: [sports]
+  Health & Medicine: [health]
+  Charitable & Volunteering: [community-service]
+
+# Case-insensitive regexes. Title matches are trusted; description matches only use the first
+# 300 characters to avoid picking up boilerplate further down.
+keywords:
+  talks: '\b(talks?|lectures?|colloquium|seminars?|symposium|panel|in conversation|conversation with|fireside chat|book talk|book launch|author|keynote|forum|roundtable)\b'
+  music: '\b(concerts?|recitals?|orchestra|symphony|choir|chorus|chorale|glee club|a cappella|jazz|quartet|quintet|trio|sonatas?|chamber music|piano|guitar|violin|cello|trombone|trumpet|organ recital|new music|singers?)\b'
+  arts-performance: '\b(theat(er|re)|plays?|musicals?|dance|ballet|comedy|improv|open mic|poetry|spoken word|performances?|opera|cabaret|master class)\b'
+  film: '\b(film|screenings?|movie|documentary|cinema)\b'
+  exhibitions: '\b(exhibitions?|exhibits?|on view|gallery|galleries|museum|highlights tours?|library tours?|photographs?|photographers?|photography|prints and drawings|art show|mfa show|during building hours)\b'
+  academic: '\b(workshops?|office hours|OHs|hands-on|tutorial|training|bootcamp|study break|info(rmation)? session|(dissertation|thesis) defense)\b'
+  career: '\b(career|recruit(ing|ment)?|networking|internships?|fellowships?|call for (proposals|applications)|job fair|resume|employer)\b'
+  social: '\b(receptions?|happy hour|eat (and|&) greet|mixer|trivia|party|game night|meet and greet|family weekend|coffee hour|tea time|fall fest|spring fling|fest)\b'
+  religious: '\b(worship|(catholic|sunday|daily) mass|prayer|shabbat|evensong|vespers|eucharist|bible study|chaplain|jummah|memorial service|meditation service)\b'
+  sports: '\b(vs\.?|versus|tournament|intramural|athletics|yoga|fitness|run club|5k|varsity|pickup (basketball|soccer))\b'
+  health: '\b(wellness|well-being|mindfulness|mental health|meditation|stress|nutrition|flu shot|vaccine clinic)\b'
+  community-service: '\b(volunteer(ing)?|service day|donation drive|blood drive|food drive)\b'
+  cultural: '\b(heritage month|cultural center|lunar new year|diwali|dia de los muertos|juneteenth|powwow|afro-american cultural center|asian american cultural center|la casa)\b'
+
+# Signals that food is provided, flagged separately from categories.
+free_food: '\b(free (food|lunch|dinner|pizza|breakfast|snacks)|(lunch|dinner|breakfast|food|refreshments|snacks|pizza) (will be |is )?(provided|served)|refreshments|light (lunch|fare|bites|refreshments)|pizza|snacks|reception to follow|eat (and|&) greet|happy hour|catered)\b'

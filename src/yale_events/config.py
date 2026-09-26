@@ -13,6 +13,9 @@ class SourceConfig(BaseModel):
     type: str
     url: str
     enabled: bool = True
+    # Fallbacks when an event carries no usable category/location of its own.
+    default_category: str | None = None
+    default_location: str | None = None
     options: dict[str, Any] = Field(default_factory=dict)
 
 

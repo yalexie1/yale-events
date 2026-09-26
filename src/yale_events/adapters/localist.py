@@ -92,4 +92,7 @@ def parse_event(e: dict) -> RawEvent:
         cost=_clean(e.get("ticket_cost")),
         cancelled=e.get("status") == "cancelled",
         source_updated_at=datetime.fromisoformat(e["updated_at"]) if e.get("updated_at") else None,
+        series_id=str(e["id"]),
+        series_first_date=date.fromisoformat(e["first_date"]) if e.get("first_date") else None,
+        series_last_date=date.fromisoformat(e["last_date"]) if e.get("last_date") else None,
     )

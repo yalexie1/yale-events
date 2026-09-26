@@ -1,0 +1,444 @@
+# Canonical Yale venues. Raw location strings are matched by (in order): room code ("LC 101"),
+# sub-venue (`rooms`: implies the building and sets the room), name/alias, each comma-separated segment of the name, then street address. Unmatched venues with
+# trustworthy coordinates fall back to the area of the nearest building below.
+# Names and addresses are compared after normalization (case, punctuation, "&"/"and", St/Street...),
+# and a leading "Yale " is ignored, so aliases don't need every spelling.
+# Coordinates come from Localist's geocoding for that venue; omit them when unknown.
+
+areas:
+  central: Central Campus
+  arts-district: Arts District (Chapel & York)
+  science-hill: Science Hill & Hillhouse
+  medical: Medical Campus
+  west-campus: West Campus
+  off-campus: Off Campus
+  online: Online
+
+buildings:
+  # --- Central Campus ---
+  - id: schwarzman-center
+    name: Schwarzman Center
+    area: central
+    lat: 41.3116
+    lon: -72.926
+    aliases: [Commons]
+    addresses: [168 Grove Street]
+  - id: sterling-memorial-library
+    name: Sterling Memorial Library
+    area: central
+    lat: 41.3105
+    lon: -72.9291
+    aliases: [SML]
+    addresses: [120 High Street]
+    room_codes: [SML]
+  - id: beinecke
+    name: Beinecke Rare Book & Manuscript Library
+    area: central
+    lat: 41.3116
+    lon: -72.9272
+    aliases: [Beinecke, Beinecke Library]
+    addresses: [121 Wall Street]
+  - id: humanities-quadrangle
+    name: Humanities Quadrangle
+    area: central
+    lat: 41.3122
+    lon: -72.9295
+    aliases: [HQ]
+    addresses: [320 York Street]
+    room_codes: [HQ]
+  - id: linsly-chittenden
+    name: Linsly-Chittenden Hall
+    area: central
+    lat: 41.3085
+    lon: -72.9295
+    aliases: [LC, Linsly Chittenden, Linsly-Chitt]
+    addresses: [63 High Street]
+    room_codes: [LC]
+  - id: woolsey-hall
+    name: Woolsey Hall
+    area: central
+    lat: 41.3116
+    lon: -72.9261
+    addresses: [500 College Street]
+  - id: sprague-hall
+    name: Sprague Hall
+    area: central
+    lat: 41.3108
+    lon: -72.9267
+    rooms: [Morse Recital Hall]
+    addresses: [470 College Street]
+  - id: sudler-hall
+    name: Sudler Recital Hall
+    area: central
+    lat: 41.3106
+    lon: -72.9267
+    aliases: [Sudler Hall, William L. Harkness Hall, WLH]
+    addresses: [100 Wall Street]
+    room_codes: [WLH]
+  - id: battell-chapel
+    name: Battell Chapel
+    area: central
+    lat: 41.3094
+    lon: -72.9275
+    addresses: [400 College Street]
+  - id: phelps-hall
+    name: Phelps Hall
+    area: central
+    lat: 41.3082
+    lon: -72.9288
+    aliases: [Phelps Hall & Gate, Phelps Gate]
+    addresses: [344 College Street]
+  - id: law-school
+    name: Sterling Law Building
+    area: central
+    lat: 41.3117
+    lon: -72.9281
+    aliases: [Law School, YLS]
+    addresses: [127 Wall Street]
+  - id: sss
+    name: Sheffield-Sterling-Strathcona Hall
+    area: central
+    lat: 41.3119
+    lon: -72.9252
+    aliases: [SSS]
+    addresses: [1 Prospect Street]
+    room_codes: [SSS]
+  - id: dow-hall
+    name: Dow Hall
+    area: central
+    lat: 41.3113
+    lon: -72.9239
+    addresses: [370 Temple Street]
+  - id: 53-wall-street
+    name: 53 Wall Street
+    area: central
+    lat: 41.3099
+    lon: -72.9235
+    aliases: [TDPS Black Box]
+    addresses: [53 Wall Street]
+  - id: grace-hopper-college
+    name: Grace Hopper College
+    area: central
+    lat: 41.3098
+    lon: -72.9274
+    aliases: [Hopper, Hopper College]
+    addresses: [189 Elm Street]
+  - id: jonathan-edwards-college
+    name: Jonathan Edwards College
+    area: central
+    lat: 41.3088
+    lon: -72.9302
+    aliases: [JE, Jonathan Edwards]
+    addresses: [68 High Street]
+  - id: trinity-church
+    name: Trinity Church on the Green
+    area: central
+    lat: 41.307
+    lon: -72.9273
+    addresses: [230 Temple Street]
+  - id: christ-church
+    name: Christ Church
+    area: central
+    lat: 41.3117
+    lon: -72.932
+    addresses: [84 Broadway]
+  - id: shubert-theatre
+    name: Shubert Theatre
+    area: central
+    lat: 41.3064
+    lon: -72.9288
+    addresses: [247 College Street]
+  - id: nhfpl
+    name: New Haven Free Public Library
+    area: central
+    lat: 41.3091
+    lon: -72.9246
+    aliases: [New Haven Free Public Library - Ives Main Library, Ives Main Library]
+    addresses: [133 Elm Street]
+
+  # --- Arts District (Chapel & York) ---
+  - id: yuag
+    name: Yale University Art Gallery
+    area: arts-district
+    lat: 41.3084
+    lon: -72.931
+    aliases: [YUAG, Art Gallery, Street Hall]
+    addresses: [1111 Chapel Street]
+  - id: ycba
+    name: Yale Center for British Art
+    area: arts-district
+    lat: 41.3079
+    lon: -72.9309
+    aliases: [YCBA]
+    addresses: [1080 Chapel Street]
+  - id: yale-rep
+    name: Yale Repertory Theatre
+    area: arts-district
+    lat: 41.3081
+    lon: -72.9316
+    aliases: [Yale Rep]
+    addresses: [1120 Chapel Street]
+  - id: university-theatre
+    name: University Theatre
+    area: arts-district
+    lat: 41.3097
+    lon: -72.9313
+    addresses: [222 York Street]
+  - id: green-hall
+    name: Green Hall
+    area: arts-district
+    lat: 41.3083
+    lon: -72.933
+    rooms: [Iseman Theater]
+    addresses: [1156 Chapel Street]
+  - id: haas-arts-library
+    name: Haas Family Arts Library
+    area: arts-district
+    lat: 41.3088
+    lon: -72.9319
+    aliases: [Haas Arts Library]
+    addresses: [180 York Street]
+  - id: rudolph-hall
+    name: Rudolph Hall (School of Architecture)
+    area: arts-district
+    lat: 41.309
+    lon: -72.9316
+    aliases: [Rudolph Hall, School of Architecture, Loria Center]
+    addresses: [190 York Street]
+  - id: ccam
+    name: Center for Collaborative Arts and Media
+    area: arts-district
+    lat: 41.3076
+    lon: -72.9318
+    aliases: [CCAM]
+    addresses: [149 York Street]
+  - id: pierson-college
+    name: Pierson College
+    area: arts-district
+    lat: 41.3099
+    lon: -72.9326
+    aliases: [Pierson]
+    addresses: [261 Park Street]
+  - id: st-thomas-more
+    name: St. Thomas More Chapel & Golden Center
+    area: arts-district
+    lat: 41.3109
+    lon: -72.9323
+    aliases: [St. Thomas More, STM]
+    addresses: [268 Park Street]
+
+  # --- Science Hill & Hillhouse ---
+  - id: luce-hall
+    name: Luce Hall
+    area: science-hill
+    lat: 41.3144
+    lon: -72.9243
+    aliases: [Henry R. Luce Hall]
+    addresses: [34 Hillhouse Avenue]
+  - id: 17-hillhouse
+    name: 17 Hillhouse Avenue
+    area: science-hill
+    lat: 41.3127
+    lon: -72.9235
+    aliases: [Yale Quantum Institute, Quantum Institute, YQI]
+    addresses: [17 Hillhouse Avenue]
+  - id: warner-house
+    name: Warner House
+    area: science-hill
+    lat: 41.3115
+    lon: -72.9241
+    addresses: [1 Hillhouse Avenue]
+  - id: steinert-collection
+    name: Morris Steinert Collection
+    area: science-hill
+    lat: 41.3124
+    lon: -72.9237
+    addresses: [15 Hillhouse Avenue]
+  - id: st-marys-church
+    name: St. Mary's Church
+    area: science-hill
+    lat: 41.3119
+    lon: -72.9237
+    addresses: [5 Hillhouse Avenue]
+  - id: horchow-hall
+    name: Horchow Hall
+    area: science-hill
+    lat: 41.3154
+    lon: -72.9224
+    addresses: [55 Hillhouse Avenue]
+  - id: rosenkranz-hall
+    name: Rosenkranz Hall
+    area: science-hill
+    lat: 41.3144
+    lon: -72.9245
+    addresses: [115 Prospect Street]
+  - id: kroon-hall
+    name: Kroon Hall
+    area: science-hill
+    lat: 41.3168
+    lon: -72.9233
+    rooms: [Burke Auditorium]
+    addresses: [195 Prospect Street]
+  - id: sloane-physics
+    name: Sloane Physics Laboratory
+    area: science-hill
+    lat: 41.3174
+    lon: -72.9231
+    aliases: [Sloane Physics Lab, SPL]
+    addresses: [217 Prospect Street]
+    room_codes: [SPL]
+  - id: kline-tower
+    name: Kline Tower
+    area: science-hill
+    lat: 41.3173
+    lon: -72.9226
+    aliases: [KBT, Kline Biology Tower]
+    addresses: [219 Prospect Street]
+    room_codes: [KBT]
+  - id: sterling-chemistry
+    name: Sterling Chemistry Laboratory
+    area: science-hill
+    lat: 41.318
+    lon: -72.923
+    aliases: [SCL, Sterling Chemistry Lab]
+    addresses: [225 Prospect Street]
+    room_codes: [SCL]
+  - id: yale-science-building
+    name: Yale Science Building
+    area: science-hill
+    aliases: [YSB]
+    addresses: [260 Whitney Avenue]
+    room_codes: [YSB]
+  - id: kline-geology
+    name: Kline Geology Laboratory
+    area: science-hill
+    lat: 41.3166
+    lon: -72.9211
+    aliases: [KGL]
+    addresses: [210 Whitney Avenue]
+    room_codes: [KGL]
+  - id: wright-lab
+    name: Wright Laboratory
+    area: science-hill
+    lat: 41.319
+    lon: -72.9208
+    aliases: [Wright Lab, Wright Lab - Connector, WLE]
+    addresses: [272 Whitney Avenue, 270 Whitney Avenue]
+  - id: bass-center
+    name: Bass Center
+    area: science-hill
+    lat: 41.3174
+    lon: -72.9217
+    aliases: [Bass Center for Molecular and Structural Biology]
+    addresses: [266 Whitney Avenue]
+  - id: evans-hall
+    name: Evans Hall (School of Management)
+    area: science-hill
+    aliases: [Evans Hall, School of Management, SOM]
+    rooms: [Zhang Auditorium]
+    addresses: [165 Whitney Avenue]
+  - id: tsai-city
+    name: Tsai Center for Innovative Thinking
+    area: science-hill
+    aliases: [Tsai CITY, Tsai CITY Studio]
+  - id: divinity-school
+    name: Yale Divinity School
+    area: science-hill
+    lat: 41.3232
+    lon: -72.922
+    aliases: [Divinity School, YDS, Berkeley Divinity School, Niebuhr Hall]
+    addresses: [409 Prospect Street]
+  - id: marquand-chapel
+    name: Marquand Chapel
+    area: science-hill
+    lat: 41.3232
+    lon: -72.922
+  - id: miller-hall
+    name: Miller Hall
+    area: science-hill
+    lat: 41.3231
+    lon: -72.9238
+    addresses: [406 Prospect Street]
+  - id: leitner-observatory
+    name: Leitner Family Observatory & Planetarium
+    area: science-hill
+    lat: 41.3211
+    lon: -72.9219
+    aliases: [Leitner Observatory, Leitner Planetarium]
+    addresses: [355 Prospect Street]
+  - id: farnam-gardens
+    name: Farnam Memorial Gardens
+    area: science-hill
+    lat: 41.3206
+    lon: -72.9221
+    addresses: [335 Prospect Street]
+  - id: yale-health
+    name: Yale Health Center
+    area: science-hill
+    lat: 41.3157
+    lon: -72.9283
+    aliases: [Yale Health]
+    addresses: [55 Lock Street]
+
+  # --- Medical Campus ---
+  - id: ysph
+    name: Yale School of Public Health (60 College St)
+    area: medical
+    lat: 41.3037
+    lon: -72.9321
+    aliases: [School of Public Health, YSPH]
+    rooms: [Winslow Auditorium]
+    addresses: [60 College Street]
+  - id: brady-lab
+    name: Brady Memorial Laboratory
+    area: medical
+    lat: 41.3023
+    lon: -72.9339
+    aliases: [Brady Memorial Lab]
+    addresses: [310 Cedar Street]
+  - id: child-study-center
+    name: Child Study Center
+    area: medical
+    lat: 41.3044
+    lon: -72.9331
+    addresses: [230 South Frontage Road]
+
+  # --- West Campus ---
+  - id: west-campus-conference-center
+    name: West Campus Conference Center
+    area: west-campus
+    lat: 41.2582
+    lon: -72.9891
+    aliases: [Yale West Campus, West Campus]
+    addresses: [800 West Campus Drive]
+  - id: advanced-biosciences-center
+    name: Advanced Biosciences Center
+    area: west-campus
+    lat: 41.2569
+    lon: -72.9897
+    aliases: [ABC, West Campus ABC]
+    addresses: [840 West Campus Drive]
+    room_codes: [ABC]
+  - id: molecular-innovations-center
+    name: Molecular Innovations Center
+    area: west-campus
+    lat: 41.2569
+    lon: -72.9909
+    aliases: [MIC]
+    addresses: [600 West Campus Drive]
+  - id: west-campus-collections
+    name: West Campus Collections Study Center
+    area: west-campus
+    aliases: [West Campus Building 900, Collections Study Center]
+    addresses: [900 West Campus Drive]
+  - id: west-campus-barn
+    name: West Campus Barn
+    area: west-campus
+
+  # --- Off Campus (non-Yale venues that appear often; listed so proximity doesn't mislabel them) ---
+  - id: new-haven-museum
+    name: New Haven Museum
+    area: off-campus
+    lat: 41.314
+    lon: -72.922
+    addresses: [114 Whitney Avenue]

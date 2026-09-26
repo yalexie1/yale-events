@@ -4,9 +4,11 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import typer
+from collections import Counter
+
 from sqlalchemy import func, select
 
-from yale_events.adapters.base import PoliteClient, make_client
+from yale_events.adapters.base import PoliteClient, ReplayClient, make_client
 from yale_events.config import DEFAULT_SOURCES_PATH, load_sources
 from yale_events.db import make_session_factory
 from yale_events.models import Event, ScrapeRun
@@ -21,6 +23,7 @@ def scrape(
     source: str | None = typer.Option(None, help="Only scrape this source id."),
     sources_file: Path = typer.Option(DEFAULT_SOURCES_PATH),
     cache_dir: Path = typer.Option(Path("data/cache"), help="Where raw responses are saved."),
+    replay: bool = typer.Option(False, help="Re-process the latest cached responses instead of fetching."),
 ):
     """Fetch events from enabled sources and upsert them into the database."""
     logging.basicConfig(level=logging.INFO)
@@ -29,7 +32,7 @@ def scrape(
         raise typer.BadParameter(f"no enabled source matching {source!r}")
     Session = make_session_factory()
     with make_client() as client, Session() as session:
-        http = PoliteClient(client, min_interval=1.0, cache_dir=cache_dir)
+        http = ReplayClient(cache_dir) if replay else PoliteClient(client, min_interval=1.0, cache_dir=cache_dir)
         failed = False
         for cfg in configs:
             run = run_source(session, cfg, http)
@@ -60,7 +63,7 @@ def sources(sources_file: Path = typer.Option(DEFAULT_SOURCES_PATH)):
 
 
 @app.command()
-def events(days: int = 3, limit: int = 20):
+def events(days: int = 3, limit: int = 20, ongoing: bool = typer.Option(False, help="Include exhibitions.")):
     """Print upcoming events (a quick check until the API exists)."""
     Session = make_session_factory()
     now = datetime.now(UTC)
@@ -69,13 +72,31 @@ def events(days: int = 3, limit: int = 20):
             select(Event)
             .where(Event.start >= now - timedelta(hours=12), Event.start < now + timedelta(days=days))
             .where(Event.stale.is_(False), Event.cancelled.is_(False))
+            .where(True if ongoing else Event.ongoing.is_(False))
             .order_by(Event.start)
             .limit(limit)
         )
         for e in rows:
             when = "all day" if e.all_day else e.start.astimezone(NEW_HAVEN).strftime("%H:%M")
             day = e.start.astimezone(NEW_HAVEN).strftime("%a %m/%d")
-            typer.echo(f"{day} {when:>7}  {e.title[:60]:<60}  {e.location_name or ''}")
+            where = e.location_id or e.location_name or ""
+            typer.echo(f"{day} {when:>7}  {e.title[:50]:<50}  {','.join(e.categories):<22} {e.area or '?':<13} {where}")
+
+
+@app.command()
+def uncategorized(limit: int = 40):
+    """Upcoming titles with no category or no location match, most frequent first, to guide new rules."""
+    Session = make_session_factory()
+    with Session() as session:
+        rows = list(session.scalars(select(Event).where(Event.stale.is_(False))))
+        no_cat = Counter(e.title for e in rows if not e.categories)
+        no_loc = Counter(e.location_name for e in rows if e.area is None)
+        typer.echo(f"{sum(no_cat.values())}/{len(rows)} occurrences without a category:")
+        for title, n in no_cat.most_common(limit):
+            typer.echo(f"  {n:4}  {title[:90]}")
+        typer.echo(f"\n{sum(no_loc.values())}/{len(rows)} occurrences without an area:")
+        for name, n in no_loc.most_common(limit):
+            typer.echo(f"  {n:4}  {name}")
 
 
 if __name__ == "__main__":

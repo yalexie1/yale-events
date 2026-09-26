@@ -1,8 +1,11 @@
 import hashlib
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 
-from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text, TypeDecorator, UniqueConstraint
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import (
+    JSON, Boolean, Date, DateTime, Float, ForeignKey, Integer, String, Text, TypeDecorator, UniqueConstraint,
+)  # fmt: skip
+from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class UTCDateTime(TypeDecorator):
@@ -79,10 +82,34 @@ class Event(Base):
     cancelled: Mapped[bool] = mapped_column(Boolean, default=False)
     stale: Mapped[bool] = mapped_column(Boolean, default=False)
 
+    series_id: Mapped[str | None] = mapped_column(String, index=True)
+    series_first_date: Mapped[date | None] = mapped_column(Date)
+    series_last_date: Mapped[date | None] = mapped_column(Date)
+
+    # Derived by normalize.Normalizer from the fields above.
+    location_id: Mapped[str | None] = mapped_column(String, index=True)
+    area: Mapped[str | None] = mapped_column(String, index=True)
+    free_food: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Long-running series (exhibitions) that would otherwise flood the feed with one row per day.
+    ongoing: Mapped[bool] = mapped_column(Boolean, default=False)
+    category_rows: Mapped[list["EventCategory"]] = relationship(
+        cascade="all, delete-orphan", lazy="selectin", order_by="EventCategory.category"
+    )
+    categories: AssociationProxy[list[str]] = association_proxy(
+        "category_rows", "category", creator=lambda c: EventCategory(category=c)
+    )
+
     source_updated_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
     first_seen: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
     last_seen: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
+
+
+class EventCategory(Base):
+    __tablename__ = "event_categories"
+
+    event_id: Mapped[str] = mapped_column(ForeignKey("events.id", ondelete="CASCADE"), primary_key=True)
+    category: Mapped[str] = mapped_column(String, primary_key=True, index=True)
 
 
 class ScrapeRun(Base):

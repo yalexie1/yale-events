@@ -74,3 +74,20 @@ def test_adapter_error_recorded(session):
     assert run.status == "error"
     assert "boom" in run.error
     assert session.scalars(select(ScrapeRun)).one().status == "error"
+
+
+def test_normalized_fields_and_category_changes(session):
+    scrape(session, [raw(1, title="Jazz concert", description="Pizza will be served.", location_name="LC 101")])
+    ev = session.scalars(select(Event)).one()
+    assert list(ev.categories) == ["music"]
+    assert (ev.location_id, ev.room, ev.free_food) == ("linsly-chittenden", "101", True)
+
+    run = scrape(session, [raw(1, title="Jazz lecture", description="Pizza will be served.", location_name="LC 101")])
+    assert run.updated == 1
+    session.expire_all()
+    assert sorted(session.scalars(select(Event)).one().categories) == ["music", "talks"]
+
+    run = scrape(session, [raw(1, title="Lecture", location_name="LC 101")])
+    session.expire_all()
+    ev = session.scalars(select(Event)).one()
+    assert (list(ev.categories), ev.free_food) == (["talks"], False)

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel, Field
 
@@ -33,6 +33,11 @@ class RawEvent(BaseModel):
     cost: str | None = None
     cancelled: bool = False
     source_updated_at: datetime | None = None
+
+    # Recurring series this occurrence belongs to (e.g. a months-long exhibition listed daily).
+    series_id: str | None = None
+    series_first_date: date | None = None
+    series_last_date: date | None = None
 
 
 class FetchResult(BaseModel):
