@@ -1,0 +1,43 @@
+from datetime import datetime
+
+from pydantic import BaseModel, Field
+
+
+class RawEvent(BaseModel):
+    """One occurrence of an event, as extracted by an adapter before normalization."""
+
+    source_event_id: str
+    title: str
+    description: str | None = None
+    start: datetime
+    end: datetime | None = None
+    all_day: bool = False
+
+    location_name: str | None = None
+    room: str | None = None
+    address: str | None = None
+    lat: float | None = None
+    lon: float | None = None
+    virtual: bool = False
+
+    url: str | None = None
+    image_url: str | None = None
+
+    # Source-provided taxonomy (e.g. Localist event types + topics); mapped to our categories later.
+    tags: list[str] = Field(default_factory=list)
+    keywords: list[str] = Field(default_factory=list)
+    audience: list[str] = Field(default_factory=list)
+    groups: list[str] = Field(default_factory=list)
+
+    free: bool | None = None
+    cost: str | None = None
+    cancelled: bool = False
+    source_updated_at: datetime | None = None
+
+
+class FetchResult(BaseModel):
+    """Events from one source plus the time window they cover, used to detect removed events."""
+
+    events: list[RawEvent]
+    window_start: datetime
+    window_end: datetime

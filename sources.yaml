@@ -1,0 +1,11 @@
+# Registry of event sources. Adapters are chosen by `type`, not by site.
+# events.yale.edu's robots.txt disallows crawling; we use its documented Localist API lightly
+# (scheduled every 4-6h, ~1 req/s). Don't add per-event page fetches.
+sources:
+  - id: yale-central
+    name: Yale Events Calendar
+    type: localist
+    url: https://events.yale.edu
+    enabled: true
+    options:
+      days: 60
