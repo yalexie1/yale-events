@@ -242,7 +242,7 @@ buildings:
     area: science-hill
     lat: 41.3127
     lon: -72.9235
-    aliases: [Yale Quantum Institute, Quantum Institute, YQI]
+    aliases: [17 Hillhouse, Yale Quantum Institute, Quantum Institute, YQI]
     addresses: [17 Hillhouse Avenue]
   - id: warner-house
     name: Warner House
@@ -436,6 +436,48 @@ buildings:
   - id: west-campus-barn
     name: West Campus Barn
     area: west-campus
+
+  # --- Engineering and Hillhouse buildings seen in engineering.yale.edu listings (coordinates omitted) ---
+  - id: becton-center
+    name: Becton Center
+    area: science-hill
+    aliases: [CEID, Center for Engineering Innovation and Design, Center for Engineering Innovation & Design (CEID)]
+    addresses: [15 Prospect Street]
+  - id: mason-lab
+    name: Mason Laboratory
+    area: science-hill
+    aliases: [Mason Lab, Mason]
+    addresses: [9 Hillhouse Avenue]
+    room_codes: [Mason, ML]
+  - id: dunham-lab
+    name: Dunham Laboratory
+    area: science-hill
+    aliases: [Dunham Lab]
+    addresses: [10 Hillhouse Avenue]
+    room_codes: [DL]
+  - id: leet-oliver
+    name: Leet Oliver Memorial Hall
+    area: science-hill
+    aliases: [LOM]
+    addresses: [12 Hillhouse Avenue]
+    room_codes: [LOM]
+  - id: akw
+    name: Arthur K. Watson Hall
+    area: science-hill
+    aliases: [AKW, Watson Hall]
+    addresses: [51 Prospect Street]
+    room_codes: [AKW]
+  - id: rosenfeld-hall
+    name: Rosenfeld Hall
+    area: central
+    aliases: [GR 109 Rosenfeld Hall, GR109 Rosenfeld Hall]
+    addresses: [109 Grove Street]
+  - id: hope-building
+    name: Jane Ellen Hope Building
+    area: medical
+    aliases: [Hope Building, Jane Ellen Hope Memorial Building]
+    addresses: [315 Cedar Street]
+    room_codes: [HOPE]
 
   # --- Residential colleges not listed above (coordinates omitted until verified) ---
   - id: benjamin-franklin-college

@@ -25,8 +25,12 @@ sources:
     name: Yale Law School
     type: ical
     url: https://www.law.yale.edu/ylsevents.ics
-    enabled: false  # needs the ical adapter (step 5)
+    enabled: true
+    default_category: talks
     default_location: Sterling Law Building
+    options:
+      # Registrar dates in the same feed: deadlines, fees, term boundaries, no-class days.
+      exclude_title: '^(deadline|last day|\$\d+|\d+% tuition|reading period|examination period|course selection|only \w+ classes)|recess (begins|ends)|no classes will meet|term (begins|ends)'
 
   # 384 events for the season, home and away. Keep home games only; "[W]"/"[L]" result prefixes on
   # past games. Timed events are UTC; tournaments are all-day dates.
@@ -34,10 +38,11 @@ sources:
     name: Yale Athletics
     type: ical
     url: https://yalebulldogs.com/calendar.ashx/calendar.ics
-    enabled: false  # needs the ical adapter (step 5)
-    default_category: sports
+    enabled: true
+    tags: [Athletics]
     options:
       location_contains: New Haven
+      title_strip: '^(\[[A-Z]\]\s*)?Yale University\s+'
 
   # Concrete CMS block that POSTs a form to a JSON endpoint: {events: [{id, title, date, startTime,
   # endTime, link, departments}]}. ~32 upcoming events across all SEAS departments incl. Computer
@@ -46,32 +51,33 @@ sources:
     name: Yale Engineering
     type: engineering
     url: https://engineering.yale.edu/news-and-events/events/get_events/1421
-    enabled: false  # needs a small custom adapter (step 5)
+    enabled: true  # also fetches each event's page (~30/run) for location and description
 
   # --- Residential colleges -----------------------------------------------------------------------
 
   # Public Google Calendars embedded on the college sites. calendar.google.com's robots.txt disallows
-  # everything, though these public iCal addresses exist for calendar subscriptions. Awaiting a
-  # decision before fetching them (same situation as events.yale.edu above).
+  # everything, but these public iCal addresses exist for calendar subscriptions; the user approved
+  # fetching them once per scheduled run, like a calendar client (2026-09-26). Titles only, rarely
+  # locations or descriptions. Franklin's feed goes back to 2017 (recurrences are expanded).
   - id: franklin
     name: Benjamin Franklin College
     type: ical
     url: https://calendar.google.com/calendar/ical/benjaminfranklincollege%40gmail.com/public/basic.ics
-    enabled: false
+    enabled: true
     default_category: social
     default_location: Benjamin Franklin College
   - id: pierson
     name: Pierson College
     type: ical
     url: https://calendar.google.com/calendar/ical/a81i9d2jes2upffan9ev02q2us%40group.calendar.google.com/public/basic.ics
-    enabled: false
+    enabled: false  # the embedded calendar isn't public: the iCal address returns 404
     default_category: social
     default_location: Pierson College
   - id: silliman
     name: Silliman College
     type: ical
     url: https://calendar.google.com/calendar/ical/414a41e65a878f5141f6f3ba6bea63a3601e213917058d2cd09ff1b91364bfeb%40group.calendar.google.com/public/basic.ics
-    enabled: false
+    enabled: true
     default_category: social
     default_location: Silliman College
 
@@ -81,27 +87,27 @@ sources:
     name: Timothy Dwight College
     type: yalesites
     url: https://timothydwight.yale.edu/
-    enabled: false  # needs the yalesites adapter (step 5)
+    enabled: true
     default_category: social
     default_location: Timothy Dwight College
   - id: chaplain
     name: Chaplain's Office
     type: yalesites
     url: https://chaplain.yale.edu/
-    enabled: false  # needs the yalesites adapter (step 5)
+    enabled: true
     default_category: religious
   - id: davenport
     name: Davenport College
     type: yalesites
     url: https://davenport.yale.edu/events
-    enabled: false  # calendar exists but was empty on 2026-09-26
+    enabled: true  # calendar was empty on 2026-09-26; one request per run to notice when it isn't
     default_category: social
     default_location: Davenport College
   - id: trumbull
     name: Trumbull College
     type: yalesites
     url: https://trumbull.yalecollege.yale.edu/calendar
-    enabled: false  # calendar page exists; not yet inspected
+    enabled: false  # older Drupal site, not YaleSites; its calendar showed "No events" on 2026-09-26
     default_category: social
     default_location: Trumbull College
 

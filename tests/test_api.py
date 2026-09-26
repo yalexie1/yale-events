@@ -39,6 +39,8 @@ def make_events() -> list[Event]:
         ev("cancelled", NOW + timedelta(days=3), ["talks"], cancelled=True),
         ev("stale", NOW + timedelta(days=3), ["talks"], stale=True),
         ev("online", NOW + timedelta(days=4), ["career"], area="online", virtual=True, title="Resume Workshop"),
+        # Another source's listing of "jazz", merged by dedupe.
+        ev("jazz-copy", NOW + timedelta(days=1), ["music"], duplicate_of="jazz", url="https://other.edu/jazz"),
     ]  # fmt: skip
 
 
@@ -120,6 +122,14 @@ def test_pagination(client):
         if not (cursor := resp["next_cursor"]):
             break
     assert seen == ["today-all-day", "in-progress", "jazz", "lecture", "online"]
+
+
+def test_duplicates_hidden_and_listed_on_canonical(client):
+    jazz = next(e for e in client.get("/events").json()["events"] if e["id"] == "jazz")
+    assert jazz["also_listed_by"] == [{"source": "test", "url": "https://other.edu/jazz"}]
+    # Fetching the merged listing by id returns the canonical event.
+    assert client.get("/events/jazz-copy").json()["id"] == "jazz"
+    assert "Jazz Copy" not in {str(v["summary"]) for v in parse_ics(client.get("/events.ics"))}
 
 
 def test_event_detail(client):

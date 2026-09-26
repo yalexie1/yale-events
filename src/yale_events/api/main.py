@@ -84,6 +84,7 @@ def upcoming_counts(session: Session, column, now: datetime) -> dict[str, int]:
         select(column, func.count())
         .select_from(Event)
         .where(Event.start >= now, Event.stale.is_(False), Event.cancelled.is_(False), Event.ongoing.is_(False))
+        .where(Event.duplicate_of.is_(None))
         .group_by(column)
     )
     if column is EventCategory.category:
@@ -120,9 +121,10 @@ def register_routes(app: FastAPI) -> None:
         if cursor:
             stmt = apply_cursor(stmt, cursor)
         rows = list(session.scalars(stmt.limit(limit + 1)))
+        dupes = duplicates_of(session, [e.id for e in rows[:limit]])
         locations = default_normalizer().locations
         return EventPage(
-            events=[EventOut.from_event(e, locations) for e in rows[:limit]],
+            events=[EventOut.from_event(e, locations, dupes.get(e.id, [])) for e in rows[:limit]],
             next_cursor=encode_cursor(rows[limit - 1]) if len(rows) > limit else None,
         )
 
@@ -151,7 +153,11 @@ def register_routes(app: FastAPI) -> None:
 
     @app.get("/events/{event_id}", response_model=EventOut, tags=["events"])
     def get_event(session: SessionDep, event_id: str):
-        return EventOut.from_event(get_event_or_404(session, event_id), default_normalizer().locations)
+        e = get_event_or_404(session, event_id)
+        if e.duplicate_of:  # a merged listing: show the canonical event
+            e = get_event_or_404(session, e.duplicate_of)
+        dupes = duplicates_of(session, [e.id]).get(e.id, [])
+        return EventOut.from_event(e, default_normalizer().locations, dupes)
 
     @app.get("/categories", response_model=list[CategoryOut], tags=["reference"])
     def categories(session: SessionDep):
@@ -200,6 +206,14 @@ def register_routes(app: FastAPI) -> None:
                 )
             )
         return out
+
+
+def duplicates_of(session: Session, ids: list[str]) -> dict[str, list[Event]]:
+    out: dict[str, list[Event]] = {}
+    if ids:
+        for d in session.scalars(select(Event).where(Event.duplicate_of.in_(ids)).order_by(Event.source_id)):
+            out.setdefault(d.duplicate_of, []).append(d)
+    return out
 
 
 def get_event_or_404(session: Session, event_id: str) -> Event:

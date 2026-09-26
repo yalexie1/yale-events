@@ -70,7 +70,7 @@ def name_to_path(name: str) -> str:
 
 
 def build_query(f: EventFilters) -> Select[tuple[Event]]:
-    stmt = select(Event).where(Event.stale.is_(False))
+    stmt = select(Event).where(Event.stale.is_(False), Event.duplicate_of.is_(None))
     if f.start:
         # Overlap, not just "starts after": keep events already in progress, including today's all-day ones.
         stmt = stmt.where(

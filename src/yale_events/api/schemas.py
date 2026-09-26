@@ -19,6 +19,11 @@ class LocationOut(BaseModel):
     virtual: bool
 
 
+class ListingOut(BaseModel):
+    source: str
+    url: str | None
+
+
 class EventOut(BaseModel):
     id: str
     title: str
@@ -39,10 +44,11 @@ class EventOut(BaseModel):
     groups: list[str]
     source: str
     series_id: str | None
+    also_listed_by: list[ListingOut]  # other sources carrying the same event (merged by dedupe)
     updated_at: datetime
 
     @classmethod
-    def from_event(cls, e: Event, locations: LocationResolver) -> "EventOut":
+    def from_event(cls, e: Event, locations: LocationResolver, duplicates: list[Event] = ()) -> "EventOut":
         b = locations.buildings.get(e.location_id) if e.location_id else None
         # Source geocodes are sometimes wildly off; prefer the building's coordinates, drop implausible ones.
         if b and b.lat is not None:
@@ -81,6 +87,7 @@ class EventOut(BaseModel):
             groups=e.groups or [],
             source=e.source_id,
             series_id=e.series_id,
+            also_listed_by=[ListingOut(source=d.source_id, url=d.url) for d in duplicates],
             updated_at=e.updated_at,
         )
 

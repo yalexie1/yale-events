@@ -1,0 +1,34 @@
+{
+ "events": [
+  {
+   "id": 984,
+   "title": "ASML Tech Talk & Recruitment Event",
+   "date": "September 28, 2026",
+   "startTime": "4:00 PM",
+   "endTime": "5:00 PM",
+   "link": "https://engineering.yale.edu/news-and-events/events/asml-tech-talk-and-recruitment-event-2/984",
+   "departments": [
+    {
+     "name": "All Departments"
+    }
+   ],
+   "departmentsString": "All Departments"
+  },
+  {
+   "id": 974,
+   "title": "Dean's Invited Speaker Series featuring Jim McNerney '71, Former CEO, Boeing",
+   "date": "September 29, 2026",
+   "startTime": "3:45 PM",
+   "endTime": "5:00 PM",
+   "link": "https://engineering.yale.edu/news-and-events/events/deans-invited-speaker-series-featuring-jim-mcnerney-71-former-ceo-boeing/974",
+   "departments": [
+    {
+     "name": "All Departments"
+    }
+   ],
+   "departmentsString": "All Departments"
+  }
+ ],
+ "totalPages": 1,
+ "showMore": false
+}

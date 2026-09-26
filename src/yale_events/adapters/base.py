@@ -1,8 +1,9 @@
 import json
 import os
 import time
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Protocol
+from typing import Any, Protocol
 
 import httpx
 
@@ -21,7 +22,33 @@ def make_client() -> httpx.Client:
     return httpx.Client(headers={"User-Agent": ua}, timeout=30, follow_redirects=True)
 
 
-class PoliteClient:
+class CacheNamer:
+    """Names raw responses `<source>-<stamp>-p<N>.<ext>` in request order, so a replay can serve them back."""
+
+    def __init__(self, source_id: str):
+        self.prefix = f"{source_id}-{datetime.now(UTC).strftime('%Y%m%dT%H%M%S')}"
+        self.n = 0
+
+    def next(self, ext: str) -> str:
+        self.n += 1
+        return f"{self.prefix}-p{self.n}.{ext}"
+
+
+class _Helpers:
+    def fetch(self, method: str, url: str, *, params=None, data=None, cache_name: str | None = None) -> bytes:
+        raise NotImplementedError
+
+    def get_json(self, url: str, params: dict | None = None, cache_name: str | None = None) -> Any:
+        return json.loads(self.fetch("GET", url, params=params, cache_name=cache_name))
+
+    def get_text(self, url: str, params: dict | None = None, cache_name: str | None = None) -> str:
+        return self.fetch("GET", url, params=params, cache_name=cache_name).decode("utf-8", "replace")
+
+    def post_json(self, url: str, data: dict, cache_name: str | None = None) -> Any:
+        return json.loads(self.fetch("POST", url, data=data, cache_name=cache_name))
+
+
+class PoliteClient(_Helpers):
     """Wraps an httpx client with a minimum delay between requests and optional raw-response caching."""
 
     def __init__(self, client: httpx.Client, min_interval: float = 1.0, cache_dir: Path | None = None):
@@ -30,36 +57,38 @@ class PoliteClient:
         self.cache_dir = cache_dir
         self._last = 0.0
 
-    def get_json(self, url: str, params: dict, cache_name: str | None = None) -> dict:
+    def fetch(self, method: str, url: str, *, params=None, data=None, cache_name: str | None = None) -> bytes:
         wait = self.min_interval - (time.monotonic() - self._last)
         if wait > 0:
             time.sleep(wait)
-        self._last = time.monotonic()
-        resp = self.client.get(url, params=params)
+        try:
+            resp = self.client.request(method, url, params=params, data=data)
+        finally:
+            self._last = time.monotonic()
         resp.raise_for_status()
         if self.cache_dir and cache_name:
             self.cache_dir.mkdir(parents=True, exist_ok=True)
             (self.cache_dir / cache_name).write_bytes(resp.content)
-        return resp.json()
+        return resp.content
 
 
-class ReplayClient:
+class ReplayClient(_Helpers):
     """Serves the most recent cached run instead of the network (for rebuilding after schema/rule changes).
 
-    Cache files are named `<source>-<timestamp>-p<page>.json`; the adapter's requested name tells us
-    which source and page it wants, and we substitute the latest cached run for that source.
+    The adapter's requested cache name (`<source>-<stamp>-p<N>.<ext>`) says which source and which
+    request in the run it wants; we substitute the latest cached run for that source.
     """
 
     def __init__(self, cache_dir: Path):
         self.cache_dir = cache_dir
 
-    def get_json(self, url: str, params: dict, cache_name: str | None = None) -> dict:
+    def fetch(self, method: str, url: str, *, params=None, data=None, cache_name: str | None = None) -> bytes:
         if not cache_name:
             raise ValueError("replay needs a cache_name to locate the response")
         prefix, _, page_part = cache_name.rpartition("-")  # "yale-central-20260926T190400", "p1.json"
         source_id = prefix.rpartition("-")[0]
-        first_pages = sorted(self.cache_dir.glob(f"{source_id}-[0-9]*T[0-9]*-p1.json"))
+        first_pages = sorted(self.cache_dir.glob(f"{source_id}-[0-9]*T[0-9]*-p1.*"))
         if not first_pages:
             raise FileNotFoundError(f"no cached responses for {source_id} in {self.cache_dir}")
-        stamp = first_pages[-1].name.removesuffix("-p1.json")
-        return json.loads((self.cache_dir / f"{stamp}-{page_part}").read_text())
+        stamp = first_pages[-1].name.rpartition("-p1.")[0]
+        return (self.cache_dir / f"{stamp}-{page_part}").read_bytes()

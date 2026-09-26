@@ -21,6 +21,8 @@ categories:
 # Localist event types/topics (events.yale.edu) -> our categories. Broad topics such as
 # "Arts & Humanities" or "Social Sciences" are deliberately unmapped: too vague to be useful.
 tag_map:
+  # Source-level tags (sources.yaml `tags`)
+  Athletics: [sports]
   Talks & Lectures: [talks]
   Panel Discussions & Roundtables: [talks]
   Colloquia & Symposia: [talks]
@@ -59,9 +61,9 @@ keywords:
   exhibitions: '\b(exhibitions?|exhibits?|on view|gallery|galleries|museum|highlights tours?|library tours?|photographs?|photographers?|photography|prints and drawings|art show|mfa show|during building hours)\b'
   academic: '\b(workshops?|office hours|OHs|hands-on|tutorial|training|bootcamp|study break|info(rmation)? session|(dissertation|thesis) defense)\b'
   career: '\b(career|recruit(ing|ment)?|networking|internships?|fellowships?|call for (proposals|applications)|job fair|resume|employer)\b'
-  social: '\b(receptions?|happy hour|eat (and|&) greet|mixer|trivia|party|game night|meet and greet|family weekend|coffee hour|tea time|fall fest|spring fling|fest)\b'
+  social: '\b(receptions?|happy hour|eat (and|&) greet|mixer|trivia|party|game night|meet and greet|family weekend|coffee hour|tea time|fall fest|spring fling|fest|community (lunch|dinner|gathering)|alumni (event|weekend|reception))\b'
   religious: '\b(worship|(catholic|sunday|daily) mass|prayer|shabbat|evensong|vespers|eucharist|bible study|chaplain|jummah|memorial service|meditation service)\b'
-  sports: '\b(vs\.?|versus|tournament|intramural|athletics|yoga|fitness|run club|5k|varsity|pickup (basketball|soccer))\b'
+  sports: '\b(vs\.?|tournament|hikes?|hiking|intramural|athletics|yoga|fitness|run club|5k|varsity|pickup (basketball|soccer))\b'
   health: '\b(wellness|well-being|mindfulness|mental health|meditation|stress|nutrition|flu shot|vaccine clinic)\b'
   community-service: '\b(volunteer(ing)?|service day|donation drive|blood drive|food drive)\b'
   cultural: '\b(heritage month|cultural center|lunar new year|diwali|dia de los muertos|juneteenth|powwow|afro-american cultural center|asian american cultural center|la casa)\b'

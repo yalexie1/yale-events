@@ -16,6 +16,8 @@ class SourceConfig(BaseModel):
     # Fallbacks when an event carries no usable category/location of its own.
     default_category: str | None = None
     default_location: str | None = None
+    # Tags added to every event from this source, mapped through categories.yaml tag_map like source tags.
+    tags: list[str] = Field(default_factory=list)
     options: dict[str, Any] = Field(default_factory=dict)
 
 

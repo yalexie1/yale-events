@@ -1,9 +1,9 @@
 """Adapter for Localist calendars (events.yale.edu). API docs: https://developer.localist.com/doc/api"""
 
-from datetime import UTC, date, datetime, timedelta
+from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from yale_events.adapters.base import PoliteClient
+from yale_events.adapters.base import CacheNamer, PoliteClient
 from yale_events.config import SourceConfig
 from yale_events.schemas import FetchResult, RawEvent
 
@@ -26,12 +26,10 @@ class LocalistAdapter:
 
         events: list[RawEvent] = []
         page = 1
-        stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S")
+        names = CacheNamer(source.id)
         while page and page <= MAX_PAGES:
             data = self.http.get_json(
-                f"{source.url.rstrip('/')}/api/2/events",
-                {**params, "page": page},
-                cache_name=f"{source.id}-{stamp}-p{page}.json",
+                f"{source.url.rstrip('/')}/api/2/events", {**params, "page": page}, cache_name=names.next("json")
             )
             events.extend(parse_event(w["event"]) for w in data.get("events", []))
             page = data.get("page", {}).get("next_page")

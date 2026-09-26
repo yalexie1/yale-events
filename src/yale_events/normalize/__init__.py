@@ -27,7 +27,9 @@ class Normalizer:
         values["location_id"], values["area"] = loc.location_id, loc.area
         values["room"] = raw.room or loc.room
 
-        categories = self.categorizer.categorize(raw.title, raw.description, raw.tags, source.default_category)
+        categories = self.categorizer.categorize(
+            raw.title, raw.description, raw.tags + source.tags, source.default_category
+        )
         values["categories"] = categories
         values["free_food"] = self.categorizer.free_food(raw.title, raw.description)
         values["ongoing"] = is_ongoing(raw.series_first_date, raw.series_last_date, raw.all_day, categories)

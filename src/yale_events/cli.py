@@ -10,6 +10,7 @@ from sqlalchemy import func, select
 from yale_events.adapters.base import PoliteClient, ReplayClient, make_client
 from yale_events.config import DEFAULT_SOURCES_PATH, load_sources
 from yale_events.db import make_session_factory
+from yale_events.dedupe import dedupe
 from yale_events.models import Event, ScrapeRun
 from yale_events.pipeline import run_source
 
@@ -26,7 +27,8 @@ def scrape(
 ):
     """Fetch events from enabled sources and upsert them into the database."""
     logging.basicConfig(level=logging.INFO)
-    configs = [s for s in load_sources(sources_file) if s.enabled and (source is None or s.id == source)]
+    all_sources = load_sources(sources_file)
+    configs = [s for s in all_sources if s.enabled and (source is None or s.id == source)]
     if not configs:
         raise typer.BadParameter(f"no enabled source matching {source!r}")
     Session = make_session_factory()
@@ -40,6 +42,8 @@ def scrape(
                 f"{cfg.id}: {run.status} fetched={run.fetched} new={run.inserted} "
                 f"updated={run.updated} stale={run.marked_stale}" + (f" error={run.error}" if run.error else "")
             )
+        dupes = dedupe(session, [s.id for s in all_sources], since=datetime.now(UTC) - timedelta(days=1))
+        typer.echo(f"dedupe: {dupes} events hidden as duplicates of another source's listing")
     raise typer.Exit(1 if failed else 0)
 
 

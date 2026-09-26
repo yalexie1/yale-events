@@ -92,6 +92,8 @@ class Event(Base):
     free_food: Mapped[bool] = mapped_column(Boolean, default=False)
     # Long-running series (exhibitions) that would otherwise flood the feed with one row per day.
     ongoing: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Set by dedupe when another source lists the same event; the API shows only the canonical one.
+    duplicate_of: Mapped[str | None] = mapped_column(String, index=True)
     category_rows: Mapped[list["EventCategory"]] = relationship(
         cascade="all, delete-orphan", lazy="selectin", order_by="EventCategory.category"
     )
