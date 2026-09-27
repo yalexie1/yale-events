@@ -511,6 +511,13 @@ buildings:
     addresses: [367 Cedar Street]
 
   # --- West Campus ---
+  - id: school-of-nursing
+    name: Yale School of Nursing
+    area: west-campus
+    lat: 41.2544
+    lon: -72.9926
+    aliases: [School of Nursing, YSN]
+    addresses: [400 West Campus Drive]
   - id: west-campus-conference-center
     name: West Campus Conference Center
     area: west-campus

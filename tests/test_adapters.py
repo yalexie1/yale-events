@@ -7,6 +7,7 @@ import pytest
 import respx
 
 from yale_events.adapters.base import CacheNamer, PoliteClient, ReplayClient
+from yale_events.adapters.drupal_calendar import parse_calendar_page
 from yale_events.adapters.engineering import EngineeringAdapter, parse_item
 from yale_events.adapters.ical import parse_calendar
 from yale_events.adapters.music import MusicAdapter, infer_year
@@ -236,6 +237,21 @@ class _FixedNow(datetime):
     @classmethod
     def now(cls, tz=None):
         return datetime(2026, 9, 26, 12, tzinfo=tz)
+
+
+# --- drupal-calendar (OISS, Nursing) -------------------------------------------------------
+
+def test_drupal_calendar_rows():
+    page = (FIXTURES / "drupal_calendar.html").read_text()
+    market, foraging = parse_calendar_page(page, "https://oiss.yale.edu/calendar")
+    assert market.title == "ISPY Meet-Up: Explore Farmers' Market Together!"
+    assert market.start == datetime(2026, 10, 3, 9, 30, tzinfo=NEW_HAVEN)
+    assert market.end == datetime(2026, 10, 3, 11, tzinfo=NEW_HAVEN)
+    assert market.url == "https://yaleconnect.yale.edu/OISS/rsvp?id=2330677"
+    assert market.description.startswith("Join OISS and other spouses")
+    assert market.image_url.startswith("https://oiss.yale.edu/sites/default/files/")
+    assert foraging.title == "Mushroom Foraging Tour for Beginners @East Rock"
+    assert parse_calendar_page("<p>Upcoming Events</p>", "https://nursing.yale.edu/calendar") == []
 
 
 # --- replay ----------------------------------------------------------------------------------

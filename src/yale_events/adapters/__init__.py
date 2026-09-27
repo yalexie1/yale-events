@@ -1,4 +1,5 @@
 from yale_events.adapters.base import Adapter, PoliteClient
+from yale_events.adapters.drupal_calendar import DrupalCalendarAdapter
 from yale_events.adapters.engineering import EngineeringAdapter
 from yale_events.adapters.ical import ICalAdapter
 from yale_events.adapters.localist import LocalistAdapter
@@ -13,6 +14,7 @@ ADAPTERS: dict[str, type] = {
     "yalesites": YaleSitesAdapter,
     "ysm": YSMAdapter,
     "yale-music": MusicAdapter,
+    "drupal-calendar": DrupalCalendarAdapter,
 }
 
 

@@ -74,6 +74,22 @@ sources:
     enabled: true
     tags: [Music]
 
+  # Older Yale Drupal 7 calendars: the "All Upcoming" view, with ISO datetimes in the markup. No iCal
+  # (the usual /calendar/ical paths 404). OISS's events are Yale Connect RSVPs republished here.
+  - id: oiss
+    name: Office of International Students & Scholars
+    type: drupal-calendar
+    url: https://oiss.yale.edu/calendar
+    enabled: true
+    default_category: social
+  - id: nursing
+    name: Yale School of Nursing
+    type: drupal-calendar
+    url: https://nursing.yale.edu/calendar
+    enabled: true  # upcoming list was empty on 2026-09-26; one request per run to notice when it isn't
+    default_category: talks
+    default_location: School of Nursing
+
   # --- Residential colleges -----------------------------------------------------------------------
 
   # Public Google Calendars embedded on the college sites. calendar.google.com's robots.txt disallows
