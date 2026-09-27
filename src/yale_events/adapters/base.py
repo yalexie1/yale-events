@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import re
 import time
@@ -10,6 +11,8 @@ import httpx
 
 from yale_events.config import SourceConfig
 from yale_events.schemas import FetchResult
+
+log = logging.getLogger(__name__)
 
 
 class Adapter(Protocol):
@@ -49,16 +52,29 @@ class _Helpers:
         return json.loads(self.fetch("POST", url, data=data, cache_name=cache_name))
 
 
-class PoliteClient(_Helpers):
-    """Wraps an httpx client with a minimum delay between requests and optional raw-response caching."""
+def _transient(exc: Exception) -> bool:
+    if isinstance(exc, httpx.HTTPStatusError):
+        return exc.response.status_code == 429 or exc.response.status_code >= 500
+    return isinstance(exc, httpx.TransportError)
 
-    def __init__(self, client: httpx.Client, min_interval: float = 1.0, cache_dir: Path | None = None):
+
+class PoliteClient(_Helpers):
+    """Wraps an httpx client with a minimum delay between requests and optional raw-response caching.
+
+    Timeouts, connection errors, 429 and 5xx are retried after each of `retry_delays` seconds, so one
+    slow page doesn't fail a many-page run. Only successful responses are cached, which keeps the
+    cache names in request order for replay.
+    """
+
+    def __init__(self, client: httpx.Client, min_interval: float = 1.0, cache_dir: Path | None = None,
+                 retry_delays: tuple[float, ...] = (5, 20)):
         self.client = client
         self.min_interval = min_interval
         self.cache_dir = cache_dir
+        self.retry_delays = retry_delays
         self._last = 0.0
 
-    def fetch(self, method: str, url: str, *, params=None, data=None, cache_name: str | None = None) -> bytes:
+    def _request(self, method: str, url: str, params, data) -> httpx.Response:
         wait = self.min_interval - (time.monotonic() - self._last)
         if wait > 0:
             time.sleep(wait)
@@ -66,7 +82,18 @@ class PoliteClient(_Helpers):
             resp = self.client.request(method, url, params=params, data=data)
         finally:
             self._last = time.monotonic()
-        resp.raise_for_status()
+        return resp.raise_for_status()
+
+    def fetch(self, method: str, url: str, *, params=None, data=None, cache_name: str | None = None) -> bytes:
+        for delay in (*self.retry_delays, None):
+            try:
+                resp = self._request(method, url, params, data)
+                break
+            except httpx.HTTPError as e:
+                if delay is None or not _transient(e):
+                    raise
+                log.warning("%s %s failed (%s); retrying in %ss", method, url, e, delay)
+                time.sleep(delay)
         if self.cache_dir and cache_name:
             self.cache_dir.mkdir(parents=True, exist_ok=True)
             (self.cache_dir / cache_name).write_bytes(resp.content)
