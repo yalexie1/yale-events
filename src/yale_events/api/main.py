@@ -1,8 +1,10 @@
 from collections.abc import Iterator
 from datetime import UTC, datetime, time, timedelta
+from pathlib import Path
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
+from fastapi.responses import FileResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -19,6 +21,7 @@ ICS_PAST_DAYS = 7
 MAX_LIMIT = 500
 ICS_MAX_EVENTS = 5000
 ICS_MEDIA_TYPE = "text/calendar; charset=utf-8"
+WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 
 
 def create_app(session_factory: sessionmaker[Session] | None = None) -> FastAPI:
@@ -105,6 +108,11 @@ def calendar_name(f: EventFilters) -> str:
 
 
 def register_routes(app: FastAPI) -> None:
+    @app.get("/", include_in_schema=False)
+    def home():
+        """A small browser UI over the API."""
+        return FileResponse(WEB_DIR / "index.html")
+
     @app.get("/events", response_model=EventPage, tags=["events"])
     def list_events(
         session: SessionDep,

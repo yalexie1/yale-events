@@ -11,7 +11,7 @@ uv sync
 source .venv/bin/activate
 export YEV_CONTACT=you@yale.edu   # sent in the User-Agent so site admins can reach you
 yev scrape                         # fetch all enabled sources (~2 min, 1 request/second)
-yev serve                          # API at http://127.0.0.1:8000, docs at /docs
+yev serve                          # browse at http://127.0.0.1:8000, API docs at /docs
 ```
 
 If `yev` fails with `ModuleNotFoundError: yale_events`, prefix commands with `PYTHONPATH=src`.

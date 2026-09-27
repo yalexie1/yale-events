@@ -182,3 +182,10 @@ def test_reference_endpoints(client):
     assert kroon["upcoming"] == 1
     (src,) = client.get("/sources").json()
     assert (src["id"], src["last_run_status"], src["upcoming"]) == ("test", "ok", 4)
+
+
+def test_home_page(client):
+    r = client.get("/")
+    assert r.status_code == 200
+    assert r.headers["content-type"].startswith("text/html")
+    assert "<title>Yale Events</title>" in r.text

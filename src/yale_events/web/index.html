@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yale Events</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #fff; --text: #1a1d21; --muted: #5f6b7a; --line: #e2e6eb;
+    --accent: #00356b; --accent-soft: #e5edf6; --warn: #b3261e; --chip: #eef1f4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111418; --card: #1a1f25; --text: #e6e9ed; --muted: #97a3b1; --line: #2a3139;
+      --accent: #8fb8e8; --accent-soft: #1e2d40; --warn: #f2b8b5; --chip: #242b33;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  header { background: var(--accent); color: #fff; padding: 14px 16px; }
+  @media (prefers-color-scheme: dark) { header { background: #00356b; } }
+  header h1 { margin: 0; font-size: 20px; }
+  header p { margin: 2px 0 0; opacity: .8; font-size: 13px; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 16px; display: grid; gap: 20px;
+          grid-template-columns: 260px 1fr; }
+  @media (max-width: 800px) { .wrap { grid-template-columns: 1fr; } }
+  aside { display: flex; flex-direction: column; gap: 14px; }
+  aside label.h { display: block; font-size: 12px; font-weight: 600; text-transform: uppercase;
+                  letter-spacing: .04em; color: var(--muted); margin-bottom: 4px; }
+  input[type=search], input[type=date], select {
+    width: 100%; padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px;
+    background: var(--card); color: var(--text); font: inherit; }
+  .dates { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .chip { border: 1px solid var(--line); background: var(--chip); color: var(--text); border-radius: 999px;
+          padding: 3px 10px; font: inherit; font-size: 13px; cursor: pointer; }
+  .chip[aria-pressed=true] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  .chip small { opacity: .65; }
+  .check { display: flex; align-items: center; gap: 6px; font-size: 14px; }
+  .btn { display: inline-block; padding: 7px 12px; border-radius: 6px; border: 1px solid var(--accent);
+         color: var(--accent); background: transparent; text-decoration: none; font: inherit; font-size: 14px;
+         cursor: pointer; text-align: center; }
+  .btn.primary { background: var(--accent); color: var(--bg); }
+  .quick { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
+  .quick button { font-size: 12px; padding: 2px 8px; }
+  main { min-width: 0; }
+  .status { color: var(--muted); font-size: 14px; margin: 0 0 10px; display: flex; justify-content: space-between;
+            gap: 10px; flex-wrap: wrap; align-items: center; }
+  h2.day { font-size: 14px; margin: 22px 0 8px; color: var(--muted); position: sticky; top: 0;
+           background: var(--bg); padding: 6px 0; z-index: 1; }
+  h2.day:first-of-type { margin-top: 0; }
+  .ev { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px;
+        margin-bottom: 8px; display: grid; grid-template-columns: 78px 1fr; gap: 12px; cursor: pointer; }
+  .ev:hover { border-color: var(--accent); }
+  .time { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .title { font-weight: 600; }
+  .meta { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 5px; }
+  .tag { font-size: 11px; background: var(--accent-soft); color: var(--accent); border-radius: 4px; padding: 1px 6px; }
+  .tag.food { background: #fdf0d5; color: #7a4f00; }
+  @media (prefers-color-scheme: dark) { .tag.food { background: #3a2e14; color: #f3cf7a; } }
+  .tag.cancel { background: transparent; color: var(--warn); border: 1px solid var(--warn); }
+  .detail { grid-column: 1 / -1; border-top: 1px solid var(--line); padding-top: 10px; font-size: 14px;
+            cursor: auto; }
+  .detail img { max-width: 220px; max-height: 160px; border-radius: 6px; float: right; margin: 0 0 8px 12px; }
+  .detail p { white-space: pre-line; margin: 0 0 10px; }
+  .detail .links { display: flex; gap: 8px; flex-wrap: wrap; clear: both; }
+  .empty, .err { padding: 30px; text-align: center; color: var(--muted); }
+  .err { color: var(--warn); }
+  #more { width: 100%; margin: 8px 0 30px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Yale Events</h1>
+  <p id="sub">One feed of Yale calendars</p>
+</header>
+<div class="wrap">
+  <aside>
+    <div>
+      <label class="h" for="q">Search</label>
+      <input type="search" id="q" placeholder="Title, description, venue">
+    </div>
+    <div>
+      <label class="h">Dates</label>
+      <div class="dates">
+        <input type="date" id="start" aria-label="From">
+        <input type="date" id="end" aria-label="Through">
+      </div>
+      <div class="quick">
+        <button class="chip" data-range="0">Today</button>
+        <button class="chip" data-range="weekend">Weekend</button>
+        <button class="chip" data-range="6">7 days</button>
+        <button class="chip" data-range="29">30 days</button>
+      </div>
+    </div>
+    <div>
+      <label class="h">Category</label>
+      <div class="chips" id="categories"></div>
+    </div>
+    <div>
+      <label class="h" for="area">Area</label>
+      <select id="area"><option value="">Anywhere</option></select>
+    </div>
+    <div>
+      <label class="h" for="source">Source</label>
+      <select id="source"><option value="">All sources</option></select>
+    </div>
+    <label class="check"><input type="checkbox" id="free_food"> Free food</label>
+    <a class="btn primary" id="subscribe" href="#" title="Subscribe to this filtered view in your calendar app">Subscribe (.ics)</a>
+    <button class="btn" id="reset">Reset filters</button>
+  </aside>
+  <main>
+    <div class="status"><span id="count"></span></div>
+    <div id="list"></div>
+    <button class="btn" id="more" hidden>Load more</button>
+  </main>
+</div>
+<script>
+const $ = (id) => document.getElementById(id);
+const state = { category: new Set(), cursor: null, loading: false, lastDay: null, shown: 0 };
+const names = { categories: {}, areas: {}, sources: {} };
+
+const iso = (d) => d.toLocaleDateString("en-CA");  // YYYY-MM-DD in local time
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+
+function setRange(kind) {
+  const today = new Date();
+  let a = today, b;
+  if (kind === "weekend") {
+    const dow = today.getDay();  // 0 Sun .. 6 Sat
+    a = dow === 0 || dow === 6 ? today : addDays(today, 5 - dow);
+    b = addDays(today, dow === 0 ? 0 : 7 - dow);
+  } else {
+    b = addDays(today, Number(kind));
+  }
+  $("start").value = iso(a);
+  $("end").value = iso(b);
+  reload();
+}
+
+function params() {
+  const p = new URLSearchParams();
+  const q = $("q").value.trim();
+  if (q) p.set("q", q);
+  if ($("start").value) p.set("start", $("start").value);
+  if ($("end").value) p.set("end", $("end").value);
+  if (state.category.size) p.set("category", [...state.category].join(","));
+  if ($("area").value) p.set("area", $("area").value);
+  if ($("source").value) p.set("source", $("source").value);
+  if ($("free_food").checked) p.set("free_food", "true");
+  return p;
+}
+
+function restore() {
+  const p = new URLSearchParams(location.search);
+  $("q").value = p.get("q") || "";
+  $("start").value = p.get("start") || iso(new Date());
+  $("end").value = p.get("end") || iso(addDays(new Date(), 13));
+  (p.get("category") || "").split(",").filter(Boolean).forEach((c) => state.category.add(c));
+  $("area").value = p.get("area") || "";
+  $("source").value = p.get("source") || "";
+  $("free_food").checked = p.get("free_food") === "true";
+}
+
+function fmtTime(e) {
+  if (e.all_day) return "All day";
+  const t = (s) => new Date(s).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  return e.end && new Date(e.end).toDateString() === new Date(e.start).toDateString()
+    ? `${t(e.start)}<br>– ${t(e.end)}` : t(e.start);
+}
+
+function dayLabel(e) {
+  const d = new Date(e.all_day ? e.start.slice(0, 10) + "T12:00" : e.start);
+  const today = new Date();
+  const rel = d.toDateString() === today.toDateString() ? "Today · "
+    : d.toDateString() === addDays(today, 1).toDateString() ? "Tomorrow · " : "";
+  return rel + d.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" });
+}
+
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+}
+
+function where(loc) {
+  if (loc.virtual && !loc.name) return "Online";
+  const parts = [loc.building || loc.name, loc.room].filter(Boolean);
+  let s = parts.join(", ");
+  if (loc.area && names.areas[loc.area]) s += (s ? " · " : "") + names.areas[loc.area];
+  if (loc.virtual) s += " · Online";
+  return s;
+}
+
+function card(e) {
+  const el = document.createElement("div");
+  el.className = "ev";
+  const tags = [
+    e.cancelled ? `<span class="tag cancel">Cancelled</span>` : "",
+    ...e.categories.map((c) => `<span class="tag">${esc(names.categories[c] || c)}</span>`),
+    e.free_food ? `<span class="tag food">Free food</span>` : "",
+    e.free ? `<span class="tag">Free</span>` : "",
+  ].join("");
+  const sources = [e.source, ...e.also_listed_by.map((l) => l.source)].map((s) => names.sources[s] || s);
+  el.innerHTML = `
+    <div class="time">${fmtTime(e)}</div>
+    <div>
+      <div class="title">${esc(e.title)}</div>
+      <div class="meta">${esc(where(e.location))}</div>
+      <div class="tags">${tags}</div>
+    </div>`;
+  el.addEventListener("click", (ev) => {
+    if (ev.target.closest(".detail")) return;
+    const open = el.querySelector(".detail");
+    if (open) { open.remove(); return; }
+    const d = document.createElement("div");
+    d.className = "detail";
+    const loc = e.location;
+    const address = [loc.name !== (loc.building || loc.name) ? loc.name : "", loc.address].filter(Boolean).join(" · ");
+    d.innerHTML = `
+      ${e.image_url ? `<img src="${esc(e.image_url)}" alt="" loading="lazy" onerror="this.remove()">` : ""}
+      ${address ? `<div class="meta">${esc(address)}</div>` : ""}
+      ${e.cost ? `<div class="meta">${esc(e.cost)}</div>` : ""}
+      ${e.audience.length ? `<div class="meta">Audience: ${esc(e.audience.join(", "))}</div>` : ""}
+      ${e.groups.length ? `<div class="meta">Hosted by ${esc(e.groups.join(", "))}</div>` : ""}
+      <div class="meta">Listed by ${esc(sources.join(", "))}</div>
+      <p style="margin-top:8px">${esc(e.description || "No description.")}</p>
+      <div class="links">
+        ${e.url ? `<a class="btn primary" href="${esc(e.url)}" target="_blank" rel="noopener">Event page</a>` : ""}
+        <a class="btn" href="/events/${e.id}.ics">Add to calendar</a>
+        ${loc.lat != null ? `<a class="btn" target="_blank" rel="noopener" href="https://maps.apple.com/?q=${encodeURIComponent(loc.building || loc.name || "")}&ll=${loc.lat},${loc.lon}">Map</a>` : ""}
+      </div>`;
+    el.appendChild(d);
+  });
+  return el;
+}
+
+async function load() {
+  if (state.loading) return;
+  state.loading = true;
+  const p = params();
+  p.set("limit", "100");
+  if (state.cursor) p.set("cursor", state.cursor);
+  try {
+    const r = await fetch("/events?" + p);
+    if (!r.ok) throw new Error((await r.json()).detail || r.statusText);
+    const page = await r.json();
+    const list = $("list");
+    for (const e of page.events) {
+      const day = dayLabel(e);
+      if (day !== state.lastDay) {
+        const h = document.createElement("h2");
+        h.className = "day";
+        h.textContent = day;
+        list.appendChild(h);
+        state.lastDay = day;
+      }
+      list.appendChild(card(e));
+    }
+    state.shown += page.events.length;
+    state.cursor = page.next_cursor;
+    $("more").hidden = !state.cursor;
+    $("count").textContent = state.shown
+      ? `${state.shown}${state.cursor ? "+" : ""} event${state.shown === 1 ? "" : "s"}` : "";
+    if (!state.shown) list.innerHTML = `<div class="empty">No events match these filters.</div>`;
+  } catch (err) {
+    $("list").innerHTML = `<div class="err">Couldn't load events: ${esc(err.message)}</div>`;
+  } finally {
+    state.loading = false;
+  }
+}
+
+function reload() {
+  const p = params();
+  history.replaceState(null, "", p.toString() ? "?" + p : location.pathname);
+  // The feed skips the date range so a subscription keeps rolling forward.
+  const sub = new URLSearchParams(p);
+  sub.delete("start"); sub.delete("end");
+  $("subscribe").href = "/events.ics" + (sub.toString() ? "?" + sub : "");
+  document.querySelectorAll("#categories .chip").forEach((b) =>
+    b.setAttribute("aria-pressed", state.category.has(b.dataset.id)));
+  Object.assign(state, { cursor: null, lastDay: null, shown: 0 });
+  $("list").innerHTML = "";
+  load();
+}
+
+async function init() {
+  const get = (u) => fetch(u).then((r) => r.json());
+  const [cats, areas, sources] = await Promise.all([get("/categories"), get("/areas"), get("/sources")]);
+  for (const c of cats) {
+    names.categories[c.id] = c.name;
+    const b = document.createElement("button");
+    b.className = "chip";
+    b.dataset.id = c.id;
+    b.innerHTML = `${esc(c.name)} <small>${c.upcoming}</small>`;
+    b.addEventListener("click", () => {
+      state.category.has(c.id) ? state.category.delete(c.id) : state.category.add(c.id);
+      reload();
+    });
+    $("categories").appendChild(b);
+  }
+  for (const a of areas) {
+    names.areas[a.id] = a.name;
+    if (a.upcoming) $("area").add(new Option(`${a.name} (${a.upcoming})`, a.id));
+  }
+  const live = sources.filter((s) => s.enabled).sort((a, b) => b.upcoming - a.upcoming);
+  for (const s of sources) names.sources[s.id] = s.name;
+  for (const s of live) $("source").add(new Option(`${s.name} (${s.upcoming})`, s.id));
+  const total = live.reduce((n, s) => n + s.upcoming, 0);
+  $("sub").textContent = `${total.toLocaleString()} upcoming events from ${live.length} Yale calendars`;
+
+  restore();
+  let timer;
+  $("q").addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(reload, 250); });
+  for (const id of ["start", "end", "area", "source", "free_food"]) $(id).addEventListener("change", reload);
+  document.querySelectorAll("[data-range]").forEach((b) => b.addEventListener("click", () => setRange(b.dataset.range)));
+  $("more").addEventListener("click", load);
+  $("reset").addEventListener("click", () => {
+    history.replaceState(null, "", location.pathname);
+    state.category.clear();
+    restore();
+    reload();
+  });
+  reload();
+}
+
+init().catch((err) => { $("list").innerHTML = `<div class="err">Couldn't reach the API: ${esc(err.message)}</div>`; });
+</script>
+</body>
+</html>
