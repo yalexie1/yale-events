@@ -80,6 +80,9 @@ tag_map:
   Community Service & Volunteer: [community-service]
   Fair/Festival: [social, cultural]
   Career/Networking: [career]
+  # Yale Center for British Art activity types (tours etc. fall to the source default, exhibitions)
+  Family Program: [social, exhibitions]
+  Access Program: [exhibitions]
 
 # Case-insensitive regexes. Title matches are trusted; description matches only use the first
 # 300 characters to avoid picking up boilerplate further down.

@@ -109,6 +109,39 @@ sources:
     default_category: social
     default_location: Yale Peabody Museum
 
+  # Jackson School runs its own Localist instance (jackson.yale.edu/events links into it); robots.txt
+  # allows the API with Crawl-Delay 1. Includes World Fellows. Some events are cross-posted to
+  # events.yale.edu; dedupe keeps the central copy.
+  - id: jackson
+    name: Jackson School of Global Affairs
+    type: localist
+    url: https://events.jackson.yale.edu
+    enabled: true
+    default_category: talks
+    options:
+      days: 90
+
+  # MacMillan Center (area-studies councils and programs, ~100 upcoming): Drupal view, no feed.
+  # ~8 listing pages per run; teasers have no venue and event pages aren't fetched. About half its
+  # events are also on events.yale.edu (dedupe keeps the central copy, which has the venue).
+  - id: macmillan
+    name: MacMillan Center
+    type: macmillan
+    url: https://macmillan.yale.edu/events
+    enabled: true
+    default_category: talks
+
+  # Yale Center for British Art: paged grid of exhibitions and programs (~7 pages), no feed. Tours,
+  # family and access programs, talks; exhibitions are skipped (date ranges). Programs are not on
+  # events.yale.edu.
+  - id: ycba
+    name: Yale Center for British Art
+    type: ycba
+    url: https://britishart.yale.edu/exhibitions-programs
+    enabled: true
+    default_category: exhibitions
+    default_location: Yale Center for British Art
+
   # --- Residential colleges -----------------------------------------------------------------------
 
   # Public Google Calendars embedded on the college sites. calendar.google.com's robots.txt disallows
@@ -204,4 +237,9 @@ sources:
 
   # Also checked: drama.yale.edu/events (robots.txt disallows it), dwighthall.org (The Events
   # Calendar plugin, but 0 upcoming events), som.yale.edu/about/events (no feed; SOM also posts some
-  # events to Localist).
+  # events to Localist). From www.yale.edu/calendars (2026-09-26): artgallery.yale.edu is behind a
+  # Cloudflare bot challenge (not bypassed; YUAG posts its programs to events.yale.edu);
+  # divinity.yale.edu/events and ism.yale.edu embed events.yale.edu; art.yale.edu has no events page
+  # (/public-events is 404); beinecke.library.yale.edu/calendar redirects to "plan your visit";
+  # alumni.yale.edu/events is mostly regional and virtual alumni events; worldfellows events are on
+  # the Jackson calendar.

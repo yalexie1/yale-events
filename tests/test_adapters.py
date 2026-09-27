@@ -11,10 +11,12 @@ from yale_events.adapters.drupal_calendar import parse_calendar_page
 from yale_events.adapters.engineering import EngineeringAdapter, parse_item
 from yale_events.adapters.ical import parse_calendar
 from yale_events.adapters.jsonld import parse_page as parse_jsonld_page
+from yale_events.adapters.macmillan import parse_teasers, upcoming_section
 from yale_events.adapters.music import MusicAdapter, infer_year
 from yale_events.adapters.peabody import parse_listing as parse_peabody
 from yale_events.adapters.text import clean_description, clean_field
 from yale_events.adapters.yalesites import YaleSitesAdapter, event_links, parse_event_page
+from yale_events.adapters.ycba import parse_grid as parse_ycba, parse_when as ycba_when
 from yale_events.adapters.ysm import YSMAdapter
 from yale_events.config import SourceConfig
 from yale_events.normalize.time import NEW_HAVEN
@@ -336,3 +338,48 @@ def test_yalesites_fetch_filters_to_window(tmp_path):
     result = YaleSitesAdapter(http).fetch(src)
     assert all(e.start >= result.window_start for e in result.events)
     assert 0 < len(result.events) <= 12
+
+
+# --- macmillan / ycba --------------------------------------------------------------------------
+
+def test_macmillan_upcoming_only():
+    section, next_link = upcoming_section((FIXTURES / "macmillan_events.html").read_text())
+    assert next_link == "?date_month_year=2026-09-26&amp;page=1"  # the upcoming view's pager, not "Previous"
+    events = parse_teasers(section, "https://macmillan.yale.edu/events")
+    assert [e.title for e in events] == [
+        "Protecting New Haven Stories | A We Want More History! Event",
+        "Yale Guitar Studio celebrates Sérgio Assad",
+    ]
+    ev = events[0]
+    assert ev.start == datetime(2026, 9, 27, 13, tzinfo=NEW_HAVEN)
+    assert ev.end == datetime(2026, 9, 27, 14, 30, tzinfo=NEW_HAVEN)
+    assert ev.groups == ["Gilder Lehrman Center for the Study of Slavery, Resistance, and Abolition"]
+    assert ev.url.startswith("https://macmillan.yale.edu/glc/events/2026-09-27/")
+
+
+def test_ycba_grid_skips_exhibitions():
+    events = parse_ycba((FIXTURES / "ycba_programs.html").read_text(), "https://britishart.yale.edu/exhibitions-programs")
+    assert len(events) == 2 and all(e.tags != ["Exhibition"] for e in events)
+    assert events[0].url.startswith("https://britishart.yale.edu/exhibitions-programs/")
+    assert events[0].image_url.startswith("https://britishart.yale.edu/sites/default/files/")
+
+
+@pytest.mark.parametrize(
+    "text, expected",
+    [
+        ("Saturday, September 26, 2026, 10:30 am–12 pm ET", ((10, 30), (12, 0))),
+        ("Saturday, September 26, 2026, 11–11:45 am ET", ((11, 0), (11, 45))),
+        ("Friday, October 2, 2026, 11–1 pm ET", ((11, 0), (13, 0))),
+        ("Friday, October 2, 2026, 6 pm ET", ((18, 0), None)),
+        ("Monday, April 6, 2026–Tuesday, April 6, 2027", None),
+        ("Ongoing", None),
+    ],
+)
+def test_ycba_when(text, expected):
+    got = ycba_when(text)
+    if expected is None:
+        assert got is None
+    else:
+        start, end, all_day = got
+        assert (start.hour, start.minute) == expected[0] and not all_day
+        assert (end and (end.hour, end.minute)) == expected[1]

@@ -4,9 +4,11 @@ from yale_events.adapters.engineering import EngineeringAdapter
 from yale_events.adapters.ical import ICalAdapter
 from yale_events.adapters.jsonld import JsonLdAdapter
 from yale_events.adapters.localist import LocalistAdapter
+from yale_events.adapters.macmillan import MacMillanAdapter
 from yale_events.adapters.music import MusicAdapter
 from yale_events.adapters.peabody import PeabodyAdapter
 from yale_events.adapters.yalesites import YaleSitesAdapter
+from yale_events.adapters.ycba import YCBAAdapter
 from yale_events.adapters.ysm import YSMAdapter
 
 ADAPTERS: dict[str, type] = {
@@ -19,6 +21,8 @@ ADAPTERS: dict[str, type] = {
     "drupal-calendar": DrupalCalendarAdapter,
     "jsonld": JsonLdAdapter,
     "peabody": PeabodyAdapter,
+    "macmillan": MacMillanAdapter,
+    "ycba": YCBAAdapter,
 }
 
 
