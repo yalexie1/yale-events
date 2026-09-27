@@ -10,6 +10,7 @@ from yale_events.adapters.base import CacheNamer, PoliteClient, ReplayClient
 from yale_events.adapters.drupal_calendar import parse_calendar_page
 from yale_events.adapters.engineering import EngineeringAdapter, parse_item
 from yale_events.adapters.ical import parse_calendar
+from yale_events.adapters.jsonld import parse_page as parse_jsonld_page
 from yale_events.adapters.music import MusicAdapter, infer_year
 from yale_events.adapters.text import clean_description, clean_field
 from yale_events.adapters.yalesites import YaleSitesAdapter, event_links, parse_event_page
@@ -252,6 +253,33 @@ def test_drupal_calendar_rows():
     assert market.image_url.startswith("https://oiss.yale.edu/sites/default/files/")
     assert foraging.title == "Mushroom Foraging Tour for Beginners @East Rock"
     assert parse_calendar_page("<p>Upcoming Events</p>", "https://nursing.yale.edu/calendar") == []
+
+
+# --- jsonld --------------------------------------------------------------------------------
+
+JSONLD_PAGE = """
+<a href="/calendar/2643-good-housing">Good Housing</a>
+<script type="application/ld+json">{"@context":"http://schema.org","@type":"Event","name":"Good Housing\\n",
+ "startDate":"2026-10-01T18:00","description":"fala is a practice.\\n",
+ "location":{"@type":"Place","name":"Hastings Hall, basement level of Paul Rudolph Hall, 190 York Street"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[
+ {"@type":"WebPage","name":"Calendar"},
+ {"@type":"ExhibitionEvent","name":"Open Studios","startDate":"2026-10-03","endDate":"2026-10-04",
+  "url":"https://example.yale.edu/open-studios","eventStatus":"https://schema.org/EventCancelled",
+  "location":{"@type":"Place","name":"Online"}}]}</script>
+<script type="application/ld+json">not json</script>
+"""
+
+
+def test_jsonld_events():
+    talk, studios = parse_jsonld_page(JSONLD_PAGE, "https://www.architecture.yale.edu/calendar")
+    assert talk.title == "Good Housing"
+    assert talk.start == datetime(2026, 10, 1, 18, tzinfo=NEW_HAVEN)  # naive = New Haven time
+    assert talk.url == "https://www.architecture.yale.edu/calendar/2643-good-housing"  # matched by slug
+    assert talk.description == "fala is a practice."
+    assert studios.all_day and studios.end is None and studios.start == datetime(2026, 10, 3, tzinfo=NEW_HAVEN)
+    assert studios.cancelled and studios.virtual
+    assert studios.url == "https://example.yale.edu/open-studios"
 
 
 # --- replay ----------------------------------------------------------------------------------

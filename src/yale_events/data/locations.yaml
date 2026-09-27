@@ -212,7 +212,8 @@ buildings:
     area: arts-district
     lat: 41.309
     lon: -72.9316
-    aliases: [Rudolph Hall, School of Architecture, Loria Center]
+    aliases: [Rudolph Hall, Paul Rudolph Hall, School of Architecture, Loria Center]
+    rooms: [Hastings Hall]
     addresses: [190 York Street]
   - id: ccam
     name: Center for Collaborative Arts and Media

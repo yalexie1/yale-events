@@ -90,6 +90,15 @@ sources:
     default_category: talks
     default_location: School of Nursing
 
+  # Pages embedding schema.org Event JSON-LD (generic `jsonld` adapter). Architecture's listing has
+  # ~15 events (past and upcoming) and no feed; also runs events in New York and San Francisco.
+  - id: architecture
+    name: Yale School of Architecture
+    type: jsonld
+    url: https://www.architecture.yale.edu/calendar
+    enabled: true
+    default_category: talks
+
   # --- Residential colleges -----------------------------------------------------------------------
 
   # Public Google Calendars embedded on the college sites. calendar.google.com's robots.txt disallows
