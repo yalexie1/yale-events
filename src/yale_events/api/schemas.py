@@ -112,7 +112,7 @@ class AreaOut(BaseModel):
 class OrgOut(BaseModel):
     id: str
     name: str
-    kind: str  # college | department | organization
+    kind: str  # college | school | department | organization
     upcoming: int
 
 

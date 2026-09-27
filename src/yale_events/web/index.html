@@ -337,7 +337,11 @@
       <p class="fnote">Only five colleges publish a public calendar. For the rest, these are events held there that other calendars list.</p>
     </div>
     <div class="fgroup">
-      <h3>Departments &amp; schools <button class="linkish" data-clear="org:department" hidden>clear</button></h3>
+      <h3>Schools <button class="linkish" data-clear="org:school" hidden>clear</button></h3>
+      <div id="f-school"></div>
+    </div>
+    <div class="fgroup">
+      <h3>Departments &amp; programs <button class="linkish" data-clear="org:department" hidden>clear</button></h3>
       <div id="f-department"></div>
     </div>
     <div class="fgroup">
@@ -573,9 +577,10 @@ function buildFilters(cats, areas, orgs) {
   areas.filter((a) => a.upcoming).forEach((a) => fa.appendChild(optionButton("area", { ...a, name: a.name.replace(/ \(.*\)$/, "") })));
   // All fourteen colleges, alphabetical, even with nothing listed, so a missing calendar is visible.
   orgs.filter((o) => o.kind === "college").forEach((o) => $("f-college").appendChild(optionButton("org", o)));
-  for (const kind of ["department", "organization"]) {
-    const live = orgs.filter((o) => o.kind === kind && o.upcoming).sort((a, b) => b.upcoming - a.upcoming);
-    collapsible($("f-" + kind), live.map((o) => optionButton("org", o)), 8, "org");
+  // The rest alphabetically, as /orgs returns them; long lists collapse to the first ten.
+  for (const kind of ["school", "department", "organization"]) {
+    const live = orgs.filter((o) => o.kind === kind && o.upcoming);
+    collapsible($("f-" + kind), live.map((o) => optionButton("org", o)), kind === "school" ? Infinity : 10, "org");
   }
 }
 /** What a section's "clear" removes: "area", or "org:college" for one kind of organization. */

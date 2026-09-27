@@ -1,11 +1,12 @@
-# Who puts on an event, for the "listed by" filters: residential colleges, departments and schools,
+# Who puts on an event, for the "listed by" filters: residential colleges, schools, departments,
 # and other offices, centers, and groups. An event belongs to an organization when any of these match:
 #   sources:   the event came from one of these sources (sources.yaml ids)
 #   groups:    one of the event's groups (Localist departments, Yale Connect orgs, ...) is listed here
 #   group_contains: one of the event's groups contains this text, case-insensitive (club name suffixes)
 #   locations: the event is held in one of these buildings (locations.yaml ids); colleges only
 # One event can belong to several (Computer Science and Engineering & Applied Science). Groups not
-# listed here don't show up as a filter; `yev uncategorized` lists them after a scrape.
+# listed here don't show up as a filter; `yev uncategorized` lists them after a scrape. Quote a name
+# that contains a comma inside {...}, or YAML splits it (the loader rejects the stray key).
 
 colleges:
   - {id: benjamin-franklin, name: Benjamin Franklin, sources: [franklin], locations: [benjamin-franklin-college]}
@@ -23,8 +24,8 @@ colleges:
   - {id: timothy-dwight, name: Timothy Dwight, sources: [timothy-dwight], locations: [timothy-dwight-college]}
   - {id: trumbull, name: Trumbull, sources: [trumbull], locations: [trumbull-college]}
 
-departments:
-  # Professional schools
+schools:
+  # Professional schools, plus the graduate school and the engineering school
   - {id: medicine, name: School of Medicine, sources: [medicine], groups: [Yale School of Medicine, YSM Financial Aid, Yale Cancer Center - Research Administration,
     Yale School of Medicine - Office of Collaborative Excellence (YSM OCE), Yale Cancer Center - Community Outreach and Engagement]}
   - id: law
@@ -62,6 +63,8 @@ departments:
     groups: [Biomedical Engineering, Chemical & Environmental Engineering, Electrical & Computer Engineering,
              Mechanical Engineering, Materials Science, Computer Science, Applied Physics,
              Applied & Computational Mathematics]
+
+departments:
   # Faculty of Arts and Sciences departments and programs
   - {id: american-studies, name: American Studies, groups: [American Studies]}
   - {id: applied-math, name: Applied Mathematics, groups: [Applied & Computational Mathematics]}
@@ -82,7 +85,7 @@ departments:
   - {id: history, name: History, groups: [Department of History]}
   - {id: jewish-studies, name: Jewish Studies, groups: [Jewish Studies Program, Hebrew Program]}
   - {id: mbb, name: Molecular Biophysics & Biochemistry, groups: [Molecular Biophysics and Biochemistry Department]}
-  - {id: mcdb, name: Molecular, Cellular & Developmental Biology, groups: [Molecular Cellular and Developmental Biology]}
+  - {id: mcdb, name: "Molecular, Cellular & Developmental Biology", groups: [Molecular Cellular and Developmental Biology]}
   - {id: mechanical-engineering, name: Mechanical Engineering & Materials Science, groups: [Mechanical Engineering, Materials Science]}
   - id: nelc
     name: Near Eastern Languages & Civilizations
@@ -92,7 +95,7 @@ departments:
   - {id: religious-studies, name: Religious Studies, groups: [Religious Studies]}
   - {id: slavic, name: Slavic Languages & Literatures, groups: [Department of Slavic Languages and Literatures]}
   - {id: spanish-portuguese, name: Spanish & Portuguese, groups: [Department of Spanish and Portuguese]}
-  - {id: wgss, name: Women's, Gender & Sexuality Studies, groups: [Women Gender and Sexuality Studies]}
+  - {id: wgss, name: "Women's, Gender & Sexuality Studies", groups: [Women Gender and Sexuality Studies]}
 
 organizations:
   - {id: chaplain, name: Chaplain's Office, sources: [chaplain], groups: [University Church in Yale, Black Church at Yale]}
@@ -109,7 +112,7 @@ organizations:
   - {id: schwarzman, name: Schwarzman Center, groups: [Yale Schwarzman Center, Schwarzman Center]}
   - {id: film, name: Film at Yale, groups: [Film at Yale, Yale Film Archive]}
   - {id: arts, name: Yale Arts, groups: [Yale Arts, Center for Collaborative Arts and Media (CCAM), Yale Arts Workshops]}
-  - {id: ensembles, name: Bands, Orchestra & Glee Club, groups: [Yale Symphony Orchestra (YSO), Yale Bands, Yale Glee Club]}
+  - {id: ensembles, name: "Bands, Orchestra & Glee Club", groups: [Yale Symphony Orchestra (YSO), Yale Bands, Yale Glee Club]}
   - id: macmillan
     name: MacMillan Center
     sources: [macmillan]

@@ -213,7 +213,7 @@ def test_reference_endpoints(client):
     kroon = next(b for b in client.get("/locations", params={"area": "science-hill"}).json() if b["id"] == "kroon-hall")
     assert kroon["upcoming"] == 1
     orgs = {o["id"]: o for o in client.get("/orgs").json()}
-    assert orgs["music"] == {"id": "music", "name": "School of Music", "kind": "department", "upcoming": 1}
+    assert orgs["music"] == {"id": "music", "name": "School of Music", "kind": "school", "upcoming": 1}
     assert (orgs["arts"]["upcoming"], orgs["berkeley"]["kind"]) == (1, "college")
     (src,) = client.get("/sources").json()
     assert (src["id"], src["last_run_status"], src["upcoming"]) == ("test", "ok", 4)

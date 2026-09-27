@@ -3,7 +3,7 @@
 Yale events are scattered across dozens of department calendars, school sites, residential college
 calendars, and Yale Connect. This project scrapes them into one normalized database and serves it as:
 
-- a **JSON API** filterable by date, category, location, college/department/organization, and text,
+- a **JSON API** filterable by date, category, location, college/school/department/organization, and text,
 - a **subscribable iCal feed** for any filtered view (`/events.ics?...`), and
 - a **browser UI** at `/` built on the same public endpoints.
 
@@ -43,7 +43,7 @@ Filters (all optional, on both `/events` and `/events.ics`; list filters accept 
 | `category` | `category=talks,music` | Talks, music, arts & performance, film, exhibitions, academic, career, social, cultural, religious, sports, health, community service. |
 | `area` | `area=science-hill` | Campus area: central, arts district, Science Hill, medical, West Campus, athletic fields, off campus, online. |
 | `location` | `location=woolsey-hall` | A specific building (~110 known, with aliases, room codes, and addresses). |
-| `org` | `org=computer-science,pauli-murray` | A residential college, department or school, or other organization. |
+| `org` | `org=computer-science,pauli-murray` | A residential college, school, department or program, or other organization (`/orgs` lists them alphabetically within each kind). |
 | `source` | `source=law` | The calendar it came from. |
 | `q` | `q=YPU debate` | Text search: every word must appear in the title, description, venue, or hosts. Well-known shorthands match their full names and back (YPU, SOM, EP&E, YUAG; see [`aliases.yaml`](src/yale_events/data/aliases.yaml)), and building names and aliases (HQ, WLH, the Whale) also match events held there. |
 | `free_food` | `free_food=true` | The listing mentions food ("lunch provided", "refreshments", ...). |
@@ -109,7 +109,7 @@ sources.yaml → adapter → RawEvent → normalize → SQLite → dedupe → Fa
    is kept and the others appear as `also_listed_by`.
 5. **Serve.** One query builder backs both the JSON feed and the iCal feed, so every filter works on both.
 
-Colleges, departments, and organizations for the `org` filter are defined in
+Colleges, schools, departments, and organizations for the `org` filter are defined in
 `src/yale_events/data/organizations.yaml`: an organization matches by source, by host group, or by
 building. `yev uncategorized` lists events and hosts the rules don't cover yet.
 

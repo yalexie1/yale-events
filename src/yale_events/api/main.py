@@ -17,7 +17,7 @@ from yale_events.db import make_session_factory
 from yale_events.models import Event, EventCategory, ScrapeRun, Source
 from yale_events.normalize import default_normalizer
 from yale_events.normalize.time import NEW_HAVEN
-from yale_events.orgs import default_orgs
+from yale_events.orgs import default_orgs, sort_key
 
 DEFAULT_DAYS = 90
 ICS_PAST_DAYS = 7
@@ -59,7 +59,7 @@ def event_filters(
     location: Annotated[list[str] | None, Query(description="Any of these buildings, see /locations.")] = None,
     source: Annotated[list[str] | None, Query(description="Any of these sources, see /sources.")] = None,
     org: Annotated[
-        list[str] | None, Query(description="Any of these colleges, departments, or organizations, see /orgs.")
+        list[str] | None, Query(description="Any of these colleges, schools, departments, or organizations, see /orgs.")
     ] = None,
     q: Annotated[str | None, Query(description="Text search: every word must appear in the title, description, venue, or hosts. Shorthands match their full names (YPU, SOM, HQ; see aliases.yaml).")] = None,
     free_food: bool | None = None,
@@ -206,13 +206,13 @@ def register_routes(app: FastAPI) -> None:
 
     @app.get("/orgs", response_model=list[OrgOut], tags=["reference"])
     def orgs(session: SessionDep):
-        """Residential colleges, departments and schools, and other organizations, in organizations.yaml order."""
+        """Residential colleges, schools, departments, and other organizations, each alphabetical (see `sort_key`)."""
         rows = session.execute(
             select(Event.source_id, Event.groups, Event.location_id).where(*upcoming_filter(datetime.now(UTC)))
         ).all()
         return [
             OrgOut(id=o.id, name=o.name, kind=o.kind, upcoming=sum(o.matches(*r) for r in rows))
-            for o in default_orgs().values()
+            for o in sorted(default_orgs().values(), key=sort_key)
         ]
 
     @app.get("/sources", response_model=list[SourceOut], tags=["reference"])
