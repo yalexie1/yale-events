@@ -73,9 +73,16 @@ buildings:
     area: central
     lat: 41.3106
     lon: -72.9267
-    aliases: [Sudler Hall, William L. Harkness Hall, WLH]
+    aliases: [Sudler Hall, William L. Harkness Hall, WLH, Sudler Recital Hall in WLH]
     addresses: [100 Wall Street]
     room_codes: [WLH]
+  - id: dwight-chapel
+    name: Dwight Memorial Chapel
+    area: central
+    lat: 41.3083
+    lon: -72.9296
+    aliases: [Dwight Chapel]
+    addresses: [67 High Street]
   - id: battell-chapel
     name: Battell Chapel
     area: central

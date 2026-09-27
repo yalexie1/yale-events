@@ -2,6 +2,7 @@ from yale_events.adapters.base import Adapter, PoliteClient
 from yale_events.adapters.engineering import EngineeringAdapter
 from yale_events.adapters.ical import ICalAdapter
 from yale_events.adapters.localist import LocalistAdapter
+from yale_events.adapters.music import MusicAdapter
 from yale_events.adapters.yalesites import YaleSitesAdapter
 from yale_events.adapters.ysm import YSMAdapter
 
@@ -11,6 +12,7 @@ ADAPTERS: dict[str, type] = {
     "engineering": EngineeringAdapter,
     "yalesites": YaleSitesAdapter,
     "ysm": YSMAdapter,
+    "yale-music": MusicAdapter,
 }
 
 

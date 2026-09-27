@@ -64,6 +64,16 @@ sources:
     enabled: true
     default_category: talks
 
+  # School of Music concerts (~95 per season), incl. ISM, the instrument collection, and Norfolk. The
+  # events page's "Load More" calls /ajax/browse/get_items, which returns rendered cards; one request
+  # gets them all, a second (free_admission filter) marks free ones. Cards have no year or end time.
+  - id: music
+    name: Yale School of Music
+    type: yale-music
+    url: https://music.yale.edu/events
+    enabled: true
+    tags: [Music]
+
   # --- Residential colleges -----------------------------------------------------------------------
 
   # Public Google Calendars embedded on the college sites. calendar.google.com's robots.txt disallows

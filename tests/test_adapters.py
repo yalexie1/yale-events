@@ -9,6 +9,7 @@ import respx
 from yale_events.adapters.base import CacheNamer, PoliteClient, ReplayClient
 from yale_events.adapters.engineering import EngineeringAdapter, parse_item
 from yale_events.adapters.ical import parse_calendar
+from yale_events.adapters.music import MusicAdapter, infer_year
 from yale_events.adapters.text import clean_description, clean_field
 from yale_events.adapters.yalesites import YaleSitesAdapter, event_links, parse_event_page
 from yale_events.adapters.ysm import YSMAdapter
@@ -193,6 +194,48 @@ def test_ysm_pages_and_skips_internal_audiences(tmp_path):
     assert retreat.all_day and retreat.end is None and retreat.start == datetime(2026, 11, 6, tzinfo=NEW_HAVEN)
     assert retreat.audience == ["Yale Community"]
     assert events["118427"].cancelled
+
+
+# --- music.yale.edu -------------------------------------------------------------------------
+
+@pytest.mark.parametrize(
+    "text, today, expected",
+    [
+        ("Sep 27, 3:00PM", date(2026, 9, 26), datetime(2026, 9, 27, 15, tzinfo=NEW_HAVEN)),
+        ("May 8, 7:30PM", date(2026, 9, 26), datetime(2027, 5, 8, 19, 30, tzinfo=NEW_HAVEN)),
+        ("Jan 2, 12:00PM", date(2026, 12, 30), datetime(2027, 1, 2, 12, tzinfo=NEW_HAVEN)),
+        ("Sep 25, 7:30PM", date(2026, 9, 26), datetime(2026, 9, 25, 19, 30, tzinfo=NEW_HAVEN)),  # yesterday, still listed
+        ("TBA", date(2026, 9, 26), None),
+    ],
+)  # fmt: skip
+def test_music_infer_year(text, today, expected):
+    assert infer_year(text, today) == expected
+
+
+@respx.mock
+def test_music_cards_and_free_filter(tmp_path, monkeypatch):
+    monkeypatch.setattr("yale_events.adapters.music.datetime", _FixedNow)
+    page = json.loads((FIXTURES / "music_items.json").read_text())
+    api = "https://music.yale.edu/ajax/browse/get_items"
+    route = respx.get(api).mock(
+        side_effect=[httpx.Response(200, json=page), httpx.Response(200, json={**page, "items": page["items"][1:]})]
+    )
+    http = PoliteClient(httpx.Client(), min_interval=0, cache_dir=tmp_path)
+    src = SourceConfig(id="music", name="YSM", type="yale-music", url="https://music.yale.edu/events")
+    organ, recital = MusicAdapter(http).fetch(src).events
+    assert json.loads(route.calls[1].request.url.params["filters"]) == {"free_admission": 1}
+    assert organ.title == "Great Organ Music at Yale with Francesco Cera"
+    assert organ.start == datetime(2026, 9, 27, 19, 30, tzinfo=NEW_HAVEN)
+    assert (organ.location_name, organ.tags, organ.free) == ("Marquand Chapel", ["ISM Great Organ Music"], None)
+    assert organ.url == "https://music.yale.edu/events/great-organ-music-yale-francesco-cera"
+    assert recital.title == "Derek Hartman, piano"  # <i> tags stripped
+    assert recital.free is True
+
+
+class _FixedNow(datetime):
+    @classmethod
+    def now(cls, tz=None):
+        return datetime(2026, 9, 26, 12, tzinfo=tz)
 
 
 # --- replay ----------------------------------------------------------------------------------
