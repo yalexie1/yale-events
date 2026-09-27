@@ -2,329 +2,958 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Yale Events</title>
+<meta name="description" content="Every public Yale event calendar in one place, filterable and subscribable.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f6f7f9; --card: #fff; --text: #1a1d21; --muted: #5f6b7a; --line: #e2e6eb;
-    --accent: #00356b; --accent-soft: #e5edf6; --warn: #b3261e; --chip: #eef1f4;
+    --paper: #f5f1e8; --paper-2: #ede7da; --paper-3: #e4dccb; --sheet: #fbf9f4;
+    --ink: #1c1f23; --ink-2: #5d5a52; --ink-3: #8b867a; --rule: #d8cfbc; --rule-strong: #1c1f23;
+    --blue: #00356b; --blue-soft: #dfe6ee; --accent: #b0501c; --accent-soft: #f6e2d3; --danger: #a4262c;
+    --serif: "EB Garamond", "Garamond", "Iowan Old Style", Georgia, serif;
+    --sans: "Public Sans", "Helvetica Neue", Helvetica, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    --tb: 64px;
+    --c-talks: #00356b; --c-arts-performance: #9b2c4a; --c-music: #1f6f78; --c-film: #4a4a4a;
+    --c-exhibitions: #8a6a14; --c-academic: #2f5d3a; --c-career: #4a5a70; --c-social: #bf5520;
+    --c-cultural: #7a3b7a; --c-religious: #6d5a3d; --c-sports: #1f4fa0; --c-health: #3f7d5c;
+    --c-community-service: #8a4b2b;
+    color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #111418; --card: #1a1f25; --text: #e6e9ed; --muted: #97a3b1; --line: #2a3139;
-      --accent: #8fb8e8; --accent-soft: #1e2d40; --warn: #f2b8b5; --chip: #242b33;
+      --paper: #0e131a; --paper-2: #151c25; --paper-3: #1d2631; --sheet: #121922;
+      --ink: #ece6d8; --ink-2: #a9a595; --ink-3: #75736a; --rule: #263140; --rule-strong: #ece6d8;
+      --blue: #9cc0ea; --blue-soft: #1a2a3d; --accent: #eb9a62; --accent-soft: #33241a; --danger: #f08b8f;
+      --c-talks: #8db4e3; --c-arts-performance: #e48aa3; --c-music: #7cc6cf; --c-film: #bdbdbd;
+      --c-exhibitions: #dcbc5e; --c-academic: #8fc79c; --c-career: #a8b7cc; --c-social: #f09a66;
+      --c-cultural: #d49ad4; --c-religious: #cdb893; --c-sports: #7fa6ea; --c-health: #86cfa6;
+      --c-community-service: #dfa07e;
+      color-scheme: dark;
     }
   }
+
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text);
-         font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-  header { background: var(--accent); color: #fff; padding: 14px 16px; }
-  @media (prefers-color-scheme: dark) { header { background: #00356b; } }
-  header h1 { margin: 0; font-size: 20px; }
-  header p { margin: 2px 0 0; opacity: .8; font-size: 13px; }
-  .wrap { max-width: 1100px; margin: 0 auto; padding: 16px; display: grid; gap: 20px;
-          grid-template-columns: 260px 1fr; }
-  @media (max-width: 800px) { .wrap { grid-template-columns: 1fr; } }
-  aside { display: flex; flex-direction: column; gap: 14px; }
-  aside label.h { display: block; font-size: 12px; font-weight: 600; text-transform: uppercase;
-                  letter-spacing: .04em; color: var(--muted); margin-bottom: 4px; }
-  input[type=search], input[type=date], select {
-    width: 100%; padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px;
-    background: var(--card); color: var(--text); font: inherit; }
-  .dates { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .chips { display: flex; flex-wrap: wrap; gap: 5px; }
-  .chip { border: 1px solid var(--line); background: var(--chip); color: var(--text); border-radius: 999px;
-          padding: 3px 10px; font: inherit; font-size: 13px; cursor: pointer; }
-  .chip[aria-pressed=true] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
-  .chip small { opacity: .65; }
-  .check { display: flex; align-items: center; gap: 6px; font-size: 14px; }
-  .btn { display: inline-block; padding: 7px 12px; border-radius: 6px; border: 1px solid var(--accent);
-         color: var(--accent); background: transparent; text-decoration: none; font: inherit; font-size: 14px;
-         cursor: pointer; text-align: center; }
-  .btn.primary { background: var(--accent); color: var(--bg); }
-  .quick { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
-  .quick button { font-size: 12px; padding: 2px 8px; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.5 var(--sans);
+         -webkit-font-smoothing: antialiased; }
+  button, input, select { font: inherit; color: inherit; }
+  a { color: var(--blue); }
+  :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 2px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .smallcaps { font-size: 11px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; }
+
+  /* ---------- Masthead ---------- */
+  .masthead { max-width: 1240px; margin: 0 auto; padding: 28px 24px 0; }
+  .mast-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+  .wordmark { margin: 0; font: 500 52px/0.95 var(--serif); letter-spacing: -0.015em; }
+  .wordmark em { font-style: italic; font-weight: 400; color: var(--blue); }
+  .mast-meta { text-align: right; font-family: var(--mono); font-size: 12px; color: var(--ink-2); line-height: 1.7; }
+  .mast-meta b { color: var(--ink); font-weight: 500; }
+  .double-rule { margin-top: 14px; border-top: 2px solid var(--rule-strong); border-bottom: 1px solid var(--rule-strong);
+                 height: 5px; }
+  .dek { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 8px 0 0;
+         font-family: var(--serif); font-style: italic; font-size: 16px; color: var(--ink-2); }
+
+  /* ---------- Layout ---------- */
+  .layout { max-width: 1240px; margin: 0 auto; padding: 0 24px 60px; display: grid;
+            grid-template-columns: 236px minmax(0, 1fr); gap: 40px; }
+
+  /* ---------- Toolbar (sticky) ---------- */
+  .toolbar { position: sticky; top: 0; z-index: 20; background: var(--paper); padding: 14px 0 12px;
+             border-bottom: 1px solid var(--rule); display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
   main { min-width: 0; }
-  .status { color: var(--muted); font-size: 14px; margin: 0 0 10px; display: flex; justify-content: space-between;
-            gap: 10px; flex-wrap: wrap; align-items: center; }
-  h2.day { font-size: 14px; margin: 22px 0 8px; color: var(--muted); position: sticky; top: 0;
-           background: var(--bg); padding: 6px 0; z-index: 1; }
-  h2.day:first-of-type { margin-top: 0; }
-  .ev { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px;
-        margin-bottom: 8px; display: grid; grid-template-columns: 78px 1fr; gap: 12px; cursor: pointer; }
-  .ev:hover { border-color: var(--accent); }
-  .time { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
-  .title { font-weight: 600; }
-  .meta { font-size: 13px; color: var(--muted); margin-top: 2px; }
-  .tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 5px; }
-  .tag { font-size: 11px; background: var(--accent-soft); color: var(--accent); border-radius: 4px; padding: 1px 6px; }
-  .tag.food { background: #fdf0d5; color: #7a4f00; }
-  @media (prefers-color-scheme: dark) { .tag.food { background: #3a2e14; color: #f3cf7a; } }
-  .tag.cancel { background: transparent; color: var(--warn); border: 1px solid var(--warn); }
-  .detail { grid-column: 1 / -1; border-top: 1px solid var(--line); padding-top: 10px; font-size: 14px;
-            cursor: auto; }
-  .detail img { max-width: 220px; max-height: 160px; border-radius: 6px; float: right; margin: 0 0 8px 12px; }
-  .detail p { white-space: pre-line; margin: 0 0 10px; }
-  .detail .links { display: flex; gap: 8px; flex-wrap: wrap; clear: both; }
-  .empty, .err { padding: 30px; text-align: center; color: var(--muted); }
-  .err { color: var(--warn); }
-  #more { width: 100%; margin: 8px 0 30px; }
+  .tb-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .search { position: relative; flex: 1 1 260px; }
+  .search input { width: 100%; height: 38px; padding: 0 64px 0 36px; border: 1px solid var(--rule);
+                  background: var(--sheet); border-radius: 3px; outline: none; }
+  .search input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-soft); }
+  .search svg { position: absolute; left: 11px; top: 11px; color: var(--ink-3); pointer-events: none; }
+  .search kbd, .search .clear { position: absolute; right: 8px; top: 8px; }
+  kbd { font: 500 11px/20px var(--mono); padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px;
+        border-radius: 3px; color: var(--ink-3); background: var(--paper); }
+  .search .clear { border: 0; background: none; cursor: pointer; color: var(--ink-3); height: 22px; padding: 0 4px; }
+  .search input:not(:placeholder-shown) ~ kbd { display: none; }
+  @media (hover: none) { .search kbd { display: none; } }
+  .search input:placeholder-shown ~ .clear { display: none; }
+
+  .ranges { display: flex; border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; background: var(--sheet); }
+  .ranges button { border: 0; background: none; padding: 0 12px; height: 36px; cursor: pointer; font-size: 13.5px;
+                   color: var(--ink-2); white-space: nowrap; border-right: 1px solid var(--rule); }
+  .ranges button:last-child { border-right: 0; }
+  .ranges button:hover { color: var(--ink); background: var(--paper-2); }
+  .ranges button[aria-pressed=true] { background: var(--ink); color: var(--paper); }
+  .custom-dates { display: none; gap: 6px; align-items: center; font-size: 13px; color: var(--ink-2); }
+  .custom-dates.on { display: flex; }
+  .custom-dates input { height: 36px; padding: 0 8px; border: 1px solid var(--rule); border-radius: 3px;
+                        background: var(--sheet); font-family: var(--mono); font-size: 13px; }
+
+  .status-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-height: 26px; }
+  .count { font-family: var(--mono); font-size: 12px; color: var(--ink-2); margin-right: 4px; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 4px 0 10px; font-size: 12.5px;
+          border: 1px solid var(--rule); border-radius: 13px; background: var(--sheet); cursor: pointer; }
+  .pill:hover { border-color: var(--ink-3); }
+  .pill .x { width: 18px; height: 18px; display: grid; place-items: center; border-radius: 50%; color: var(--ink-3); }
+  .pill:hover .x { background: var(--paper-3); color: var(--ink); }
+  .pill .sw { width: 8px; height: 8px; background: var(--cat, var(--ink-3)); }
+  .linkish { border: 0; background: none; padding: 0; color: var(--blue); cursor: pointer; font-size: 12.5px;
+             text-decoration: underline; text-underline-offset: 2px; }
+  .btn.filters-btn { display: none; }
+
+  /* ---------- Sidebar filters ---------- */
+  aside { position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; padding: 18px 2px 30px 0;
+          scrollbar-width: thin; }
+  .fgroup { padding: 14px 0 16px; border-bottom: 1px solid var(--rule); }
+  .fgroup:first-of-type { padding-top: 0; }
+  .fgroup h3 { margin: 0 0 8px; color: var(--ink-2); display: flex; justify-content: space-between; align-items: baseline; }
+  .fgroup h3 .linkish { font-size: 11px; letter-spacing: 0; text-transform: none; font-weight: 400; }
+  .opt { display: grid; grid-template-columns: 14px 1fr auto; align-items: center; gap: 9px; width: 100%;
+         padding: 4px 6px; margin: 0 -6px; border: 0; background: none; cursor: pointer; text-align: left;
+         font-size: 14px; border-radius: 2px; width: calc(100% + 12px); }
+  .opt:hover { background: var(--paper-2); }
+  .opt .box { width: 12px; height: 12px; border: 1.5px solid var(--cat, var(--ink-3)); border-radius: 1px;
+              display: grid; place-items: center; }
+  .opt[aria-pressed=true] .box { background: var(--cat, var(--ink)); border-color: var(--cat, var(--ink)); }
+  .opt[aria-pressed=true] .box::after { content: ""; width: 6px; height: 3px; border: 1.5px solid var(--paper);
+                                        border-top: 0; border-right: 0; transform: rotate(-45deg) translate(0, -1px); }
+  .opt .n { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); }
+  .opt[aria-pressed=true] { font-weight: 500; }
+  .opt.dim { color: var(--ink-3); }
+  .more-toggle { margin-top: 6px; }
+
+  .toggle { display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer;
+            font-size: 14px; padding: 2px 0; }
+  .toggle .lbl { display: flex; flex-direction: column; }
+  .toggle .lbl small { color: var(--ink-3); font-size: 12px; }
+  .switch { position: relative; width: 34px; height: 20px; flex: none; }
+  .switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+  .switch span { position: absolute; inset: 0; border-radius: 10px; background: var(--paper-3); border: 1px solid var(--rule);
+                 transition: background .15s; pointer-events: none; }
+  .switch span::after { content: ""; position: absolute; left: 2px; top: 2px; width: 14px; height: 14px; border-radius: 50%;
+                        background: var(--sheet); box-shadow: 0 1px 2px rgb(0 0 0 / .25); transition: transform .15s; }
+  .switch input:checked + span { background: var(--accent); border-color: var(--accent); }
+  .switch input:checked + span::after { transform: translateX(14px); }
+  .switch input:focus-visible + span { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+  .subscribe-card { margin-top: 18px; padding: 14px; background: var(--sheet); border: 1px solid var(--rule); }
+  .subscribe-card p { margin: 4px 0 10px; font-size: 13px; color: var(--ink-2); line-height: 1.45; }
+  .subscribe-card h3 { margin: 0; font: 500 18px/1.2 var(--serif); }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 36px; padding: 0 14px;
+         border: 1px solid var(--ink); background: transparent; color: var(--ink); border-radius: 3px; cursor: pointer;
+         font-size: 13.5px; font-weight: 500; text-decoration: none; white-space: nowrap; }
+  .btn:hover { background: var(--paper-2); }
+  .btn.solid { background: var(--ink); color: var(--paper); }
+  .btn.solid:hover { background: var(--blue); border-color: var(--blue); }
+  .btn.block { width: 100%; }
+  .btn.quiet { border-color: var(--rule); }
+  .btn svg { flex: none; }
+
+  /* ---------- Event list ---------- */
+  .day { margin-top: 6px; }
+  .day-h { position: sticky; top: var(--tb); z-index: 5; background: var(--paper); display: flex; align-items: baseline;
+           gap: 12px; padding: 22px 0 8px; border-bottom: 1px solid var(--rule-strong); margin: 0; }
+  .day-h .dow { font: italic 400 28px/1 var(--serif); }
+  .day-h .date { font: 500 12px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+  .day-h .rel { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--paper);
+                background: var(--blue); padding: 3px 7px 2px; border-radius: 2px; }
+  .day-h .n { margin-left: auto; font: 12px var(--mono); color: var(--ink-3); }
+  .day.underway .day-h .dow { color: var(--ink-2); }
+
+  .ev { position: relative; display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 18px; padding: 14px 10px 15px;
+        margin: 0 -10px; border-bottom: 1px solid var(--rule); }
+  .ev:hover { background: var(--paper-2); }
+  .ev.sel { background: var(--blue-soft); }
+  .ev.cancelled .title { text-decoration: line-through; text-decoration-thickness: 1px; color: var(--ink-2); }
+  .when { font-family: var(--mono); font-size: 13px; line-height: 1.45; font-variant-numeric: tabular-nums; padding-top: 3px; }
+  .when .end { color: var(--ink-3); display: block; }
+  .when .ampm { font-size: 10.5px; margin-left: 1px; color: var(--ink-2); }
+  .now { display: inline-flex; align-items: center; gap: 5px; margin-top: 6px; color: var(--accent); font: 600 10.5px var(--sans);
+         letter-spacing: .09em; text-transform: uppercase; }
+  .now::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor;
+                 box-shadow: 0 0 0 0 currentColor; animation: pulse 2s infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); }
+                     70%, 100% { box-shadow: 0 0 0 6px transparent; } }
+  .kicker { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 3px; color: var(--ink-2); }
+  .kicker span { display: inline-flex; align-items: center; gap: 6px; }
+  .kicker span::before { content: ""; width: 7px; height: 7px; background: var(--cat, var(--ink-3)); }
+  .title { font: 500 20px/1.22 var(--serif); margin: 0; letter-spacing: -0.003em; text-wrap: pretty; }
+  .title a { color: inherit; text-decoration: none; }
+  .title a::after { content: ""; position: absolute; inset: 0; }
+  .ev:hover .title a { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px;
+                       text-decoration-color: var(--ink-3); }
+  .meta { margin-top: 4px; font-size: 13.5px; color: var(--ink-2); display: flex; flex-wrap: wrap; gap: 4px 14px; }
+  .meta .venue b { color: var(--ink); font-weight: 500; }
+  .flags { display: inline-flex; gap: 6px; }
+  .flag { font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 2px 6px 1px;
+          border-radius: 2px; align-self: center; }
+  .flag.food { background: var(--accent-soft); color: var(--accent); }
+  .flag.free { background: var(--blue-soft); color: var(--blue); }
+  .flag.cancel { border: 1px solid var(--danger); color: var(--danger); }
+
+  .reveal { animation: rise .45s cubic-bezier(.2, .7, .2, 1) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+
+  .skel .bar { height: 12px; background: var(--paper-3); border-radius: 2px; animation: shimmer 1.2s ease-in-out infinite alternate; }
+  @keyframes shimmer { to { opacity: .45; } }
+
+  .empty { padding: 70px 10px; text-align: center; }
+  .empty h2 { font: italic 400 30px/1.2 var(--serif); margin: 0 0 8px; }
+  .empty p { color: var(--ink-2); margin: 0 0 18px; }
+  .empty .actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .err { color: var(--danger); }
+  #sentinel { height: 1px; }
+  .loadmore { display: flex; justify-content: center; padding: 26px 0; }
+  .endnote { text-align: center; padding: 34px 0 0; font: italic 16px var(--serif); color: var(--ink-3); }
+  .endnote::before { content: "❦"; display: block; font-style: normal; font-size: 20px; margin-bottom: 4px; }
+
+  footer { max-width: 1240px; margin: 0 auto; padding: 18px 24px 40px; border-top: 1px solid var(--rule);
+           display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 12.5px; color: var(--ink-3); }
+  footer a { color: var(--ink-2); }
+
+  /* ---------- Detail sheet ---------- */
+  dialog { color: var(--ink); }
+  dialog::backdrop { background: rgb(12 16 22 / .38); }
+  .sheet { margin: 0 0 0 auto; padding: 0; border: 0; width: min(580px, 100vw); height: 100dvh; max-height: none;
+           max-width: 100vw; background: var(--sheet); box-shadow: -18px 0 40px rgb(0 0 0 / .14); }
+  .sheet[open] { animation: slidein .28s cubic-bezier(.2, .8, .2, 1); }
+  @keyframes slidein { from { transform: translateX(40px); opacity: 0; } }
+  .sheet-inner { display: flex; flex-direction: column; height: 100%; }
+  .sheet-top { display: flex; align-items: center; gap: 4px; padding: 10px 14px; border-bottom: 1px solid var(--rule); }
+  .sheet-top .pos { font: 12px var(--mono); color: var(--ink-3); margin-right: auto; padding-left: 4px; }
+  .icon-btn { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid transparent; background: none;
+              border-radius: 3px; cursor: pointer; color: var(--ink-2); }
+  .icon-btn:hover:not(:disabled) { background: var(--paper-2); color: var(--ink); }
+  .icon-btn:disabled { opacity: .35; cursor: default; }
+  .sheet-body:focus { outline: none; }
+  .sheet-body { overflow-y: auto; padding: 26px 30px 40px; flex: 1; }
+  .sheet-body .kicker { margin-bottom: 10px; }
+  .sheet-body h2 { font: 500 34px/1.1 var(--serif); margin: 0 0 20px; letter-spacing: -0.01em; text-wrap: balance; }
+  .facts { display: grid; grid-template-columns: 92px 1fr; margin: 0 0 22px; border-top: 1px solid var(--rule); }
+  .facts dt, .facts dd { padding: 10px 0; border-bottom: 1px solid var(--rule); margin: 0; }
+  .facts dt { color: var(--ink-3); padding-top: 12px; }
+  .facts dd { font-size: 14.5px; }
+  .facts dd small { display: block; color: var(--ink-2); font-size: 13px; }
+  .actions-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 26px; }
+  .hero { width: 100%; max-height: 300px; object-fit: cover; display: block; margin: 0 0 22px; background: var(--paper-2); }
+  .desc { font: 18px/1.55 var(--serif); overflow-wrap: anywhere; }
+  .desc p { margin: 0 0 14px; }
+  .desc.none { color: var(--ink-3); font-style: italic; }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
+           background: var(--ink); color: var(--paper); padding: 8px 14px; border-radius: 3px; font-size: 13px; z-index: 100;
+           transition: all .2s; }
+  .toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+  /* ---------- Subscribe dialog ---------- */
+  .modal { border: 1px solid var(--rule); padding: 0; background: var(--sheet); width: min(480px, calc(100vw - 32px));
+           box-shadow: 0 20px 50px rgb(0 0 0 / .2); }
+  .modal[open] { animation: rise .25s cubic-bezier(.2, .8, .2, 1); }
+  .modal .inner { padding: 24px 26px 22px; }
+  .modal h2 { font: 500 28px/1.15 var(--serif); margin: 0 0 6px; }
+  .modal p { margin: 0 0 14px; color: var(--ink-2); font-size: 14px; }
+  .modal .scope { font-size: 13.5px; background: var(--paper); border: 1px solid var(--rule); padding: 10px 12px; margin: 0 0 14px; }
+  .copyfield { display: flex; gap: 6px; margin-bottom: 12px; }
+  .copyfield input { flex: 1; min-width: 0; height: 36px; padding: 0 10px; border: 1px solid var(--rule); border-radius: 3px;
+                     background: var(--paper); font: 12px var(--mono); }
+  .modal .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .modal .close { position: absolute; top: 10px; right: 10px; }
+
+  /* ---------- Mobile ---------- */
+  .backdrop { display: none; }
+  .drawer-foot { display: none; }
+  @media (max-width: 880px) {
+    .masthead { padding: 18px 16px 0; }
+    .wordmark { font-size: 38px; }
+    .mast-meta .full { display: none; }
+    .layout { grid-template-columns: minmax(0, 1fr); padding: 0 16px 40px; gap: 0; }
+    .btn.filters-btn { display: inline-flex; }
+    aside { position: fixed; z-index: 60; top: 0; bottom: 0; left: 0; width: min(340px, 88vw); max-height: none;
+            background: var(--paper); padding: 20px 18px 90px; transform: translateX(-102%); transition: transform .25s ease;
+            box-shadow: 10px 0 30px rgb(0 0 0 / .15); }
+    body.filters-open aside { transform: none; }
+    body.filters-open .backdrop { display: block; position: fixed; inset: 0; z-index: 55; background: rgb(12 16 22 / .38); }
+    .drawer-foot { display: block; position: fixed; z-index: 61; left: 0; bottom: 0; width: min(340px, 88vw); padding: 12px 18px;
+                   background: var(--paper); border-top: 1px solid var(--rule); transform: translateX(-102%);
+                   transition: transform .25s ease; }
+    body.filters-open .drawer-foot { transform: none; }
+    .ranges { overflow-x: auto; max-width: 100%; scrollbar-width: none; }
+    .ev { grid-template-columns: 76px minmax(0, 1fr); gap: 12px; }
+    .when { font-size: 11.5px; white-space: nowrap; }
+    .search { flex-basis: 180px; }
+    .title { font-size: 18px; }
+    .day-h .dow { font-size: 24px; }
+    .sheet { width: 100vw; }
+    .sheet-body { padding: 20px 18px 40px; }
+    .sheet-body h2 { font-size: 28px; }
+    .facts { grid-template-columns: 76px 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
 </style>
 </head>
 <body>
-<header>
-  <h1>Yale Events</h1>
-  <p id="sub">One feed of Yale calendars</p>
+<header class="masthead">
+  <div class="mast-row">
+    <h1 class="wordmark">Yale <em>Events</em></h1>
+    <div class="mast-meta">
+      <div id="today"></div>
+      <div class="full" id="updated">&nbsp;</div>
+    </div>
+  </div>
+  <div class="double-rule"></div>
+  <div class="dek">
+    <span id="dek">Every public Yale calendar, in one listing.</span>
+  </div>
 </header>
-<div class="wrap">
-  <aside>
-    <div>
-      <label class="h" for="q">Search</label>
-      <input type="search" id="q" placeholder="Title, description, venue">
+
+<div class="layout">
+  <aside id="filters" aria-label="Filters">
+    <div class="fgroup">
+      <label class="toggle">
+        <span class="lbl">Free food <small>Where the listing mentions it</small></span>
+        <span class="switch"><input type="checkbox" id="free_food"><span></span></span>
+      </label>
     </div>
-    <div>
-      <label class="h">Dates</label>
-      <div class="dates">
-        <input type="date" id="start" aria-label="From">
-        <input type="date" id="end" aria-label="Through">
-      </div>
-      <div class="quick">
-        <button class="chip" data-range="0">Today</button>
-        <button class="chip" data-range="weekend">Weekend</button>
-        <button class="chip" data-range="6">7 days</button>
-        <button class="chip" data-range="29">30 days</button>
-      </div>
+    <div class="fgroup">
+      <h3 class="smallcaps">Category <button class="linkish" data-clear="category" hidden>clear</button></h3>
+      <div id="f-category"></div>
     </div>
-    <div>
-      <label class="h">Category</label>
-      <div class="chips" id="categories"></div>
+    <div class="fgroup">
+      <h3 class="smallcaps">Where <button class="linkish" data-clear="area" hidden>clear</button></h3>
+      <div id="f-area"></div>
     </div>
-    <div>
-      <label class="h" for="area">Area</label>
-      <select id="area"><option value="">Anywhere</option></select>
+    <div class="fgroup">
+      <h3 class="smallcaps">Listed by <button class="linkish" data-clear="source" hidden>clear</button></h3>
+      <div id="f-source"></div>
     </div>
-    <div>
-      <label class="h" for="source">Source</label>
-      <select id="source"><option value="">All sources</option></select>
+    <div class="subscribe-card">
+      <h3>Keep it in your calendar</h3>
+      <p>Subscribe to this filtered view. New events appear on their own.</p>
+      <button class="btn solid block" data-open-subscribe>
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="11" rx="1"/><path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3"/></svg>
+        Subscribe
+      </button>
     </div>
-    <label class="check"><input type="checkbox" id="free_food"> Free food</label>
-    <a class="btn primary" id="subscribe" href="#" title="Subscribe to this filtered view in your calendar app">Subscribe (.ics)</a>
-    <button class="btn" id="reset">Reset filters</button>
   </aside>
+  <div class="backdrop" id="backdrop"></div>
+  <div class="drawer-foot"><button class="btn solid block" id="drawer-done">Show events</button></div>
+
   <main>
-    <div class="status"><span id="count"></span></div>
+    <div class="toolbar" id="toolbar">
+      <div class="tb-row">
+        <button class="btn quiet filters-btn" id="filters-btn" aria-controls="filters">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M4.5 8h7M7 12h2"/></svg>
+          Filters<span id="filters-n"></span>
+        </button>
+        <div class="search">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="4.8"/><path d="m10.6 10.6 3.4 3.4"/></svg>
+          <input type="search" id="q" placeholder="Search talks, concerts, speakers, venues…" autocomplete="off" aria-label="Search events">
+          <kbd>/</kbd>
+          <button class="clear" id="q-clear" aria-label="Clear search">✕</button>
+        </div>
+      </div>
+      <div class="tb-row">
+        <div class="ranges" role="group" aria-label="Date range" id="ranges">
+          <button data-range="upcoming">Next 2 weeks</button>
+          <button data-range="today">Today</button>
+          <button data-range="tomorrow">Tomorrow</button>
+          <button data-range="weekend">This weekend</button>
+          <button data-range="month">Next 30 days</button>
+          <button data-range="custom">Dates…</button>
+        </div>
+        <div class="custom-dates" id="custom-dates">
+          <input type="date" id="start" aria-label="From"> <span>to</span> <input type="date" id="end" aria-label="Through">
+        </div>
+      </div>
+      <div class="status-row" id="status" aria-live="polite"></div>
+    </div>
     <div id="list"></div>
-    <button class="btn" id="more" hidden>Load more</button>
+    <div id="sentinel"></div>
+    <div class="loadmore" id="loadmore" hidden><button class="btn quiet" id="more">Load more</button></div>
   </main>
 </div>
+
+<footer>
+  <span id="foot-sources">Collected from Yale's public calendars.</span>
+  <span><a href="/docs">API</a> · <a href="/events.ics">All events (.ics)</a></span>
+</footer>
+
+<dialog class="sheet" id="sheet" aria-labelledby="sheet-title">
+  <div class="sheet-inner">
+    <div class="sheet-top">
+      <span class="pos" id="sheet-pos"></span>
+      <button class="icon-btn" id="prev" aria-label="Previous event" title="Previous (←)">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 3 5 8l5 5"/></svg></button>
+      <button class="icon-btn" id="next" aria-label="Next event" title="Next (→)">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m6 3 5 5-5 5"/></svg></button>
+      <button class="icon-btn" id="sheet-close" aria-label="Close" title="Close (Esc)">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m3.5 3.5 9 9m0-9-9 9"/></svg></button>
+    </div>
+    <div class="sheet-body" id="sheet-body" tabindex="-1" autofocus></div>
+  </div>
+</dialog>
+
+<dialog class="modal" id="subscribe" aria-labelledby="sub-title">
+  <div class="inner">
+    <button class="icon-btn close" data-close aria-label="Close">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m3.5 3.5 9 9m0-9-9 9"/></svg></button>
+    <h2 id="sub-title">Subscribe</h2>
+    <p>Your calendar app will check this feed and pick up new and changed events. Dates are left out so the feed keeps rolling forward.</p>
+    <div class="scope" id="sub-scope"></div>
+    <div class="copyfield">
+      <input id="sub-url" readonly aria-label="Feed URL">
+      <button class="btn quiet" id="sub-copy">Copy</button>
+    </div>
+    <div class="row">
+      <a class="btn solid" id="sub-webcal">Open in calendar app</a>
+      <a class="btn quiet" id="sub-download" download>Download .ics</a>
+    </div>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status"></div>
+
 <script>
 const $ = (id) => document.getElementById(id);
-const state = { category: new Set(), cursor: null, loading: false, lastDay: null, shown: 0 };
-const names = { categories: {}, areas: {}, sources: {} };
+const DAY = 864e5;
+const names = { category: {}, area: {}, source: {} };
+const state = {
+  q: "", range: "upcoming", start: "", end: "", free_food: false,
+  category: new Set(), area: new Set(), source: new Set(),
+  cursor: null, loading: false, events: [], byId: new Map(), gen: 0,
+};
 
-const iso = (d) => d.toLocaleDateString("en-CA");  // YYYY-MM-DD in local time
+// ---------- Dates ----------
+const iso = (d) => d.toLocaleDateString("en-CA");  // YYYY-MM-DD, local
 const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const today = () => new Date();
 
-function setRange(kind) {
-  const today = new Date();
-  let a = today, b;
-  if (kind === "weekend") {
-    const dow = today.getDay();  // 0 Sun .. 6 Sat
-    a = dow === 0 || dow === 6 ? today : addDays(today, 5 - dow);
-    b = addDays(today, dow === 0 ? 0 : 7 - dow);
-  } else {
-    b = addDays(today, Number(kind));
+/** The API window for a range. A start of "" means now, so finished events drop off. */
+function windowFor(range) {
+  const t = today(), dow = t.getDay();
+  switch (range) {
+    case "today": return { start: "", end: iso(t) };
+    case "tomorrow": return { start: iso(addDays(t, 1)), end: iso(addDays(t, 1)) };
+    case "weekend": {  // Friday through Sunday
+      if (dow === 0) return { start: "", end: iso(t) };
+      const fri = addDays(t, (5 - dow + 7) % 7);
+      return { start: dow >= 5 ? "" : iso(fri), end: iso(addDays(t, dow === 6 ? 1 : 7 - dow)) };
+    }
+    case "month": return { start: "", end: iso(addDays(t, 29)) };
+    case "custom": return { start: state.start === iso(t) ? "" : state.start, end: state.end };
+    default: return { start: "", end: "" };
   }
-  $("start").value = iso(a);
-  $("end").value = iso(b);
-  reload();
 }
 
-function params() {
+// All-day events start at local midnight, so their date is the literal date in the string.
+const dayKey = (e) => (e.all_day ? e.start.slice(0, 10) : iso(new Date(e.start)));
+const parseDay = (k) => new Date(k + "T12:00");
+
+function fmtClock(s) {
+  const d = new Date(s);
+  let h = d.getHours(); const m = d.getMinutes(); const ap = h < 12 ? "am" : "pm";
+  h = h % 12 || 12;
+  return `${h}:${String(m).padStart(2, "0")}<span class="ampm">${ap}</span>`;
+}
+const fmtShortDate = (d) => d.toLocaleDateString([], { month: "short", day: "numeric" });
+const fmtLongDate = (d) => d.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" });
+
+// "12:00am – 11:59pm" is a day-long listing (often a deadline) that the source didn't mark all-day.
+const wholeDay = (s, en) => en && s.getHours() === 0 && s.getMinutes() === 0 && en - s >= DAY - 2 * 6e4 && en - s <= DAY;
+
+function whenCell(e, underway) {
+  const s = new Date(e.start), en = e.end ? new Date(e.end) : null;
+  if (!underway && !e.all_day && wholeDay(s, en)) return "All day";
+  const multiDay = en && iso(en) !== iso(s) && !(e.all_day && en - s <= DAY);
+  let html;
+  if (underway) html = (en ? `to ${fmtShortDate(e.all_day ? new Date(en - 1) : en)}` : "ongoing") + `<span class="end">from ${fmtShortDate(s)}</span>`;
+  else if (e.all_day) html = multiDay ? `All day<span class="end">to ${fmtShortDate(new Date(en - 1))}</span>` : "All day";
+  else html = fmtClock(e.start) + (en ? `<span class="end">${multiDay ? "to " + fmtShortDate(en) : "– " + fmtClock(e.end)}</span>` : "");
+  const now = Date.now();
+  if (!e.all_day && !e.cancelled && s <= now && en && en > now && en - s < 12 * 36e5) html += `<span class="now">Now</span>`;
+  return html;
+}
+
+// ---------- Text helpers ----------
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+function linkify(escaped) {
+  return escaped.replace(/\bhttps?:\/\/[^\s<]+[^\s<.,;:!?)\]'"]/g, (u) => `<a href="${u}" target="_blank" rel="noopener">${u.replace(/^https?:\/\/(www\.)?/, "").slice(0, 60)}${u.length > 68 ? "…" : ""}</a>`);
+}
+function paragraphs(text) {
+  return String(text).trim().split(/\n\s*\n/).map((p) => `<p>${linkify(esc(p)).replace(/\n/g, "<br>")}</p>`).join("");
+}
+function venue(loc) {
+  if (loc.virtual && !loc.name && !loc.building) return { main: "Online", sub: "" };
+  const main = loc.building || loc.name || "";
+  const sub = [loc.room, loc.area && loc.area !== "online" ? names.area[loc.area] : "", loc.virtual ? "also online" : ""].filter(Boolean).join(" · ");
+  return { main, sub };
+}
+const catStyle = (c) => `style="--cat: var(--c-${esc(c)})"`;
+
+// ---------- URL state ----------
+function toParams({ forFeed = false } = {}) {
   const p = new URLSearchParams();
-  const q = $("q").value.trim();
-  if (q) p.set("q", q);
-  if ($("start").value) p.set("start", $("start").value);
-  if ($("end").value) p.set("end", $("end").value);
-  if (state.category.size) p.set("category", [...state.category].join(","));
-  if ($("area").value) p.set("area", $("area").value);
-  if ($("source").value) p.set("source", $("source").value);
-  if ($("free_food").checked) p.set("free_food", "true");
+  if (state.q) p.set("q", state.q);
+  if (!forFeed) {
+    if (state.range !== "upcoming") p.set("range", state.range);
+    if (state.range === "custom") { if (state.start) p.set("start", state.start); if (state.end) p.set("end", state.end); }
+  }
+  for (const k of ["category", "area", "source"]) if (state[k].size) p.set(k, [...state[k]].join(","));
+  if (state.free_food) p.set("free_food", "true");
   return p;
 }
-
+function apiParams() {
+  const p = toParams({ forFeed: true });
+  const w = windowFor(state.range);
+  if (w.start) p.set("start", w.start);
+  if (w.end) p.set("end", w.end);
+  return p;
+}
 function restore() {
   const p = new URLSearchParams(location.search);
-  $("q").value = p.get("q") || "";
-  $("start").value = p.get("start") || iso(new Date());
-  $("end").value = p.get("end") || iso(addDays(new Date(), 13));
-  (p.get("category") || "").split(",").filter(Boolean).forEach((c) => state.category.add(c));
-  $("area").value = p.get("area") || "";
-  $("source").value = p.get("source") || "";
-  $("free_food").checked = p.get("free_food") === "true";
+  state.q = p.get("q") || "";
+  state.range = p.get("range") || "upcoming";
+  state.start = p.get("start") || iso(today());
+  state.end = p.get("end") || iso(addDays(today(), 13));
+  for (const k of ["category", "area", "source"]) state[k] = new Set((p.get(k) || "").split(",").filter(Boolean));
+  state.free_food = p.get("free_food") === "true";
 }
 
-function fmtTime(e) {
-  if (e.all_day) return "All day";
-  const t = (s) => new Date(s).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-  return e.end && new Date(e.end).toDateString() === new Date(e.start).toDateString()
-    ? `${t(e.start)}<br>– ${t(e.end)}` : t(e.start);
+// ---------- Filters UI ----------
+function optionButton(kind, item, { color = false } = {}) {
+  const b = document.createElement("button");
+  b.className = "opt" + (item.upcoming ? "" : " dim");
+  b.dataset.kind = kind; b.dataset.id = item.id;
+  if (color) b.style.setProperty("--cat", `var(--c-${item.id})`);
+  b.innerHTML = `<span class="box"></span><span>${esc(item.name)}</span><span class="n">${item.upcoming.toLocaleString()}</span>`;
+  b.addEventListener("click", () => { toggle(kind, item.id); });
+  return b;
+}
+function buildFilters(cats, areas, sources) {
+  const fc = $("f-category");
+  cats.filter((c) => c.upcoming).sort((a, b) => b.upcoming - a.upcoming).forEach((c) => fc.appendChild(optionButton("category", c, { color: true })));
+  const fa = $("f-area");
+  areas.filter((a) => a.upcoming).forEach((a) => fa.appendChild(optionButton("area", { ...a, name: a.name.replace(/ \(.*\)$/, "") })));
+  const fs = $("f-source");
+  const live = sources.filter((s) => s.enabled && s.upcoming).sort((a, b) => b.upcoming - a.upcoming);
+  live.forEach((s, i) => { const b = optionButton("source", s); if (i >= 6) b.dataset.extra = ""; fs.appendChild(b); });
+  if (live.length > 6) {
+    const t = document.createElement("button");
+    t.className = "linkish more-toggle";
+    const set = (open) => {
+      fs.querySelectorAll("[data-extra]").forEach((b) => (b.hidden = !open && !state.source.has(b.dataset.id)));
+      t.textContent = open ? "Show fewer" : `Show all ${live.length}`;
+      t.dataset.open = open ? "1" : "";
+    };
+    t.addEventListener("click", () => set(!t.dataset.open));
+    fs.appendChild(t);
+    set(false);
+  }
+}
+function toggle(kind, id) {
+  state[kind].has(id) ? state[kind].delete(id) : state[kind].add(id);
+  reload();
+}
+function syncControls() {
+  $("q").value = state.q;
+  $("free_food").checked = state.free_food;
+  $("start").value = state.start; $("end").value = state.end;
+  $("custom-dates").classList.toggle("on", state.range === "custom");
+  document.querySelectorAll("#ranges button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.range === state.range));
+  document.querySelectorAll(".opt").forEach((b) => b.setAttribute("aria-pressed", state[b.dataset.kind].has(b.dataset.id)));
+  document.querySelectorAll("[data-clear]").forEach((b) => (b.hidden = !state[b.dataset.clear].size));
+  const n = state.category.size + state.area.size + state.source.size + (state.free_food ? 1 : 0);
+  $("filters-n").textContent = n ? ` · ${n}` : "";
 }
 
-function dayLabel(e) {
-  const d = new Date(e.all_day ? e.start.slice(0, 10) + "T12:00" : e.start);
-  const today = new Date();
-  const rel = d.toDateString() === today.toDateString() ? "Today · "
-    : d.toDateString() === addDays(today, 1).toDateString() ? "Tomorrow · " : "";
-  return rel + d.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" });
+function rangeLabel() {
+  const w = windowFor(state.range);
+  const s = w.start ? parseDay(w.start) : today(), e = w.end ? parseDay(w.end) : addDays(today(), 13);
+  return iso(s) === iso(e) ? fmtLongDate(s) : `${fmtShortDate(s)} – ${fmtShortDate(e)}`;
 }
 
-function esc(s) {
-  return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+function renderStatus(done) {
+  const st = $("status");
+  const n = state.events.length;
+  const pills = [];
+  if (state.q) pills.push(`<button class="pill" data-rm="q">“${esc(state.q)}”<span class="x">✕</span></button>`);
+  if (state.free_food) pills.push(`<button class="pill" data-rm="free_food">Free food<span class="x">✕</span></button>`);
+  for (const k of ["category", "area", "source"])
+    for (const id of state[k])
+      pills.push(`<button class="pill" data-rm="${k}" data-id="${esc(id)}">${k === "category" ? `<span class="sw" ${catStyle(id)}></span>` : ""}${esc(names[k][id] || id)}<span class="x">✕</span></button>`);
+  const count = state.loading && !n ? "Loading…" : `${n.toLocaleString()}${done ? "" : "+"} event${n === 1 ? "" : "s"} · ${rangeLabel()}`;
+  $("drawer-done").textContent = state.loading && !n ? "Show events" : n ? `Show ${n.toLocaleString()}${done ? "" : "+"} event${n === 1 ? "" : "s"}` : "No matches";
+  st.innerHTML = `<span class="count">${count}</span>${pills.join("")}${pills.length > 1 ? `<button class="linkish" data-rm="all">Clear all</button>` : ""}`;
 }
 
-function where(loc) {
-  if (loc.virtual && !loc.name) return "Online";
-  const parts = [loc.building || loc.name, loc.room].filter(Boolean);
-  let s = parts.join(", ");
-  if (loc.area && names.areas[loc.area]) s += (s ? " · " : "") + names.areas[loc.area];
-  if (loc.virtual) s += " · Online";
-  return s;
-}
-
-function card(e) {
-  const el = document.createElement("div");
-  el.className = "ev";
-  const tags = [
-    e.cancelled ? `<span class="tag cancel">Cancelled</span>` : "",
-    ...e.categories.map((c) => `<span class="tag">${esc(names.categories[c] || c)}</span>`),
-    e.free_food ? `<span class="tag food">Free food</span>` : "",
-    e.free ? `<span class="tag">Free</span>` : "",
+// ---------- List ----------
+function rowHTML(e, underway, i) {
+  const v = venue(e.location);
+  const cats = e.categories.map((c) => `<span ${catStyle(c)}>${esc(names.category[c] || c)}</span>`).join("");
+  const flags = [
+    e.cancelled ? `<span class="flag cancel">Cancelled</span>` : "",
+    e.free_food ? `<span class="flag food">Free food</span>` : "",
   ].join("");
-  const sources = [e.source, ...e.also_listed_by.map((l) => l.source)].map((s) => names.sources[s] || s);
-  el.innerHTML = `
-    <div class="time">${fmtTime(e)}</div>
+  return `<article class="ev${e.cancelled ? " cancelled" : ""}${i < 14 ? " reveal" : ""}" data-id="${e.id}" style="${i < 14 ? `animation-delay:${i * 28}ms` : ""}">
+    <div class="when">${whenCell(e, underway)}</div>
     <div>
-      <div class="title">${esc(e.title)}</div>
-      <div class="meta">${esc(where(e.location))}</div>
-      <div class="tags">${tags}</div>
-    </div>`;
-  el.addEventListener("click", (ev) => {
-    if (ev.target.closest(".detail")) return;
-    const open = el.querySelector(".detail");
-    if (open) { open.remove(); return; }
-    const d = document.createElement("div");
-    d.className = "detail";
-    const loc = e.location;
-    const address = [loc.name !== (loc.building || loc.name) ? loc.name : "", loc.address].filter(Boolean).join(" · ");
-    d.innerHTML = `
-      ${e.image_url ? `<img src="${esc(e.image_url)}" alt="" loading="lazy" onerror="this.remove()">` : ""}
-      ${address ? `<div class="meta">${esc(address)}</div>` : ""}
-      ${e.cost ? `<div class="meta">${esc(e.cost)}</div>` : ""}
-      ${e.audience.length ? `<div class="meta">Audience: ${esc(e.audience.join(", "))}</div>` : ""}
-      ${e.groups.length ? `<div class="meta">Hosted by ${esc(e.groups.join(", "))}</div>` : ""}
-      <div class="meta">Listed by ${esc(sources.join(", "))}</div>
-      <p style="margin-top:8px">${esc(e.description || "No description.")}</p>
-      <div class="links">
-        ${e.url ? `<a class="btn primary" href="${esc(e.url)}" target="_blank" rel="noopener">Event page</a>` : ""}
-        <a class="btn" href="/events/${e.id}.ics">Add to calendar</a>
-        ${loc.lat != null ? `<a class="btn" target="_blank" rel="noopener" href="https://maps.apple.com/?q=${encodeURIComponent(loc.building || loc.name || "")}&ll=${loc.lat},${loc.lon}">Map</a>` : ""}
-      </div>`;
-    el.appendChild(d);
+      ${cats ? `<div class="kicker smallcaps">${cats}</div>` : ""}
+      <h3 class="title"><a href="#e=${e.id}">${esc(e.title)}</a></h3>
+      <div class="meta">
+        ${v.main ? `<span class="venue"><b>${esc(v.main)}</b>${v.sub ? " · " + esc(v.sub) : ""}</span>` : ""}
+        ${flags ? `<span class="flags">${flags}</span>` : ""}
+      </div>
+    </div>
+  </article>`;
+}
+
+function append(events, rangeStartKey) {
+  const list = $("list");
+  let section = list.lastElementChild?.classList.contains("day") ? list.lastElementChild : null;
+  let i = 0;
+  for (const e of events) {
+    const k = dayKey(e);
+    const underway = k < rangeStartKey;
+    const key = underway ? "underway" : k;
+    if (!section || section.dataset.key !== key) {
+      section = document.createElement("section");
+      section.className = "day" + (underway ? " underway" : "");
+      section.dataset.key = key;
+      if (underway) {
+        section.innerHTML = `<h2 class="day-h"><span class="dow">Already underway</span><span class="date">multi-day</span><span class="n"></span></h2>`;
+      } else {
+        const d = parseDay(k), t = iso(today()), tm = iso(addDays(today(), 1));
+        const rel = k === t ? "Today" : k === tm ? "Tomorrow" : "";
+        section.innerHTML = `<h2 class="day-h"><span class="dow">${d.toLocaleDateString([], { weekday: "long" })}</span>
+          <span class="date">${d.toLocaleDateString([], { day: "numeric", month: "long" })}</span>
+          ${rel ? `<span class="rel">${rel}</span>` : ""}<span class="n"></span></h2>`;
+      }
+      list.appendChild(section);
+    }
+    section.insertAdjacentHTML("beforeend", rowHTML(e, underway, state.events.length - events.length + i++));
+  }
+  list.querySelectorAll(".day").forEach((s) => {
+    const n = s.querySelectorAll(".ev").length;
+    s.querySelector(".n").textContent = `${n} event${n === 1 ? "" : "s"}`;
   });
-  return el;
+}
+
+function skeleton() {
+  const row = (w) => `<div class="ev skel"><div><div class="bar" style="width:48px"></div></div><div>
+    <div class="bar" style="width:90px;height:9px;margin-bottom:9px"></div><div class="bar" style="width:${w}%;height:16px;margin-bottom:9px"></div>
+    <div class="bar" style="width:${w - 30}%"></div></div></div>`;
+  $("list").innerHTML = `<section class="day skel" aria-hidden="true"><h2 class="day-h"><span class="bar" style="width:140px;height:22px"></span></h2>${[72, 58, 80, 64, 70].map(row).join("")}</section>`;
+}
+
+function emptyState() {
+  const hasFilters = state.q || state.free_food || state.category.size || state.area.size || state.source.size;
+  $("list").innerHTML = `<div class="empty">
+    <h2>Nothing on the calendar</h2>
+    <p>${hasFilters ? "No events match these filters in this date range." : "No events in this date range."}</p>
+    <div class="actions">
+      ${state.range !== "month" ? `<button class="btn quiet" data-widen>Look 30 days ahead</button>` : ""}
+      ${hasFilters ? `<button class="btn solid" data-rm="all">Clear filters</button>` : ""}
+    </div></div>`;
 }
 
 async function load() {
-  if (state.loading) return;
+  if (state.loading || state.cursor === undefined) return;
   state.loading = true;
-  const p = params();
-  p.set("limit", "100");
+  const gen = state.gen;
+  const p = apiParams();
+  p.set("limit", "80");
   if (state.cursor) p.set("cursor", state.cursor);
+  if (!state.events.length) { skeleton(); renderStatus(false); }
   try {
     const r = await fetch("/events?" + p);
-    if (!r.ok) throw new Error((await r.json()).detail || r.statusText);
+    if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(typeof j.detail === "string" ? j.detail : r.statusText); }
     const page = await r.json();
-    const list = $("list");
-    for (const e of page.events) {
-      const day = dayLabel(e);
-      if (day !== state.lastDay) {
-        const h = document.createElement("h2");
-        h.className = "day";
-        h.textContent = day;
-        list.appendChild(h);
-        state.lastDay = day;
-      }
-      list.appendChild(card(e));
-    }
-    state.shown += page.events.length;
-    state.cursor = page.next_cursor;
-    $("more").hidden = !state.cursor;
-    $("count").textContent = state.shown
-      ? `${state.shown}${state.cursor ? "+" : ""} event${state.shown === 1 ? "" : "s"}` : "";
-    if (!state.shown) list.innerHTML = `<div class="empty">No events match these filters.</div>`;
+    if (gen !== state.gen) return;
+    if (!state.events.length) $("list").innerHTML = "";
+    state.events.push(...page.events);
+    page.events.forEach((e) => state.byId.set(e.id, e));
+    const w = windowFor(state.range);
+    append(page.events, w.start || iso(today()));
+    state.cursor = page.next_cursor || undefined;
+    if (!state.events.length) emptyState();
+    else if (!state.cursor) $("list").insertAdjacentHTML("beforeend", `<div class="endnote">That's everything through ${rangeLabel().split(" – ").pop()}.</div>`);
+    $("loadmore").hidden = !state.cursor;
+    renderStatus(!state.cursor);
+    updateSheetNav();
   } catch (err) {
-    $("list").innerHTML = `<div class="err">Couldn't load events: ${esc(err.message)}</div>`;
+    if (gen !== state.gen) return;
+    $("list").innerHTML = `<div class="empty"><h2>Couldn't load events</h2><p class="err">${esc(err.message)}</p>
+      <div class="actions"><button class="btn solid" onclick="reload()">Try again</button></div></div>`;
+    renderStatus(true);
   } finally {
-    state.loading = false;
+    if (gen === state.gen) state.loading = false;
   }
+  // The sentinel may still be visible if a page was short.
+  if (gen === state.gen && state.cursor && sentinelVisible) load();
 }
 
-function reload() {
-  const p = params();
-  history.replaceState(null, "", p.toString() ? "?" + p : location.pathname);
-  // The feed skips the date range so a subscription keeps rolling forward.
-  const sub = new URLSearchParams(p);
-  sub.delete("start"); sub.delete("end");
-  $("subscribe").href = "/events.ics" + (sub.toString() ? "?" + sub : "");
-  document.querySelectorAll("#categories .chip").forEach((b) =>
-    b.setAttribute("aria-pressed", state.category.has(b.dataset.id)));
-  Object.assign(state, { cursor: null, lastDay: null, shown: 0 });
-  $("list").innerHTML = "";
+function reload({ scroll = true } = {}) {
+  const p = toParams();
+  history.replaceState(history.state, "", (p.toString() ? "?" + p : location.pathname) + location.hash);
+  syncControls();
+  Object.assign(state, { cursor: null, events: [], loading: false, gen: state.gen + 1 });
+  if (scroll && window.scrollY > $("list").offsetTop) window.scrollTo({ top: $("list").offsetTop - 80 });
   load();
 }
 
-async function init() {
-  const get = (u) => fetch(u).then((r) => r.json());
-  const [cats, areas, sources] = await Promise.all([get("/categories"), get("/areas"), get("/sources")]);
-  for (const c of cats) {
-    names.categories[c.id] = c.name;
-    const b = document.createElement("button");
-    b.className = "chip";
-    b.dataset.id = c.id;
-    b.innerHTML = `${esc(c.name)} <small>${c.upcoming}</small>`;
-    b.addEventListener("click", () => {
-      state.category.has(c.id) ? state.category.delete(c.id) : state.category.add(c.id);
-      reload();
-    });
-    $("categories").appendChild(b);
-  }
-  for (const a of areas) {
-    names.areas[a.id] = a.name;
-    if (a.upcoming) $("area").add(new Option(`${a.name} (${a.upcoming})`, a.id));
-  }
-  const live = sources.filter((s) => s.enabled).sort((a, b) => b.upcoming - a.upcoming);
-  for (const s of sources) names.sources[s.id] = s.name;
-  for (const s of live) $("source").add(new Option(`${s.name} (${s.upcoming})`, s.id));
-  const total = live.reduce((n, s) => n + s.upcoming, 0);
-  $("sub").textContent = `${total.toLocaleString()} upcoming events from ${live.length} Yale calendars`;
+let sentinelVisible = false;
+new IntersectionObserver(([en]) => { sentinelVisible = en.isIntersecting; if (sentinelVisible && state.cursor) load(); },
+  { rootMargin: "600px 0px" }).observe($("sentinel"));
 
-  restore();
-  let timer;
-  $("q").addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(reload, 250); });
-  for (const id of ["start", "end", "area", "source", "free_food"]) $(id).addEventListener("change", reload);
-  document.querySelectorAll("[data-range]").forEach((b) => b.addEventListener("click", () => setRange(b.dataset.range)));
-  $("more").addEventListener("click", load);
-  $("reset").addEventListener("click", () => {
-    history.replaceState(null, "", location.pathname);
-    state.category.clear();
-    restore();
-    reload();
-  });
-  reload();
+// ---------- Detail sheet ----------
+const sheet = $("sheet");
+let sheetId = null, openedByNav = false;
+
+function gcalLink(e) {
+  const f = (d) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  const dates = e.all_day
+    ? `${e.start.slice(0, 10).replace(/-/g, "")}/${(e.end ? e.end : iso(addDays(parseDay(e.start.slice(0, 10)), 1))).slice(0, 10).replace(/-/g, "")}`
+    : `${f(new Date(e.start))}/${f(new Date(e.end || new Date(new Date(e.start).getTime() + 36e5)))}`;
+  const loc = e.location;
+  const p = new URLSearchParams({ action: "TEMPLATE", text: e.title, dates,
+    details: [e.url, (e.description || "").slice(0, 1200)].filter(Boolean).join("\n\n"),
+    location: [loc.building || loc.name, loc.room, loc.address].filter(Boolean).join(", ") });
+  return "https://calendar.google.com/calendar/render?" + p;
 }
 
-init().catch((err) => { $("list").innerHTML = `<div class="err">Couldn't reach the API: ${esc(err.message)}</div>`; });
+function renderSheet(e) {
+  const s = new Date(e.start), en = e.end ? new Date(e.end) : null;
+  let when;
+  if (e.all_day) {
+    const last = en ? new Date(en - 1) : s;
+    when = iso(last) !== iso(s) ? `${fmtLongDate(s)} – ${fmtLongDate(last)}` : `${fmtLongDate(s)}<small>All day</small>`;
+  } else if (en && iso(en) !== iso(s)) {
+    when = `${fmtLongDate(s)}, ${fmtClock(e.start)} –<br>${fmtLongDate(en)}, ${fmtClock(e.end)}`;
+  } else {
+    when = `${fmtLongDate(s)}<small>${fmtClock(e.start)}${en ? " – " + fmtClock(e.end) : ""}</small>`;
+  }
+  const loc = e.location, v = venue(loc);
+  const addr = [loc.name && loc.name !== v.main ? loc.name : "", loc.address].filter(Boolean).join(" · ");
+  const map = loc.lat != null
+    ? `https://www.google.com/maps/search/?api=1&query=${loc.lat},${loc.lon}`
+    : (loc.address || (v.main && v.main !== "Online")) ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([v.main, loc.address, "New Haven CT"].filter(Boolean).join(", "))}` : "";
+  const listed = [e.source, ...e.also_listed_by.map((l) => l.source)].map((x) => names.source[x] || x);
+  const cost = e.free_food ? "Free food" : "";
+  const price = e.cost || (e.free ? "Free" : "");
+  const rows = [
+    ["When", when],
+    ["Where", v.main ? `${esc(v.main)}${v.sub ? `<small>${esc(v.sub)}</small>` : ""}${addr ? `<small>${esc(addr)}</small>` : ""}${map ? `<small><a href="${map}" target="_blank" rel="noopener">Map ↗</a></small>` : ""}` : "<span style='color:var(--ink-3)'>Not listed</span>"],
+    e.groups.length && ["Host", esc(e.groups.join(", "))],
+    (price || cost) && ["Cost", esc([price, cost].filter(Boolean).join(" · "))],
+    e.audience.length && ["For", esc(e.audience.join(", "))],
+    ["Listed by", esc(listed.join(", "))],
+  ].filter(Boolean);
+  $("sheet-body").innerHTML = `
+    <div class="kicker smallcaps">${e.cancelled ? `<span class="flag cancel" style="--cat:transparent">Cancelled</span>` : ""}${e.categories.map((c) => `<span ${catStyle(c)}>${esc(names.category[c] || c)}</span>`).join("")}</div>
+    <h2 id="sheet-title">${esc(e.title)}</h2>
+    <dl class="facts">${rows.map(([k, v]) => `<dt class="smallcaps">${k}</dt><dd>${v}</dd>`).join("")}</dl>
+    <div class="actions-row">
+      ${e.url ? `<a class="btn solid" href="${esc(e.url)}" target="_blank" rel="noopener">Event page ↗</a>` : ""}
+      <a class="btn quiet" href="/events/${e.id}.ics">Add to calendar</a>
+      <a class="btn quiet" href="${gcalLink(e)}" target="_blank" rel="noopener">Google Calendar</a>
+      <button class="btn quiet" id="copy-link">Copy link</button>
+    </div>
+    ${e.image_url ? `<img class="hero" src="${esc(e.image_url)}" alt="" loading="lazy" onerror="this.remove()">` : ""}
+    <div class="desc${e.description ? "" : " none"}">${e.description ? paragraphs(e.description) : "<p>No description was posted for this event.</p>"}</div>`;
+  $("sheet-body").scrollTop = 0;
+  $("copy-link").addEventListener("click", () => copy(location.origin + location.pathname + location.search + "#e=" + e.id, "Link copied"));
+  document.querySelectorAll(".ev.sel").forEach((x) => x.classList.remove("sel"));
+  document.querySelector(`.ev[data-id="${e.id}"]`)?.classList.add("sel");
+}
+
+function updateSheetNav() {
+  if (!sheet.open) return;
+  const i = state.events.findIndex((x) => x.id === sheetId);
+  $("prev").disabled = i <= 0;
+  $("next").disabled = i < 0 || (i >= state.events.length - 1 && !state.cursor);
+  $("sheet-pos").textContent = i >= 0 ? `${i + 1} of ${state.events.length}${state.cursor ? "+" : ""}` : "";
+}
+
+async function openSheet(id) {
+  sheetId = id;
+  let e = state.byId.get(id);
+  if (!sheet.open) sheet.showModal();
+  if (!e) {
+    $("sheet-body").innerHTML = `<p style="color:var(--ink-3)">Loading…</p>`;
+    try {
+      const r = await fetch("/events/" + encodeURIComponent(id));
+      if (!r.ok) throw new Error(r.status === 404 ? "This event is no longer listed." : r.statusText);
+      e = await r.json();
+      state.byId.set(e.id, e);
+    } catch (err) {
+      $("sheet-body").innerHTML = `<div class="empty"><h2>Not found</h2><p>${esc(err.message)}</p></div>`;
+      return;
+    }
+  }
+  if (sheetId !== id) return;
+  renderSheet(e);
+  updateSheetNav();
+}
+
+async function step(dir) {
+  let i = state.events.findIndex((x) => x.id === sheetId);
+  if (i < 0) return;
+  if (dir > 0 && i === state.events.length - 1 && state.cursor) { await load(); }
+  const next = state.events[i + dir];
+  if (!next) return;
+  history.replaceState(history.state, "", "#e=" + next.id);
+  openSheet(next.id);
+  document.querySelector(`.ev[data-id="${next.id}"]`)?.scrollIntoView({ block: "nearest" });
+}
+
+// Runs on every close. Browsers may defer the dialog's "close" event (e.g. in a background tab), so
+// closeSheet calls this directly too; the event only covers a native Esc.
+function afterClose() {
+  if (sheetId === null) return;
+  document.querySelectorAll(".ev.sel").forEach((x) => x.classList.remove("sel"));
+  if (location.hash.startsWith("#e=")) {
+    if (openedByNav) history.back();
+    else history.replaceState(history.state, "", location.pathname + location.search);
+  }
+  openedByNav = false; sheetId = null;
+}
+function closeSheet() {
+  if (sheet.open) sheet.close();
+  afterClose();
+}
+sheet.addEventListener("close", afterClose);
+sheet.addEventListener("click", (ev) => { if (ev.target === sheet) closeSheet(); });  // backdrop
+$("sheet-close").addEventListener("click", closeSheet);
+$("prev").addEventListener("click", () => step(-1));
+$("next").addEventListener("click", () => step(1));
+
+function onHash() {
+  const m = location.hash.match(/^#e=([\w-]+)/);
+  if (m) openSheet(m[1]);
+  else if (sheet.open) { openedByNav = false; closeSheet(); }
+}
+// Clicking the event whose hash is already set wouldn't fire hashchange.
+$("list").addEventListener("click", (ev) => {
+  const a = ev.target.closest(".title a");
+  if (a && a.hash === location.hash) { ev.preventDefault(); openSheet(a.hash.slice(3)); }
+});
+window.addEventListener("hashchange", () => { openedByNav = true; onHash(); });
+
+// ---------- Subscribe ----------
+function openSubscribe() {
+  const p = toParams({ forFeed: true });
+  const url = location.origin + "/events.ics" + (p.toString() ? "?" + p : "");
+  const parts = [];
+  if (state.category.size) parts.push([...state.category].map((c) => names.category[c]).join(", "));
+  if (state.area.size) parts.push([...state.area].map((c) => names.area[c]).join(", "));
+  if (state.source.size) parts.push("from " + [...state.source].map((c) => names.source[c]).join(", "));
+  if (state.free_food) parts.push("with free food");
+  if (state.q) parts.push(`matching “${state.q}”`);
+  $("sub-scope").innerHTML = parts.length ? `<b>This view:</b> ${esc(parts.join(" · "))}` : "<b>Everything</b>: all categories, places and calendars. Use the filters first to narrow it.";
+  $("sub-url").value = url;
+  $("sub-webcal").href = url.replace(/^https?:/, "webcal:");
+  $("sub-download").href = url;
+  $("subscribe").showModal();
+}
+document.querySelectorAll("[data-open-subscribe]").forEach((b) => b.addEventListener("click", openSubscribe));
+$("subscribe").querySelector("[data-close]").addEventListener("click", () => $("subscribe").close());
+$("subscribe").addEventListener("click", (ev) => { if (ev.target === $("subscribe")) $("subscribe").close(); });
+$("sub-copy").addEventListener("click", () => copy($("sub-url").value, "Feed URL copied"));
+
+let toastTimer;
+async function copy(text, msg) {
+  try { await navigator.clipboard.writeText(text); } catch { const i = document.createElement("input"); i.value = text; document.body.append(i); i.select(); document.execCommand("copy"); i.remove(); }
+  const t = $("toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("on"), 1600);
+}
+
+// ---------- Wiring ----------
+function relTime(iso) {
+  const m = Math.round((Date.now() - new Date(iso)) / 6e4);
+  return m < 1 ? "just now" : m < 60 ? `${m} min ago` : m < 48 * 60 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} days ago`;
+}
+
+async function init() {
+  $("today").textContent = today().toLocaleDateString([], { weekday: "short", day: "numeric", month: "short", year: "numeric" }).toUpperCase();
+  restore();
+  syncControls();
+  load();  // start fetching events while the reference lists load
+
+  const get = (u) => fetch(u).then((r) => { if (!r.ok) throw new Error(r.statusText); return r.json(); });
+  const [cats, areas, sources] = await Promise.all([get("/categories"), get("/areas"), get("/sources")]);
+  cats.forEach((c) => (names.category[c.id] = c.name));
+  areas.forEach((a) => (names.area[a.id] = a.name.replace(/ \(.*\)$/, "")));
+  sources.forEach((s) => (names.source[s.id] = s.name));
+  buildFilters(cats, areas, sources);
+  syncControls();
+  // Re-render what's loaded so category and area names replace ids.
+  if (state.events.length) { const evs = state.events; $("list").innerHTML = ""; append(evs, windowFor(state.range).start || iso(today())); if (!state.cursor) $("list").insertAdjacentHTML("beforeend", `<div class="endnote">That's everything through ${rangeLabel().split(" – ").pop()}.</div>`); }
+  renderStatus(!state.cursor);
+
+  const live = sources.filter((s) => s.enabled);
+  const total = live.reduce((n, s) => n + s.upcoming, 0);
+  const last = live.map((s) => s.last_run_at).filter(Boolean).sort().pop();
+  $("dek").textContent = `${total.toLocaleString()} upcoming events from ${live.length} Yale calendars, in one listing.`;
+  if (last) $("updated").textContent = "Updated " + relTime(last);
+  onHash();
+  $("foot-sources").textContent = `Collected from ${live.length} public Yale calendars${last ? ", refreshed " + relTime(last) : ""}. Check the event page before you go.`;
+}
+
+let qTimer;
+$("q").addEventListener("input", () => { clearTimeout(qTimer); qTimer = setTimeout(() => { state.q = $("q").value.trim(); reload({ scroll: false }); }, 220); });
+$("q").addEventListener("keydown", (ev) => { if (ev.key === "Escape") { $("q").value = ""; $("q").dispatchEvent(new Event("input")); $("q").blur(); } });
+$("q-clear").addEventListener("click", () => { $("q").value = ""; state.q = ""; reload(); $("q").focus(); });
+$("free_food").addEventListener("change", () => { state.free_food = $("free_food").checked; reload(); });
+$("ranges").addEventListener("click", (ev) => {
+  const b = ev.target.closest("button"); if (!b) return;
+  state.range = b.dataset.range;
+  reload();
+  if (state.range === "custom") $("start").focus();
+});
+for (const id of ["start", "end"]) $(id).addEventListener("change", () => {
+  state[id] = $(id).value;
+  if (state.start && state.end && state.end < state.start) { state.end = state.start; }
+  reload();
+});
+$("more").addEventListener("click", load);
+document.querySelectorAll("[data-clear]").forEach((b) => b.addEventListener("click", () => { state[b.dataset.clear].clear(); reload(); }));
+
+document.addEventListener("click", (ev) => {
+  const rm = ev.target.closest("[data-rm]");
+  if (rm) {
+    const k = rm.dataset.rm;
+    if (k === "all") { state.q = ""; state.free_food = false; state.category.clear(); state.area.clear(); state.source.clear(); }
+    else if (k === "q") state.q = "";
+    else if (k === "free_food") state.free_food = false;
+    else state[k].delete(rm.dataset.id);
+    reload();
+  }
+  if (ev.target.closest("[data-widen]")) { state.range = "month"; reload(); }
+});
+
+// Mobile drawer
+const drawer = (open) => document.body.classList.toggle("filters-open", open);
+$("filters-btn").addEventListener("click", () => drawer(true));
+$("backdrop").addEventListener("click", () => drawer(false));
+$("drawer-done").addEventListener("click", () => drawer(false));
+
+document.addEventListener("keydown", (ev) => {
+  const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName);
+  if (ev.key === "/" && !typing && !sheet.open) { ev.preventDefault(); $("q").focus(); $("q").select(); }
+  if (sheet.open && !typing && (ev.key === "ArrowRight" || ev.key === "j")) { ev.preventDefault(); step(1); }
+  if (sheet.open && !typing && (ev.key === "ArrowLeft" || ev.key === "k")) { ev.preventDefault(); step(-1); }
+  if (ev.key === "Escape" && document.body.classList.contains("filters-open")) drawer(false);
+});
+
+new ResizeObserver(() => document.documentElement.style.setProperty("--tb", $("toolbar").offsetHeight + "px")).observe($("toolbar"));
+
+init().catch((err) => {
+  $("list").innerHTML = `<div class="empty"><h2>Couldn't reach the server</h2><p class="err">${esc(err.message)}</p></div>`;
+});
 </script>
 </body>
 </html>
