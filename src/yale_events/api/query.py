@@ -6,7 +6,8 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, time, timedelta
 
 from fastapi import HTTPException
-from sqlalchemy import Select, and_, or_, select
+from sqlalchemy import Select, and_, func, or_, select, true
+from sqlalchemy.orm import aliased
 
 from yale_events.models import Event, EventCategory
 from yale_events.normalize import default_normalizer
@@ -21,6 +22,7 @@ class EventFilters:
     area: list[str] = field(default_factory=list)
     location: list[str] = field(default_factory=list)
     source: list[str] = field(default_factory=list)
+    host: list[str] = field(default_factory=list)  # any of the event's groups (department, org, venue)
     q: str | None = None
     free_food: bool | None = None
     include_ongoing: bool = False
@@ -92,6 +94,8 @@ def build_query(f: EventFilters) -> Select[tuple[Event]]:
         stmt = stmt.where(Event.location_id.in_(f.location))
     if f.source:
         stmt = stmt.where(Event.source_id.in_(f.source))
+    if f.host:
+        stmt = stmt.where(Event.id.in_(hosted_by(f.host)))
     if f.q:
         pattern = f"%{f.q}%"
         stmt = stmt.where(
@@ -104,6 +108,17 @@ def build_query(f: EventFilters) -> Select[tuple[Event]]:
     if not f.include_cancelled:
         stmt = stmt.where(Event.cancelled.is_(False))
     return stmt.order_by(Event.start, Event.id)
+
+
+def hosts_of(event):
+    """Table-valued json_each over an Event entity's groups, one row per host name."""
+    return func.json_each(event.groups).table_valued("value")
+
+
+def hosted_by(hosts: list[str]) -> Select:
+    e = aliased(Event)
+    g = hosts_of(e)
+    return select(e.id).join(g, true()).where(g.c.value.in_(hosts))
 
 
 # Keyset pagination: the cursor is the (start, id) of the last event on the previous page.

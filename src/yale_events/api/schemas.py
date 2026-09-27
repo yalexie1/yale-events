@@ -109,6 +109,11 @@ class AreaOut(BaseModel):
     upcoming: int
 
 
+class HostOut(BaseModel):
+    name: str
+    upcoming: int
+
+
 class BuildingOut(BaseModel):
     id: str
     name: str

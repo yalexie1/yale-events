@@ -27,14 +27,15 @@ def ev(key: str, start: datetime, categories=(), **kw) -> Event:
 def make_events() -> list[Event]:
     return [
         ev("jazz", NOW + timedelta(days=1), ["music"], area="central", location_id="woolsey-hall", free_food=True,
-           description="Pizza after the show.", url="https://events.yale.edu/jazz"),
+           description="Pizza after the show.", url="https://events.yale.edu/jazz",
+           groups=["Yale School of Music", "Yale Arts"]),
         ev("lecture", NOW + timedelta(days=2), ["talks"], area="science-hill", location_id="kroon-hall",
            end=NOW + timedelta(days=2, hours=1), location_name="Kroon Hall", room="Burke Auditorium", lat=41.3167,
-           lon=-72.9235),
+           lon=-72.9235, groups=["School of the Environment, Yale"]),
         ev("in-progress", NOW - timedelta(hours=1), ["talks"], end=NOW + timedelta(hours=1), area="central"),
         ev("today-all-day", TODAY_MIDNIGHT, ["social"], all_day=True, area="central"),
         ev("past", NOW - timedelta(days=1), ["talks"], end=NOW - timedelta(days=1) + timedelta(hours=1)),
-        ev("far", NOW + timedelta(days=20), ["film"]),
+        ev("far", NOW + timedelta(days=120), ["film"]),
         ev("exhibit", NOW + timedelta(days=1), ["exhibitions"], all_day=True, ongoing=True, area="arts-district"),
         ev("cancelled", NOW + timedelta(days=3), ["talks"], cancelled=True),
         ev("stale", NOW + timedelta(days=3), ["talks"], stale=True),
@@ -63,7 +64,7 @@ def ids(resp) -> list[str]:
 
 
 def test_default_window(client):
-    # Next 14 days, including events in progress and today's all-day ones; no past, far, ongoing,
+    # Next 90 days, including events in progress and today's all-day ones; no past, far, ongoing,
     # cancelled, or stale events.
     assert ids(client.get("/events")) == ["today-all-day", "in-progress", "jazz", "lecture", "online"]
 
@@ -82,6 +83,9 @@ def test_default_window(client):
         ({"include_ongoing": "true", "area": "arts-district"}, ["exhibit"]),
         ({"include_cancelled": "true", "category": "talks"}, ["in-progress", "lecture", "cancelled"]),
         ({"source": "other"}, []),
+        ({"host": "Yale Arts"}, ["jazz"]),
+        # Host names can contain commas, so they're repeated rather than comma-separated.
+        ({"host": ["School of the Environment, Yale", "Yale Arts"]}, ["jazz", "lecture"]),
     ],
 )
 def test_filters(client, params, expected):
@@ -89,7 +93,7 @@ def test_filters(client, params, expected):
 
 
 def test_date_range_end_is_inclusive(client):
-    day = (NOW + timedelta(days=20)).astimezone(NEW_HAVEN).date()
+    day = (NOW + timedelta(days=120)).astimezone(NEW_HAVEN).date()
     assert ids(client.get("/events", params={"start": day.isoformat(), "end": day.isoformat()})) == ["far"]
 
 
@@ -180,6 +184,11 @@ def test_reference_endpoints(client):
     assert areas["science-hill"] == 1
     kroon = next(b for b in client.get("/locations", params={"area": "science-hill"}).json() if b["id"] == "kroon-hall")
     assert kroon["upcoming"] == 1
+    assert client.get("/hosts").json() == [
+        {"name": "School of the Environment, Yale", "upcoming": 1},
+        {"name": "Yale Arts", "upcoming": 1},
+        {"name": "Yale School of Music", "upcoming": 1},
+    ]
     (src,) = client.get("/sources").json()
     assert (src["id"], src["last_run_status"], src["upcoming"]) == ("test", "ok", 4)
 

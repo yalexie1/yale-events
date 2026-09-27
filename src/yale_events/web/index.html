@@ -63,7 +63,7 @@
             grid-template-columns: 236px minmax(0, 1fr); gap: 40px; }
 
   /* ---------- Toolbar (sticky) ---------- */
-  .toolbar { position: sticky; top: 0; z-index: 20; background: var(--paper); padding: 14px 0 12px;
+  .toolbar { position: sticky; top: 0; z-index: 20; background: var(--paper); padding: 14px 10px 12px; margin: 0 -10px;
              border-bottom: 1px solid var(--rule); display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
   main { min-width: 0; }
   .tb-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
@@ -104,8 +104,8 @@
   .btn.filters-btn { display: none; }
 
   /* ---------- Sidebar filters ---------- */
-  aside { position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; padding: 18px 2px 30px 0;
-          scrollbar-width: thin; }
+  aside { position: sticky; top: 0; align-self: start; max-height: 100vh; overflow: hidden auto; padding: 18px 12px 30px 0;
+          scrollbar-width: thin; scrollbar-gutter: stable; overscroll-behavior: contain; }
   .fgroup { padding: 14px 0 16px; border-bottom: 1px solid var(--rule); }
   .fgroup:first-of-type { padding-top: 0; }
   .fgroup h3 { margin: 0 0 8px; color: var(--ink-2); display: flex; justify-content: space-between; align-items: baseline; }
@@ -122,6 +122,13 @@
   .opt .n { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); }
   .opt[aria-pressed=true] { font-weight: 500; }
   .opt.dim { color: var(--ink-3); }
+  .opt[hidden] { display: none; }
+  .opt .nm { min-width: 0; overflow-wrap: anywhere; }
+  .fsearch { width: 100%; height: 30px; margin: 0 0 6px; padding: 0 8px; border: 1px solid var(--rule); border-radius: 3px;
+             background: var(--sheet); font-size: 13px; outline: none; }
+  .fsearch:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-soft); }
+  .fnote { margin: 6px 0 0; font-size: 12px; color: var(--ink-3); line-height: 1.4; }
+  .fempty { font-size: 13px; color: var(--ink-3); padding: 4px 0; }
   .more-toggle { margin-top: 6px; }
 
   .toggle { display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer;
@@ -155,7 +162,7 @@
   /* ---------- Event list ---------- */
   .day { margin-top: 6px; }
   .day-h { position: sticky; top: var(--tb); z-index: 5; background: var(--paper); display: flex; align-items: baseline;
-           gap: 12px; padding: 22px 0 8px; border-bottom: 1px solid var(--rule-strong); margin: 0; }
+           gap: 12px; padding: 22px 10px 8px; border-bottom: 1px solid var(--rule-strong); margin: 0 -10px; }
   .day-h .dow { font: italic 400 28px/1 var(--serif); }
   .day-h .date { font: 500 12px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
   .day-h .rel { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--paper);
@@ -327,6 +334,16 @@
       <div id="f-area"></div>
     </div>
     <div class="fgroup">
+      <h3 class="smallcaps">Residential college <button class="linkish" data-clear="location" hidden>clear</button></h3>
+      <div id="f-location"></div>
+      <p class="fnote">Only five colleges publish a public calendar. For the rest, these are events held there that other calendars list.</p>
+    </div>
+    <div class="fgroup">
+      <h3 class="smallcaps">Host <button class="linkish" data-clear="host" hidden>clear</button></h3>
+      <input class="fsearch" id="host-q" type="search" placeholder="Find a department or group" aria-label="Find a host" autocomplete="off">
+      <div id="f-host"></div>
+    </div>
+    <div class="fgroup">
       <h3 class="smallcaps">Listed by <button class="linkish" data-clear="source" hidden>clear</button></h3>
       <div id="f-source"></div>
     </div>
@@ -358,7 +375,7 @@
       </div>
       <div class="tb-row">
         <div class="ranges" role="group" aria-label="Date range" id="ranges">
-          <button data-range="upcoming">Next 2 weeks</button>
+          <button data-range="upcoming">Next 3 months</button>
           <button data-range="today">Today</button>
           <button data-range="tomorrow">Tomorrow</button>
           <button data-range="weekend">This weekend</button>
@@ -420,10 +437,12 @@
 <script>
 const $ = (id) => document.getElementById(id);
 const DAY = 864e5;
-const names = { category: {}, area: {}, source: {} };
+const names = { category: {}, area: {}, location: {}, host: {}, source: {} };
+const KINDS = ["category", "area", "location", "host", "source"];
+const UPCOMING_DAYS = 90;  // the API's default window
 const state = {
   q: "", range: "upcoming", start: "", end: "", free_food: false,
-  category: new Set(), area: new Set(), source: new Set(),
+  category: new Set(), area: new Set(), location: new Set(), host: new Set(), source: new Set(),
   cursor: null, loading: false, events: [], byId: new Map(), gen: 0,
 };
 
@@ -502,7 +521,10 @@ function toParams({ forFeed = false } = {}) {
     if (state.range !== "upcoming") p.set("range", state.range);
     if (state.range === "custom") { if (state.start) p.set("start", state.start); if (state.end) p.set("end", state.end); }
   }
-  for (const k of ["category", "area", "source"]) if (state[k].size) p.set(k, [...state[k]].join(","));
+  for (const k of KINDS) {
+    if (k === "host") state.host.forEach((h) => p.append("host", h));  // names can contain commas
+    else if (state[k].size) p.set(k, [...state[k]].join(","));
+  }
   if (state.free_food) p.set("free_food", "true");
   return p;
 }
@@ -519,7 +541,7 @@ function restore() {
   state.range = p.get("range") || "upcoming";
   state.start = p.get("start") || iso(today());
   state.end = p.get("end") || iso(addDays(today(), 13));
-  for (const k of ["category", "area", "source"]) state[k] = new Set((p.get(k) || "").split(",").filter(Boolean));
+  for (const k of KINDS) state[k] = new Set(k === "host" ? p.getAll("host") : (p.get(k) || "").split(",").filter(Boolean));
   state.free_food = p.get("free_food") === "true";
 }
 
@@ -529,30 +551,58 @@ function optionButton(kind, item, { color = false } = {}) {
   b.className = "opt" + (item.upcoming ? "" : " dim");
   b.dataset.kind = kind; b.dataset.id = item.id;
   if (color) b.style.setProperty("--cat", `var(--c-${item.id})`);
-  b.innerHTML = `<span class="box"></span><span>${esc(item.name)}</span><span class="n">${item.upcoming.toLocaleString()}</span>`;
+  b.innerHTML = `<span class="box"></span><span class="nm">${esc(item.name)}</span><span class="n">${item.upcoming.toLocaleString()}</span>`;
   b.addEventListener("click", () => { toggle(kind, item.id); });
   return b;
 }
-function buildFilters(cats, areas, sources) {
+/** A long option list: the first `few` plus any selected, with a "Show all" toggle. */
+function collapsible(container, buttons, few, kind) {
+  buttons.forEach((b, i) => { if (i >= few) b.dataset.extra = ""; container.appendChild(b); });
+  if (buttons.length <= few) return null;
+  const t = document.createElement("button");
+  t.className = "linkish more-toggle";
+  const set = (open) => {
+    container.querySelectorAll("[data-extra]").forEach((b) => (b.hidden = !open && !state[kind].has(b.dataset.id)));
+    t.textContent = open ? "Show fewer" : `Show all ${buttons.length}`;
+    t.dataset.open = open ? "1" : "";
+  };
+  t.addEventListener("click", () => set(!t.dataset.open));
+  container.appendChild(t);
+  set(false);
+  return t;
+}
+function buildFilters(cats, areas, sources, buildings, hosts) {
   const fc = $("f-category");
   cats.filter((c) => c.upcoming).sort((a, b) => b.upcoming - a.upcoming).forEach((c) => fc.appendChild(optionButton("category", c, { color: true })));
   const fa = $("f-area");
   areas.filter((a) => a.upcoming).forEach((a) => fa.appendChild(optionButton("area", { ...a, name: a.name.replace(/ \(.*\)$/, "") })));
   const fs = $("f-source");
   const live = sources.filter((s) => s.enabled && s.upcoming).sort((a, b) => b.upcoming - a.upcoming);
-  live.forEach((s, i) => { const b = optionButton("source", s); if (i >= 6) b.dataset.extra = ""; fs.appendChild(b); });
-  if (live.length > 6) {
-    const t = document.createElement("button");
-    t.className = "linkish more-toggle";
-    const set = (open) => {
-      fs.querySelectorAll("[data-extra]").forEach((b) => (b.hidden = !open && !state.source.has(b.dataset.id)));
-      t.textContent = open ? "Show fewer" : `Show all ${live.length}`;
-      t.dataset.open = open ? "1" : "";
-    };
-    t.addEventListener("click", () => set(!t.dataset.open));
-    fs.appendChild(t);
-    set(false);
-  }
+  collapsible(fs, live.map((s) => optionButton("source", s)), 6, "source");
+
+  // All fourteen colleges, including those with nothing listed, so their absence is visible.
+  const colleges = buildings.filter((b) => /-college$/.test(b.id)).sort((a, b) => a.name.localeCompare(b.name));
+  colleges.forEach((b) => $("f-location").appendChild(optionButton("location", { ...b, name: b.name.replace(/ College$/, "") })));
+
+  const fh = $("f-host");
+  const hostButtons = hosts.map((h) => optionButton("host", { id: h.name, name: h.name, upcoming: h.upcoming }));
+  const toggleBtn = collapsible(fh, hostButtons, 8, "host");
+  const none = document.createElement("div");
+  none.className = "fempty"; none.hidden = true; none.textContent = "No host by that name.";
+  fh.appendChild(none);
+  $("host-q").addEventListener("input", () => {
+    const q = $("host-q").value.trim().toLowerCase();
+    if (!q) {  // back to the collapsed list
+      hostButtons.forEach((b) => (b.hidden = false));
+      if (toggleBtn) { toggleBtn.hidden = false; toggleBtn.dataset.open = "1"; toggleBtn.click(); }
+      none.hidden = true;
+      return;
+    }
+    let shown = 0;
+    hostButtons.forEach((b) => { b.hidden = !b.dataset.id.toLowerCase().includes(q); shown += !b.hidden; });
+    if (toggleBtn) toggleBtn.hidden = true;
+    none.hidden = shown > 0;
+  });
 }
 function toggle(kind, id) {
   state[kind].has(id) ? state[kind].delete(id) : state[kind].add(id);
@@ -566,13 +616,13 @@ function syncControls() {
   document.querySelectorAll("#ranges button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.range === state.range));
   document.querySelectorAll(".opt").forEach((b) => b.setAttribute("aria-pressed", state[b.dataset.kind].has(b.dataset.id)));
   document.querySelectorAll("[data-clear]").forEach((b) => (b.hidden = !state[b.dataset.clear].size));
-  const n = state.category.size + state.area.size + state.source.size + (state.free_food ? 1 : 0);
+  const n = KINDS.reduce((n, k) => n + state[k].size, state.free_food ? 1 : 0);
   $("filters-n").textContent = n ? ` · ${n}` : "";
 }
 
 function rangeLabel() {
   const w = windowFor(state.range);
-  const s = w.start ? parseDay(w.start) : today(), e = w.end ? parseDay(w.end) : addDays(today(), 13);
+  const s = w.start ? parseDay(w.start) : today(), e = w.end ? parseDay(w.end) : addDays(today(), UPCOMING_DAYS - 1);
   return iso(s) === iso(e) ? fmtLongDate(s) : `${fmtShortDate(s)} – ${fmtShortDate(e)}`;
 }
 
@@ -582,7 +632,7 @@ function renderStatus(done) {
   const pills = [];
   if (state.q) pills.push(`<button class="pill" data-rm="q">“${esc(state.q)}”<span class="x">✕</span></button>`);
   if (state.free_food) pills.push(`<button class="pill" data-rm="free_food">Free food<span class="x">✕</span></button>`);
-  for (const k of ["category", "area", "source"])
+  for (const k of KINDS)
     for (const id of state[k])
       pills.push(`<button class="pill" data-rm="${k}" data-id="${esc(id)}">${k === "category" ? `<span class="sw" ${catStyle(id)}></span>` : ""}${esc(names[k][id] || id)}<span class="x">✕</span></button>`);
   const count = state.loading && !n ? "Loading…" : `${n.toLocaleString()}${done ? "" : "+"} event${n === 1 ? "" : "s"} · ${rangeLabel()}`;
@@ -650,7 +700,7 @@ function skeleton() {
 }
 
 function emptyState() {
-  const hasFilters = state.q || state.free_food || state.category.size || state.area.size || state.source.size;
+  const hasFilters = state.q || state.free_food || KINDS.some((k) => state[k].size);
   $("list").innerHTML = `<div class="empty">
     <h2>Nothing on the calendar</h2>
     <p>${hasFilters ? "No events match these filters in this date range." : "No events in this date range."}</p>
@@ -850,6 +900,8 @@ function openSubscribe() {
   const parts = [];
   if (state.category.size) parts.push([...state.category].map((c) => names.category[c]).join(", "));
   if (state.area.size) parts.push([...state.area].map((c) => names.area[c]).join(", "));
+  if (state.location.size) parts.push("at " + [...state.location].map((c) => names.location[c]).join(", "));
+  if (state.host.size) parts.push("hosted by " + [...state.host].join(", "));
   if (state.source.size) parts.push("from " + [...state.source].map((c) => names.source[c]).join(", "));
   if (state.free_food) parts.push("with free food");
   if (state.q) parts.push(`matching “${state.q}”`);
@@ -884,11 +936,14 @@ async function init() {
   load();  // start fetching events while the reference lists load
 
   const get = (u) => fetch(u).then((r) => { if (!r.ok) throw new Error(r.statusText); return r.json(); });
-  const [cats, areas, sources] = await Promise.all([get("/categories"), get("/areas"), get("/sources")]);
+  const [cats, areas, sources, buildings, hosts] = await Promise.all(
+    [get("/categories"), get("/areas"), get("/sources"), get("/locations"), get("/hosts")]);
   cats.forEach((c) => (names.category[c.id] = c.name));
   areas.forEach((a) => (names.area[a.id] = a.name.replace(/ \(.*\)$/, "")));
   sources.forEach((s) => (names.source[s.id] = s.name));
-  buildFilters(cats, areas, sources);
+  buildings.forEach((b) => (names.location[b.id] = b.name));
+  hosts.forEach((h) => (names.host[h.name] = h.name));
+  buildFilters(cats, areas, sources, buildings, hosts);
   syncControls();
   // Re-render what's loaded so category and area names replace ids.
   if (state.events.length) { const evs = state.events; $("list").innerHTML = ""; append(evs, windowFor(state.range).start || iso(today())); if (!state.cursor) $("list").insertAdjacentHTML("beforeend", `<div class="endnote">That's everything through ${rangeLabel().split(" – ").pop()}.</div>`); }
@@ -926,7 +981,7 @@ document.addEventListener("click", (ev) => {
   const rm = ev.target.closest("[data-rm]");
   if (rm) {
     const k = rm.dataset.rm;
-    if (k === "all") { state.q = ""; state.free_food = false; state.category.clear(); state.area.clear(); state.source.clear(); }
+    if (k === "all") { state.q = ""; state.free_food = false; KINDS.forEach((k) => state[k].clear()); }
     else if (k === "q") state.q = "";
     else if (k === "free_food") state.free_food = false;
     else state[k].delete(rm.dataset.id);
