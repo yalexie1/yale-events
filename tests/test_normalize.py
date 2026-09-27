@@ -65,6 +65,7 @@ CAT = N.categorizer
         ("Room HQ L01 in the Humanities Quadrangle (320 York Street, New Haven)., New Haven, CT 06520, United States",
          None, None, None, False, ("humanities-quadrangle", "central", None)),
         ("Harkness Hall (Medical)", None, None, None, False, ("es-harkness-hall", "medical", None)),
+        ("Room 101, Harkness Hall (Medical)", None, None, None, False, ("es-harkness-hall", "medical", "Room 101")),
     ],
 )  # fmt: skip
 def test_resolve_location(name, address, lat, lon, virtual, expected):

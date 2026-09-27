@@ -101,17 +101,7 @@ class LocationResolver:
             return bid, f"Room {m.group(2)}"
         return self._by_name.get(norm_name(name)) or self._by_address.get(norm_address(name) or ""), None
 
-    def _match(self, name: str | None, address: str | None) -> tuple[str | None, str | None]:
-        """Return (building id, room) from the venue name and address alone."""
-        name = (name or "").strip()
-        # Some names need their parenthetical ("Harkness Hall (Medical)"), so try the full name first.
-        # Otherwise, as in "Farnam Memorial Gardens (335 Prospect Street, New Haven)", match without
-        # it and try what's inside it as an address.
-        bid, room = self._match_one(name)
-        if bid:
-            return bid, room
-        inner = _PARENS.findall(name)
-        name = _PARENS.sub("", name).strip()
+    def _match_segments(self, name: str) -> tuple[str | None, str | None]:
         bid, room = self._match_one(name)
         if bid:
             return bid, room
@@ -121,7 +111,21 @@ class LocationResolver:
             if bid:
                 # Whatever precedes the building is usually the room: "Room 101, Kroon Hall".
                 return bid, room or ", ".join(s for s in segments[:i] if not _CITY_SEGMENT.match(s)) or None
-        for candidate in (address, name, *inner):
+        return None, None
+
+    def _match(self, name: str | None, address: str | None) -> tuple[str | None, str | None]:
+        """Return (building id, room) from the venue name and address alone."""
+        name = (name or "").strip()
+        # Some names need their parenthetical ("Harkness Hall (Medical)"), so match the full name first.
+        # Otherwise, as in "Farnam Memorial Gardens (335 Prospect Street, New Haven)", match without
+        # it and try what's inside it as an address.
+        inner = _PARENS.findall(name)
+        stripped = _PARENS.sub("", name).strip()
+        for variant in dict.fromkeys((name, stripped)):
+            bid, room = self._match_segments(variant)
+            if bid:
+                return bid, room
+        for candidate in (address, stripped, *inner):
             if candidate and (key := norm_address(candidate)) and (bid := self._by_address.get(key)):
                 return bid, None
         return None, None
