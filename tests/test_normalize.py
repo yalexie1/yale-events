@@ -58,6 +58,13 @@ CAT = N.categorizer
         ("SLB Room 127", None, None, None, False, ("law-school", "central", "127")),
         ("Humanities Quadrangle Room 107", None, None, None, False, ("humanities-quadrangle", "central", "Room 107")),
         ("Kroon Hall, Rm. 321", None, None, None, False, ("kroon-hall", "science-hill", "Room 321")),
+        # A parenthetical address (Yale Connect): its comma mustn't split the building name, and it
+        # can identify the building when the prose around it doesn't.
+        ("Farnam Memorial Gardens (335 Prospect Street, New Haven), New Haven, CT 06520, United States",
+         None, None, None, False, ("farnam-gardens", "science-hill", None)),
+        ("Room HQ L01 in the Humanities Quadrangle (320 York Street, New Haven)., New Haven, CT 06520, United States",
+         None, None, None, False, ("humanities-quadrangle", "central", None)),
+        ("Harkness Hall (Medical)", None, None, None, False, ("es-harkness-hall", "medical", None)),
     ],
 )  # fmt: skip
 def test_resolve_location(name, address, lat, lon, virtual, expected):

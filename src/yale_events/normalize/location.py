@@ -13,6 +13,7 @@ UNKNOWN_NAMES = {"tbd", "tba", "other", "none", "see description", "various loca
 ONLINE_NAMES = {"online", "virtual", "zoom", "webinar"}
 # Segments that name the city, not a room: "New Haven, Conn., Ingalls Rink".
 _CITY_SEGMENT = re.compile(r"^(new haven|conn\.?|ct|connecticut)$", re.IGNORECASE)
+_PARENS = re.compile(r"\s*\(([^()]*)\)")
 _TRAILING_ROOM = re.compile(r"^(.+?)[\s,]+(?:room|rm\.?)\s*([A-Z]?\d+[A-Z]?)$", re.IGNORECASE)
 
 _STREET_ABBR = {
@@ -103,6 +104,14 @@ class LocationResolver:
     def _match(self, name: str | None, address: str | None) -> tuple[str | None, str | None]:
         """Return (building id, room) from the venue name and address alone."""
         name = (name or "").strip()
+        # Some names need their parenthetical ("Harkness Hall (Medical)"), so try the full name first.
+        # Otherwise, as in "Farnam Memorial Gardens (335 Prospect Street, New Haven)", match without
+        # it and try what's inside it as an address.
+        bid, room = self._match_one(name)
+        if bid:
+            return bid, room
+        inner = _PARENS.findall(name)
+        name = _PARENS.sub("", name).strip()
         bid, room = self._match_one(name)
         if bid:
             return bid, room
@@ -112,7 +121,7 @@ class LocationResolver:
             if bid:
                 # Whatever precedes the building is usually the room: "Room 101, Kroon Hall".
                 return bid, room or ", ".join(s for s in segments[:i] if not _CITY_SEGMENT.match(s)) or None
-        for candidate in (address, name):
+        for candidate in (address, name, *inner):
             if candidate and (key := norm_address(candidate)) and (bid := self._by_address.get(key)):
                 return bid, None
         return None, None
