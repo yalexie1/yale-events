@@ -139,3 +139,8 @@ Requests are rate-limited to one per second per run and identify the project in 
 robots.txt is respected (drama.yale.edu is excluded because of it), with two exceptions: the
 events.yale.edu Localist API and public Google Calendar feeds, both fetched once per scheduled run.
 No per-event pages are fetched from events.yale.edu.
+
+## License
+
+[MIT](LICENSE) covers the code. Event listings belong to the calendars they come from; each event
+links back to its source page.

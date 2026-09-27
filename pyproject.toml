@@ -3,6 +3,8 @@ name = "yale-events"
 version = "0.1.0"
 description = "Scraper + normalized API for a unified feed of Yale events"
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [
     { name = "Yale Xie", email = "yale.xie@yale.edu" }
 ]
