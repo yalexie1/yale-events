@@ -6,12 +6,13 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, time, timedelta
 
 from fastapi import HTTPException
-from sqlalchemy import Select, and_, func, or_, select, true
+from sqlalchemy import Select, and_, false, func, or_, select, true
 from sqlalchemy.orm import aliased
 
 from yale_events.models import Event, EventCategory
 from yale_events.normalize import default_normalizer
 from yale_events.normalize.time import NEW_HAVEN
+from yale_events.orgs import Org, default_orgs
 
 
 @dataclass
@@ -22,7 +23,7 @@ class EventFilters:
     area: list[str] = field(default_factory=list)
     location: list[str] = field(default_factory=list)
     source: list[str] = field(default_factory=list)
-    host: list[str] = field(default_factory=list)  # any of the event's groups (department, org, venue)
+    org: list[str] = field(default_factory=list)  # see organizations.yaml
     q: str | None = None
     free_food: bool | None = None
     include_ongoing: bool = False
@@ -60,6 +61,7 @@ def validate(f: EventFilters) -> None:
         ("category", f.category, n.categorizer.categories),
         ("area", f.area, n.locations.areas),
         ("location", f.location, n.locations.buildings),
+        ("org", f.org, default_orgs()),
     ]:
         if unknown := [v for v in given if v not in known]:
             raise HTTPException(422, f"unknown {name}: {', '.join(unknown)} (see /{name_to_path(name)})")
@@ -68,7 +70,7 @@ def validate(f: EventFilters) -> None:
 
 
 def name_to_path(name: str) -> str:
-    return {"category": "categories", "area": "areas", "location": "locations"}[name]
+    return {"category": "categories", "area": "areas", "location": "locations", "org": "orgs"}[name]
 
 
 def build_query(f: EventFilters) -> Select[tuple[Event]]:
@@ -94,8 +96,8 @@ def build_query(f: EventFilters) -> Select[tuple[Event]]:
         stmt = stmt.where(Event.location_id.in_(f.location))
     if f.source:
         stmt = stmt.where(Event.source_id.in_(f.source))
-    if f.host:
-        stmt = stmt.where(Event.id.in_(hosted_by(f.host)))
+    if f.org:
+        stmt = stmt.where(or_(*(org_clause(default_orgs()[o]) for o in f.org)))
     if f.q:
         pattern = f"%{f.q}%"
         stmt = stmt.where(
@@ -110,15 +112,18 @@ def build_query(f: EventFilters) -> Select[tuple[Event]]:
     return stmt.order_by(Event.start, Event.id)
 
 
-def hosts_of(event):
-    """Table-valued json_each over an Event entity's groups, one row per host name."""
-    return func.json_each(event.groups).table_valued("value")
-
-
-def hosted_by(hosts: list[str]) -> Select:
-    e = aliased(Event)
-    g = hosts_of(e)
-    return select(e.id).join(g, true()).where(g.c.value.in_(hosts))
+def org_clause(org: Org):
+    """Events from the org's sources, held in its buildings, or naming one of its groups."""
+    clauses = []
+    if org.sources:
+        clauses.append(Event.source_id.in_(org.sources))
+    if org.locations:
+        clauses.append(Event.location_id.in_(org.locations))
+    if org.groups:
+        e = aliased(Event)
+        g = func.json_each(e.groups).table_valued("value")
+        clauses.append(Event.id.in_(select(e.id).join(g, true()).where(g.c.value.in_(org.groups))))
+    return or_(*clauses) if clauses else false()
 
 
 # Keyset pagination: the cursor is the (start, id) of the last event on the previous page.

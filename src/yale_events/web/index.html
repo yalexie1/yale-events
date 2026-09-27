@@ -106,10 +106,11 @@
   /* ---------- Sidebar filters ---------- */
   aside { position: sticky; top: 0; align-self: start; max-height: 100vh; overflow: hidden auto; padding: 18px 12px 30px 0;
           scrollbar-width: thin; scrollbar-gutter: stable; overscroll-behavior: contain; }
-  .fgroup { padding: 14px 0 16px; border-bottom: 1px solid var(--rule); }
-  .fgroup:first-of-type { padding-top: 0; }
-  .fgroup h3 { margin: 0 0 8px; color: var(--ink-2); display: flex; justify-content: space-between; align-items: baseline; }
-  .fgroup h3 .linkish { font-size: 11px; letter-spacing: 0; text-transform: none; font-weight: 400; }
+  .fgroup { padding: 0 0 18px; margin-top: 22px; border-top: 2px solid var(--rule-strong); }
+  .fgroup:first-of-type { margin-top: 0; padding-top: 12px; border-top: 0; }
+  .fgroup h3 { margin: 0 0 10px; padding: 9px 0 7px; border-bottom: 1px solid var(--rule); font: 500 21px/1.1 var(--serif);
+               color: var(--ink); display: flex; justify-content: space-between; align-items: baseline; }
+  .fgroup h3 .linkish { font: 400 12px var(--sans); }
   .opt { display: grid; grid-template-columns: 14px 1fr auto; align-items: center; gap: 9px; width: 100%;
          padding: 4px 6px; margin: 0 -6px; border: 0; background: none; cursor: pointer; text-align: left;
          font-size: 14px; border-radius: 2px; width: calc(100% + 12px); }
@@ -124,11 +125,7 @@
   .opt.dim { color: var(--ink-3); }
   .opt[hidden] { display: none; }
   .opt .nm { min-width: 0; overflow-wrap: anywhere; }
-  .fsearch { width: 100%; height: 30px; margin: 0 0 6px; padding: 0 8px; border: 1px solid var(--rule); border-radius: 3px;
-             background: var(--sheet); font-size: 13px; outline: none; }
-  .fsearch:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-soft); }
   .fnote { margin: 6px 0 0; font-size: 12px; color: var(--ink-3); line-height: 1.4; }
-  .fempty { font-size: 13px; color: var(--ink-3); padding: 4px 0; }
   .more-toggle { margin-top: 6px; }
 
   .toggle { display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer;
@@ -326,26 +323,25 @@
       </label>
     </div>
     <div class="fgroup">
-      <h3 class="smallcaps">Category <button class="linkish" data-clear="category" hidden>clear</button></h3>
+      <h3>Category <button class="linkish" data-clear="category" hidden>clear</button></h3>
       <div id="f-category"></div>
     </div>
     <div class="fgroup">
-      <h3 class="smallcaps">Where <button class="linkish" data-clear="area" hidden>clear</button></h3>
+      <h3>Where <button class="linkish" data-clear="area" hidden>clear</button></h3>
       <div id="f-area"></div>
     </div>
     <div class="fgroup">
-      <h3 class="smallcaps">Residential college <button class="linkish" data-clear="location" hidden>clear</button></h3>
-      <div id="f-location"></div>
+      <h3>Residential colleges <button class="linkish" data-clear="org:college" hidden>clear</button></h3>
+      <div id="f-college"></div>
       <p class="fnote">Only five colleges publish a public calendar. For the rest, these are events held there that other calendars list.</p>
     </div>
     <div class="fgroup">
-      <h3 class="smallcaps">Host <button class="linkish" data-clear="host" hidden>clear</button></h3>
-      <input class="fsearch" id="host-q" type="search" placeholder="Find a department or group" aria-label="Find a host" autocomplete="off">
-      <div id="f-host"></div>
+      <h3>Departments &amp; schools <button class="linkish" data-clear="org:department" hidden>clear</button></h3>
+      <div id="f-department"></div>
     </div>
     <div class="fgroup">
-      <h3 class="smallcaps">Listed by <button class="linkish" data-clear="source" hidden>clear</button></h3>
-      <div id="f-source"></div>
+      <h3>Other organizations <button class="linkish" data-clear="org:organization" hidden>clear</button></h3>
+      <div id="f-organization"></div>
     </div>
     <div class="subscribe-card">
       <h3>Keep it in your calendar</h3>
@@ -437,12 +433,13 @@
 <script>
 const $ = (id) => document.getElementById(id);
 const DAY = 864e5;
-const names = { category: {}, area: {}, location: {}, host: {}, source: {} };
-const KINDS = ["category", "area", "location", "host", "source"];
+const names = { category: {}, area: {}, org: {}, source: {} };
+const orgKind = {};
+const KINDS = ["category", "area", "org", "source"];  // source: no list of its own, but old links still work
 const UPCOMING_DAYS = 90;  // the API's default window
 const state = {
   q: "", range: "upcoming", start: "", end: "", free_food: false,
-  category: new Set(), area: new Set(), location: new Set(), host: new Set(), source: new Set(),
+  category: new Set(), area: new Set(), org: new Set(), source: new Set(),
   cursor: null, loading: false, events: [], byId: new Map(), gen: 0,
 };
 
@@ -521,10 +518,7 @@ function toParams({ forFeed = false } = {}) {
     if (state.range !== "upcoming") p.set("range", state.range);
     if (state.range === "custom") { if (state.start) p.set("start", state.start); if (state.end) p.set("end", state.end); }
   }
-  for (const k of KINDS) {
-    if (k === "host") state.host.forEach((h) => p.append("host", h));  // names can contain commas
-    else if (state[k].size) p.set(k, [...state[k]].join(","));
-  }
+  for (const k of KINDS) if (state[k].size) p.set(k, [...state[k]].join(","));
   if (state.free_food) p.set("free_food", "true");
   return p;
 }
@@ -541,7 +535,7 @@ function restore() {
   state.range = p.get("range") || "upcoming";
   state.start = p.get("start") || iso(today());
   state.end = p.get("end") || iso(addDays(today(), 13));
-  for (const k of KINDS) state[k] = new Set(k === "host" ? p.getAll("host") : (p.get(k) || "").split(",").filter(Boolean));
+  for (const k of KINDS) state[k] = new Set((p.get(k) || "").split(",").filter(Boolean));
   state.free_food = p.get("free_food") === "true";
 }
 
@@ -571,38 +565,22 @@ function collapsible(container, buttons, few, kind) {
   set(false);
   return t;
 }
-function buildFilters(cats, areas, sources, buildings, hosts) {
+function buildFilters(cats, areas, orgs) {
   const fc = $("f-category");
   cats.filter((c) => c.upcoming).sort((a, b) => b.upcoming - a.upcoming).forEach((c) => fc.appendChild(optionButton("category", c, { color: true })));
   const fa = $("f-area");
   areas.filter((a) => a.upcoming).forEach((a) => fa.appendChild(optionButton("area", { ...a, name: a.name.replace(/ \(.*\)$/, "") })));
-  const fs = $("f-source");
-  const live = sources.filter((s) => s.enabled && s.upcoming).sort((a, b) => b.upcoming - a.upcoming);
-  collapsible(fs, live.map((s) => optionButton("source", s)), 6, "source");
-
-  // All fourteen colleges, including those with nothing listed, so their absence is visible.
-  const colleges = buildings.filter((b) => /-college$/.test(b.id)).sort((a, b) => a.name.localeCompare(b.name));
-  colleges.forEach((b) => $("f-location").appendChild(optionButton("location", { ...b, name: b.name.replace(/ College$/, "") })));
-
-  const fh = $("f-host");
-  const hostButtons = hosts.map((h) => optionButton("host", { id: h.name, name: h.name, upcoming: h.upcoming }));
-  const toggleBtn = collapsible(fh, hostButtons, 8, "host");
-  const none = document.createElement("div");
-  none.className = "fempty"; none.hidden = true; none.textContent = "No host by that name.";
-  fh.appendChild(none);
-  $("host-q").addEventListener("input", () => {
-    const q = $("host-q").value.trim().toLowerCase();
-    if (!q) {  // back to the collapsed list
-      hostButtons.forEach((b) => (b.hidden = false));
-      if (toggleBtn) { toggleBtn.hidden = false; toggleBtn.dataset.open = "1"; toggleBtn.click(); }
-      none.hidden = true;
-      return;
-    }
-    let shown = 0;
-    hostButtons.forEach((b) => { b.hidden = !b.dataset.id.toLowerCase().includes(q); shown += !b.hidden; });
-    if (toggleBtn) toggleBtn.hidden = true;
-    none.hidden = shown > 0;
-  });
+  // All fourteen colleges, alphabetical, even with nothing listed, so a missing calendar is visible.
+  orgs.filter((o) => o.kind === "college").forEach((o) => $("f-college").appendChild(optionButton("org", o)));
+  for (const kind of ["department", "organization"]) {
+    const live = orgs.filter((o) => o.kind === kind && o.upcoming).sort((a, b) => b.upcoming - a.upcoming);
+    collapsible($("f-" + kind), live.map((o) => optionButton("org", o)), 8, "org");
+  }
+}
+/** What a section's "clear" removes: "area", or "org:college" for one kind of organization. */
+function clearable(spec) {
+  const [kind, sub] = spec.split(":");
+  return [...state[kind]].filter((id) => !sub || orgKind[id] === sub).map((id) => [kind, id]);
 }
 function toggle(kind, id) {
   state[kind].has(id) ? state[kind].delete(id) : state[kind].add(id);
@@ -615,7 +593,7 @@ function syncControls() {
   $("custom-dates").classList.toggle("on", state.range === "custom");
   document.querySelectorAll("#ranges button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.range === state.range));
   document.querySelectorAll(".opt").forEach((b) => b.setAttribute("aria-pressed", state[b.dataset.kind].has(b.dataset.id)));
-  document.querySelectorAll("[data-clear]").forEach((b) => (b.hidden = !state[b.dataset.clear].size));
+  document.querySelectorAll("[data-clear]").forEach((b) => (b.hidden = !clearable(b.dataset.clear).length));
   const n = KINDS.reduce((n, k) => n + state[k].size, state.free_food ? 1 : 0);
   $("filters-n").textContent = n ? ` · ${n}` : "";
 }
@@ -900,8 +878,7 @@ function openSubscribe() {
   const parts = [];
   if (state.category.size) parts.push([...state.category].map((c) => names.category[c]).join(", "));
   if (state.area.size) parts.push([...state.area].map((c) => names.area[c]).join(", "));
-  if (state.location.size) parts.push("at " + [...state.location].map((c) => names.location[c]).join(", "));
-  if (state.host.size) parts.push("hosted by " + [...state.host].join(", "));
+  if (state.org.size) parts.push("from " + [...state.org].map((c) => names.org[c]).join(", "));
   if (state.source.size) parts.push("from " + [...state.source].map((c) => names.source[c]).join(", "));
   if (state.free_food) parts.push("with free food");
   if (state.q) parts.push(`matching “${state.q}”`);
@@ -936,14 +913,12 @@ async function init() {
   load();  // start fetching events while the reference lists load
 
   const get = (u) => fetch(u).then((r) => { if (!r.ok) throw new Error(r.statusText); return r.json(); });
-  const [cats, areas, sources, buildings, hosts] = await Promise.all(
-    [get("/categories"), get("/areas"), get("/sources"), get("/locations"), get("/hosts")]);
+  const [cats, areas, sources, orgs] = await Promise.all([get("/categories"), get("/areas"), get("/sources"), get("/orgs")]);
   cats.forEach((c) => (names.category[c.id] = c.name));
   areas.forEach((a) => (names.area[a.id] = a.name.replace(/ \(.*\)$/, "")));
   sources.forEach((s) => (names.source[s.id] = s.name));
-  buildings.forEach((b) => (names.location[b.id] = b.name));
-  hosts.forEach((h) => (names.host[h.name] = h.name));
-  buildFilters(cats, areas, sources, buildings, hosts);
+  orgs.forEach((o) => { names.org[o.id] = o.kind === "college" ? o.name + " College" : o.name; orgKind[o.id] = o.kind; });
+  buildFilters(cats, areas, orgs);
   syncControls();
   // Re-render what's loaded so category and area names replace ids.
   if (state.events.length) { const evs = state.events; $("list").innerHTML = ""; append(evs, windowFor(state.range).start || iso(today())); if (!state.cursor) $("list").insertAdjacentHTML("beforeend", `<div class="endnote">That's everything through ${rangeLabel().split(" – ").pop()}.</div>`); }
@@ -975,7 +950,10 @@ for (const id of ["start", "end"]) $(id).addEventListener("change", () => {
   reload();
 });
 $("more").addEventListener("click", load);
-document.querySelectorAll("[data-clear]").forEach((b) => b.addEventListener("click", () => { state[b.dataset.clear].clear(); reload(); }));
+document.querySelectorAll("[data-clear]").forEach((b) => b.addEventListener("click", () => {
+  clearable(b.dataset.clear).forEach(([k, id]) => state[k].delete(id));
+  reload();
+}));
 
 document.addEventListener("click", (ev) => {
   const rm = ev.target.closest("[data-rm]");

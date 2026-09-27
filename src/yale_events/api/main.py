@@ -5,18 +5,19 @@ from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
 from fastapi.responses import FileResponse
-from sqlalchemy import func, select, true
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
 from yale_events.api.ical import to_ics
 from yale_events.api.query import (
-    EventFilters, apply_cursor, build_query, encode_cursor, hosts_of, parse_when, split_values, validate,
+    EventFilters, apply_cursor, build_query, encode_cursor, parse_when, split_values, validate,
 )
-from yale_events.api.schemas import AreaOut, BuildingOut, CategoryOut, EventOut, EventPage, HostOut, SourceOut
+from yale_events.api.schemas import AreaOut, BuildingOut, CategoryOut, EventOut, EventPage, OrgOut, SourceOut
 from yale_events.db import make_session_factory
 from yale_events.models import Event, EventCategory, ScrapeRun, Source
 from yale_events.normalize import default_normalizer
 from yale_events.normalize.time import NEW_HAVEN
+from yale_events.orgs import default_orgs
 
 DEFAULT_DAYS = 90
 ICS_PAST_DAYS = 7
@@ -57,8 +58,8 @@ def event_filters(
     area: Annotated[list[str] | None, Query(description="Any of these areas, see /areas.")] = None,
     location: Annotated[list[str] | None, Query(description="Any of these buildings, see /locations.")] = None,
     source: Annotated[list[str] | None, Query(description="Any of these sources, see /sources.")] = None,
-    host: Annotated[
-        list[str] | None, Query(description="Any of these hosts (departments, organizations), see /hosts.")
+    org: Annotated[
+        list[str] | None, Query(description="Any of these colleges, departments, or organizations, see /orgs.")
     ] = None,
     q: Annotated[str | None, Query(description="Text search in title, description, and venue.")] = None,
     free_food: bool | None = None,
@@ -74,7 +75,7 @@ def event_filters(
         area=split_values(area),
         location=split_values(location),
         source=split_values(source),
-        host=[h.strip() for h in host or [] if h.strip()],  # names can contain commas: repeat instead
+        org=split_values(org),
         q=q.strip() or None if q else None,
         free_food=free_food,
         include_ongoing=include_ongoing,
@@ -87,19 +88,21 @@ def event_filters(
 FiltersDep = Annotated[EventFilters, Depends(event_filters)]
 
 
-def upcoming_counts(session: Session, column, now: datetime, join=None) -> dict[str, int]:
+def upcoming_filter(now: datetime):
+    return (Event.start >= now, Event.stale.is_(False), Event.cancelled.is_(False), Event.ongoing.is_(False),
+            Event.duplicate_of.is_(None))  # fmt: skip
+
+
+def upcoming_counts(session: Session, column, now: datetime) -> dict[str, int]:
     """Count of events per value of `column` from now on, as the default feed would show them."""
     stmt = (
         select(column, func.count())
         .select_from(Event)
-        .where(Event.start >= now, Event.stale.is_(False), Event.cancelled.is_(False), Event.ongoing.is_(False))
-        .where(Event.duplicate_of.is_(None))
+        .where(*upcoming_filter(now))
         .group_by(column)
     )
     if column is EventCategory.category:
         stmt = stmt.join(EventCategory, EventCategory.event_id == Event.id)
-    if join is not None:
-        stmt = stmt.join(join, true())
     return dict(session.execute(stmt).all())
 
 
@@ -108,7 +111,7 @@ def calendar_name(f: EventFilters) -> str:
     parts = [n.categorizer.categories[c] for c in f.category]
     parts += [n.locations.areas[a] for a in f.area]
     parts += [n.locations.buildings[b].name for b in f.location]
-    parts += f.host
+    parts += [default_orgs()[o].name for o in f.org]
     if f.free_food:
         parts.append("Free food")
     if f.q:
@@ -201,12 +204,16 @@ def register_routes(app: FastAPI) -> None:
             if area is None or b.area == area
         ]
 
-    @app.get("/hosts", response_model=list[HostOut], tags=["reference"])
-    def hosts(session: SessionDep):
-        """Departments, programs, and organizations named as an event's groups, with upcoming events only."""
-        g = hosts_of(Event)
-        counts = upcoming_counts(session, g.c.value, datetime.now(UTC), join=g)
-        return [HostOut(name=h, upcoming=n) for h, n in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))]
+    @app.get("/orgs", response_model=list[OrgOut], tags=["reference"])
+    def orgs(session: SessionDep):
+        """Residential colleges, departments and schools, and other organizations, in organizations.yaml order."""
+        rows = session.execute(
+            select(Event.source_id, Event.groups, Event.location_id).where(*upcoming_filter(datetime.now(UTC)))
+        ).all()
+        return [
+            OrgOut(id=o.id, name=o.name, kind=o.kind, upcoming=sum(o.matches(*r) for r in rows))
+            for o in default_orgs().values()
+        ]
 
     @app.get("/sources", response_model=list[SourceOut], tags=["reference"])
     def sources(session: SessionDep):

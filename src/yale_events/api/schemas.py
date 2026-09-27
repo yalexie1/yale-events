@@ -109,8 +109,10 @@ class AreaOut(BaseModel):
     upcoming: int
 
 
-class HostOut(BaseModel):
+class OrgOut(BaseModel):
+    id: str
     name: str
+    kind: str  # college | department | organization
     upcoming: int
 
 

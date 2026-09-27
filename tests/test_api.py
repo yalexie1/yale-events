@@ -31,7 +31,7 @@ def make_events() -> list[Event]:
            groups=["Yale School of Music", "Yale Arts"]),
         ev("lecture", NOW + timedelta(days=2), ["talks"], area="science-hill", location_id="kroon-hall",
            end=NOW + timedelta(days=2, hours=1), location_name="Kroon Hall", room="Burke Auditorium", lat=41.3167,
-           lon=-72.9235, groups=["School of the Environment, Yale"]),
+           lon=-72.9235, groups=["School of the Environment"]),
         ev("in-progress", NOW - timedelta(hours=1), ["talks"], end=NOW + timedelta(hours=1), area="central"),
         ev("today-all-day", TODAY_MIDNIGHT, ["social"], all_day=True, area="central"),
         ev("past", NOW - timedelta(days=1), ["talks"], end=NOW - timedelta(days=1) + timedelta(hours=1)),
@@ -83,9 +83,9 @@ def test_default_window(client):
         ({"include_ongoing": "true", "area": "arts-district"}, ["exhibit"]),
         ({"include_cancelled": "true", "category": "talks"}, ["in-progress", "lecture", "cancelled"]),
         ({"source": "other"}, []),
-        ({"host": "Yale Arts"}, ["jazz"]),
-        # Host names can contain commas, so they're repeated rather than comma-separated.
-        ({"host": ["School of the Environment, Yale", "Yale Arts"]}, ["jazz", "lecture"]),
+        ({"org": "music"}, ["jazz"]),  # by group
+        ({"org": "music,environment"}, ["jazz", "lecture"]),
+        ({"org": "berkeley"}, []),  # by building only
     ],
 )
 def test_filters(client, params, expected):
@@ -107,6 +107,7 @@ def test_start_datetime_with_unencoded_plus(client):
     [
         ({"category": "nope"}, "unknown category: nope"),
         ({"area": "mars"}, "unknown area: mars"),
+        ({"org": "hogwarts"}, "unknown org: hogwarts"),
         ({"start": "next tuesday"}, "start: expected"),
         ({"start": "2026-10-02", "end": "2026-10-01"}, "end must be after start"),
         ({"cursor": "garbage"}, "invalid cursor"),
@@ -184,11 +185,9 @@ def test_reference_endpoints(client):
     assert areas["science-hill"] == 1
     kroon = next(b for b in client.get("/locations", params={"area": "science-hill"}).json() if b["id"] == "kroon-hall")
     assert kroon["upcoming"] == 1
-    assert client.get("/hosts").json() == [
-        {"name": "School of the Environment, Yale", "upcoming": 1},
-        {"name": "Yale Arts", "upcoming": 1},
-        {"name": "Yale School of Music", "upcoming": 1},
-    ]
+    orgs = {o["id"]: o for o in client.get("/orgs").json()}
+    assert orgs["music"] == {"id": "music", "name": "School of Music", "kind": "department", "upcoming": 1}
+    assert (orgs["arts"]["upcoming"], orgs["berkeley"]["kind"]) == (1, "college")
     (src,) = client.get("/sources").json()
     assert (src["id"], src["last_run_status"], src["upcoming"]) == ("test", "ok", 4)
 

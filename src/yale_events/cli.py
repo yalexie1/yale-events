@@ -12,6 +12,7 @@ from yale_events.config import DEFAULT_SOURCES_PATH, load_sources
 from yale_events.db import make_session_factory
 from yale_events.dedupe import dedupe
 from yale_events.models import Event, ScrapeRun
+from yale_events.orgs import default_orgs
 from yale_events.pipeline import run_source
 
 app = typer.Typer(no_args_is_help=True)
@@ -172,6 +173,11 @@ def uncategorized(limit: int = 40):
             typer.echo(f"  {n:4}  {title[:90]}")
         typer.echo(f"\n{sum(no_loc.values())}/{len(rows)} occurrences without an area:")
         for name, n in no_loc.most_common(limit):
+            typer.echo(f"  {n:4}  {name}")
+        mapped = {g for o in default_orgs().values() for g in o.groups}
+        unmapped = Counter(g for e in rows for g in e.groups or [] if g not in mapped)
+        typer.echo(f"\n{len(unmapped)} groups not in organizations.yaml:")
+        for name, n in unmapped.most_common(limit):
             typer.echo(f"  {n:4}  {name}")
 
 

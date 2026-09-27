@@ -1,0 +1,137 @@
+# Who puts on an event, for the "listed by" filters: residential colleges, departments and schools,
+# and other offices, centers, and groups. An event belongs to an organization when any of these match:
+#   sources:   the event came from one of these sources (sources.yaml ids)
+#   groups:    one of the event's groups (Localist departments, Yale Connect orgs, ...) is listed here
+#   locations: the event is held in one of these buildings (locations.yaml ids); colleges only
+# One event can belong to several (Computer Science and Engineering & Applied Science). Groups not
+# listed here don't show up as a filter; `yev uncategorized` lists them after a scrape.
+
+colleges:
+  - {id: benjamin-franklin, name: Benjamin Franklin, sources: [franklin], locations: [benjamin-franklin-college]}
+  - {id: berkeley, name: Berkeley, locations: [berkeley-college]}
+  - {id: branford, name: Branford, locations: [branford-college]}
+  - {id: davenport, name: Davenport, sources: [davenport], locations: [davenport-college]}
+  - {id: ezra-stiles, name: Ezra Stiles, locations: [ezra-stiles-college]}
+  - {id: grace-hopper, name: Grace Hopper, locations: [grace-hopper-college]}
+  - {id: jonathan-edwards, name: Jonathan Edwards, locations: [jonathan-edwards-college]}
+  - {id: morse, name: Morse, locations: [morse-college]}
+  - {id: pauli-murray, name: Pauli Murray, sources: [pauli-murray], locations: [pauli-murray-college]}
+  - {id: pierson, name: Pierson, sources: [pierson], locations: [pierson-college]}
+  - {id: saybrook, name: Saybrook, locations: [saybrook-college]}
+  - {id: silliman, name: Silliman, sources: [silliman], locations: [silliman-college]}
+  - {id: timothy-dwight, name: Timothy Dwight, sources: [timothy-dwight], locations: [timothy-dwight-college]}
+  - {id: trumbull, name: Trumbull, sources: [trumbull], locations: [trumbull-college]}
+
+departments:
+  # Professional schools
+  - {id: medicine, name: School of Medicine, sources: [medicine], groups: [Yale School of Medicine,
+    Yale School of Medicine - Office of Collaborative Excellence (YSM OCE), Yale Cancer Center - Community Outreach and Engagement]}
+  - {id: law, name: Law School, sources: [law]}
+  - {id: music, name: School of Music, sources: [music], groups: [Yale School of Music, School of Music]}
+  - {id: drama, name: School of Drama, groups: [David Geffen School of Drama, Yale Repertory Theatre]}
+  - id: divinity
+    name: Divinity School
+    groups: [Yale Divinity School, Berkeley Divinity School at Yale, YDS Office of Spiritual Formation]
+  - {id: sacred-music, name: Institute of Sacred Music, groups: [Institute of Sacred Music]}
+  - {id: architecture, name: School of Architecture, sources: [architecture], groups: [School of Architecture]}
+  - {id: nursing, name: School of Nursing, sources: [nursing]}
+  - id: public-health
+    name: School of Public Health
+    groups: [YSPH Office of Student Affairs, Alzheimer’s & Aging Public Health Initiative (AAPHI)]
+  - {id: art, name: School of Art, groups: [School of Art]}
+  - id: environment
+    name: School of the Environment
+    groups: [School of the Environment, YSE Office of Career and Professional Development,
+             YSE Office of Admissions and Financial Aid, Announce at YSE, Center for Industrial Ecology,
+             Urban Resources Initiative, Yale Forest Forum, Yale Forests]
+  - {id: som, name: School of Management, groups: [School of Management]}
+  - {id: jackson, name: Jackson School of Global Affairs, sources: [jackson], groups: [Jackson School of Global Affairs]}
+  - {id: gsas, name: Graduate School of Arts & Sciences, groups: [Graduate School of Arts and Sciences]}
+  - id: engineering
+    name: Engineering & Applied Science
+    sources: [engineering]
+    groups: [Biomedical Engineering, Chemical & Environmental Engineering, Electrical & Computer Engineering,
+             Mechanical Engineering, Materials Science, Computer Science, Applied Physics,
+             Applied & Computational Mathematics]
+  # Faculty of Arts and Sciences departments and programs
+  - {id: american-studies, name: American Studies, groups: [American Studies]}
+  - {id: applied-math, name: Applied Mathematics, groups: [Applied & Computational Mathematics]}
+  - {id: applied-physics, name: Applied Physics, groups: [Applied Physics]}
+  - {id: astronomy, name: Astronomy, groups: [Department of Astronomy]}
+  - {id: bme, name: Biomedical Engineering, groups: [Biomedical Engineering]}
+  - {id: black-studies, name: Black Studies, groups: [Black Studies]}
+  - {id: chemical-engineering, name: Chemical & Environmental Engineering, groups: [Chemical & Environmental Engineering]}
+  - {id: chemistry, name: Chemistry, groups: [Chemistry Department]}
+  - {id: classics, name: Classics, groups: [Department of Classics, Hellenic Studies Program]}
+  - {id: comp-lit, name: Comparative Literature, groups: [Department of Comparative Literature]}
+  - {id: computer-science, name: Computer Science, groups: [Computer Science]}
+  - {id: economics, name: Economics, groups: [Economics Department]}
+  - {id: eeb, name: Ecology & Evolutionary Biology, groups: [Ecology and Evolutionary Biology Department]}
+  - {id: electrical-engineering, name: Electrical & Computer Engineering, groups: [Electrical & Computer Engineering]}
+  - {id: english, name: English, groups: [English Department]}
+  - {id: film-media, name: Film & Media Studies, groups: [Film and Media Studies Program]}
+  - {id: history, name: History, groups: [Department of History]}
+  - {id: jewish-studies, name: Jewish Studies, groups: [Jewish Studies Program, Hebrew Program]}
+  - {id: mbb, name: Molecular Biophysics & Biochemistry, groups: [Molecular Biophysics and Biochemistry Department]}
+  - {id: mcdb, name: Molecular, Cellular & Developmental Biology, groups: [Molecular Cellular and Developmental Biology]}
+  - {id: mechanical-engineering, name: Mechanical Engineering & Materials Science, groups: [Mechanical Engineering, Materials Science]}
+  - id: nelc
+    name: Near Eastern Languages & Civilizations
+    groups: [Department of Near Eastern Languages and Civilizations, Near Eastern Languages and Civilizations]
+  - {id: physics, name: Physics, groups: [Physics Department, Wright Laboratory]}
+  - {id: political-science, name: Political Science, groups: [Political Science Department]}
+  - {id: religious-studies, name: Religious Studies, groups: [Religious Studies]}
+  - {id: slavic, name: Slavic Languages & Literatures, groups: [Department of Slavic Languages and Literatures]}
+  - {id: spanish-portuguese, name: Spanish & Portuguese, groups: [Department of Spanish and Portuguese]}
+  - {id: wgss, name: Women's, Gender & Sexuality Studies, groups: [Women Gender and Sexuality Studies]}
+
+organizations:
+  - {id: chaplain, name: Chaplain's Office, sources: [chaplain], groups: [University Church in Yale, Black Church at Yale]}
+  - id: poorvu
+    name: Poorvu Center
+    groups: ["Poorvu Center: Graduate Writing Lab", "Poorvu Center: Yale College Writing Center"]
+  - {id: oiss, name: International Students & Scholars (OISS), sources: [oiss]}
+  - {id: athletics, name: Yale Athletics, sources: [athletics], groups: [Yale Athletics]}
+  - {id: library, name: Yale Library, groups: [Yale Library]}
+  - {id: art-gallery, name: Yale University Art Gallery, groups: [Yale University Art Gallery]}
+  - {id: ycba, name: Yale Center for British Art, sources: [ycba], groups: [Yale Center for British Art]}
+  - {id: peabody, name: Peabody Museum, sources: [peabody], groups: [Yale Peabody Museum]}
+  - {id: schwarzman, name: Schwarzman Center, groups: [Yale Schwarzman Center, Schwarzman Center]}
+  - {id: film, name: Film at Yale, groups: [Film at Yale, Yale Film Archive]}
+  - {id: arts, name: Yale Arts, groups: [Yale Arts, Center for Collaborative Arts and Media (CCAM), Yale Arts Workshops]}
+  - {id: ensembles, name: Bands, Orchestra & Glee Club, groups: [Yale Symphony Orchestra (YSO), Yale Bands, Yale Glee Club]}
+  - id: macmillan
+    name: MacMillan Center
+    sources: [macmillan]
+    groups: [MacMillan Center, European Studies Council, South Asian Studies Council, Council on East Asian Studies,
+             Council on Middle East Studies (CMES), Council on Middle East Studies,
+             Council on African Studies (CAS), Council on African Studies, Council on Southeast Asia Studies,
+             Council on Latin American & Iberian Studies (CLAIS), Council on Latin American & Iberian Studies,
+             Russian East European and Eurasian Studies (REEES), Committee on Canadian Studies, Leitner Program,
+             Leitner Program in International and Comparative Political Economy, Fox International Fellowship,
+             Nuclear Security Program, Yale Program for the Study of Antisemitism (YPSA)]
+  - {id: whitney, name: Whitney Humanities Center, groups: [Whitney Humanities Center, Franke Program in Science and the Humanities, Early Modern Studies]}
+  - {id: gilder-lehrman, name: Gilder Lehrman Center, groups: [Gilder Lehrman Center for the Study of Slavery Resistance and Abolition,
+    "Gilder Lehrman Center for the Study of Slavery, Resistance, and Abolition"]}
+  - {id: ycrc, name: Center for Research Computing, groups: [Yale Center for Research Computing (YCRC)]}
+  - {id: quantum, name: Yale Quantum Institute, groups: [Yale Quantum Institute]}
+  - {id: west-campus, name: West Campus, groups: [Yale West Campus, Microbial Sciences Institute, Microbial Sciences Institute (MSI)]}
+  - {id: planetary-health, name: Planetary Health & Global Engagement, groups: [Planetary Health and Global Engagement]}
+  - {id: fellowships, name: Fellowships & Funding, groups: [Fellowships and Funding]}
+  - {id: poynter, name: Poynter Fellowship in Journalism, groups: [Poynter Fellowship in Journalism]}
+  - {id: language-study, name: Center for Language Study, groups: [Center for Language Study (CLS), CLS Graduate Students and FLTAs]}
+  - id: cultural-centers
+    name: Cultural centers
+    groups: [La Casa Cultural Center, Yale LGBTQ Center,
+             Center for the Study of Race Indigeneity and Transnational Migration (RITM)]
+  - {id: chess, name: YaleCHESS, groups: [Center for Historical Enquiry & the Social Sciences (YaleCHESS)]}
+  - {id: yale-health, name: Yale Health, groups: [Yale Health]}
+  - {id: shops, name: The Shops at Yale, groups: [The Shops at Yale]}
+  - {id: well-being, name: Faculty & Staff Groups, groups: ["Being Well at Yale: Employee Well-Being", Women Faculty Forum (WFF), Yale Postdoctoral Association (YPA)]}
+  - id: student-orgs
+    name: Student organizations
+    groups: [YDS DivFarm Student Group, "Tota Scriptura: A YDS Student Organization", Jews of Yale (JOY),
+             The Purple Crayon of Yale, Yale Black Women's Coalition - An Undergraduate Organization,
+             Yale Law Democrats, The Phyllis Bodel Society for Women and Gender Minorities in Medicine,
+             Yale Hands-On Pathology (YHOP), Yale Science Policy Hill Day,
+             "Disability Empowerment For Yale: An Undergraduate Advocacy Group"]
