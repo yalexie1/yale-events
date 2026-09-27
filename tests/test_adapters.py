@@ -12,6 +12,7 @@ from yale_events.adapters.engineering import EngineeringAdapter, parse_item
 from yale_events.adapters.ical import parse_calendar
 from yale_events.adapters.jsonld import parse_page as parse_jsonld_page
 from yale_events.adapters.music import MusicAdapter, infer_year
+from yale_events.adapters.peabody import parse_listing as parse_peabody
 from yale_events.adapters.text import clean_description, clean_field
 from yale_events.adapters.yalesites import YaleSitesAdapter, event_links, parse_event_page
 from yale_events.adapters.ysm import YSMAdapter
@@ -280,6 +281,21 @@ def test_jsonld_events():
     assert studios.all_day and studios.end is None and studios.start == datetime(2026, 10, 3, tzinfo=NEW_HAVEN)
     assert studios.cancelled and studios.virtual
     assert studios.url == "https://example.yale.edu/open-studios"
+
+
+# --- peabody -------------------------------------------------------------------------------
+
+def test_peabody_grouped_listing():
+    page = (FIXTURES / "peabody_upcoming.html").read_text()
+    fiesta, toddler = parse_peabody(page, "https://peabody.yale.edu/events/upcoming")  # "Ongoing" skipped
+    assert fiesta.title == "Fiesta Latina 2026"
+    assert (fiesta.start, fiesta.end) == (
+        datetime(2026, 9, 27, 12, tzinfo=NEW_HAVEN), datetime(2026, 9, 27, 17, tzinfo=NEW_HAVEN)
+    )
+    assert fiesta.tags == ["Festival / Celebration"] and fiesta.free is True
+    assert fiesta.url == "https://peabody.yale.edu/events/fiesta-latina-2026"
+    assert toddler.start == datetime(2026, 10, 3, 11, tzinfo=NEW_HAVEN)
+    assert toddler.source_event_id == "/events/toddler-time@2026-10-03T11:00:00-04:00"
 
 
 # --- replay ----------------------------------------------------------------------------------

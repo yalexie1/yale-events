@@ -29,7 +29,7 @@ macOS sometimes hides the venv's `.pth` files, so the editable install isn't pic
 ## Sources
 
 `sources.yaml` lists every source with notes on how it's read. Switch one off or on with
-`enabled`. The adapters are `localist`, `ical`, `engineering`, `yalesites`, `ysm`, `yale-music`, `drupal-calendar`, and `jsonld`. `yev discover <url>` looks for
+`enabled`. The adapters are `localist`, `ical`, `engineering`, `yalesites`, `ysm`, `yale-music`, `drupal-calendar`, `peabody`, and `jsonld`. `yev discover <url>` looks for
 feeds on a new site. Building aliases and campus areas are in `src/yale_events/data/locations.yaml`, and
 category rules are in `src/yale_events/data/categories.yaml`. `yev uncategorized` shows what the rules miss.
 

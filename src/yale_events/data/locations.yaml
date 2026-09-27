@@ -319,6 +319,13 @@ buildings:
     aliases: [YSB]
     addresses: [260 Whitney Avenue]
     room_codes: [YSB]
+  - id: peabody-museum
+    name: Yale Peabody Museum
+    area: science-hill
+    lat: 41.3161
+    lon: -72.9209
+    aliases: [Peabody Museum, Peabody Museum of Natural History, Yale Peabody Museum of Natural History, Peabody]
+    addresses: [170 Whitney Avenue]
   - id: kline-geology
     name: Kline Geology Laboratory
     area: science-hill

@@ -50,6 +50,21 @@ tag_map:
   Athletics & Recreation: [sports]
   Health & Medicine: [health]
   Charitable & Volunteering: [community-service]
+  # Peabody Museum event types
+  Festival / Celebration: [social, cultural]
+  Festival / Family Day: [social]
+  For Kids: [social]
+  Film Screening: [film]
+  Gallery Talk: [talks, exhibitions]
+  Book Talk: [talks]
+  Talk: [talks]
+  Research Spotlight Talk: [talks]
+  Online Presentation: [talks]
+  Webinar: [talks]
+  Workshop: [academic]
+  Performance: [arts-performance]
+  Museum Tour: [exhibitions]
+  Exhibition: [exhibitions]
 
 # Case-insensitive regexes. Title matches are trusted; description matches only use the first
 # 300 characters to avoid picking up boilerplate further down.

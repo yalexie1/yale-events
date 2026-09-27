@@ -5,6 +5,7 @@ from yale_events.adapters.ical import ICalAdapter
 from yale_events.adapters.jsonld import JsonLdAdapter
 from yale_events.adapters.localist import LocalistAdapter
 from yale_events.adapters.music import MusicAdapter
+from yale_events.adapters.peabody import PeabodyAdapter
 from yale_events.adapters.yalesites import YaleSitesAdapter
 from yale_events.adapters.ysm import YSMAdapter
 
@@ -17,6 +18,7 @@ ADAPTERS: dict[str, type] = {
     "yale-music": MusicAdapter,
     "drupal-calendar": DrupalCalendarAdapter,
     "jsonld": JsonLdAdapter,
+    "peabody": PeabodyAdapter,
 }
 
 

@@ -99,6 +99,16 @@ sources:
     enabled: true
     default_category: talks
 
+  # Peabody Museum public programs (a handful a month, often family events). Drupal view grouped by
+  # month and day, one page, no feed; "Ongoing" items without dates are skipped.
+  - id: peabody
+    name: Yale Peabody Museum
+    type: peabody
+    url: https://peabody.yale.edu/events/upcoming
+    enabled: true
+    default_category: social
+    default_location: Yale Peabody Museum
+
   # --- Residential colleges -----------------------------------------------------------------------
 
   # Public Google Calendars embedded on the college sites. calendar.google.com's robots.txt disallows
