@@ -14,6 +14,11 @@ ONLINE_NAMES = {"online", "virtual", "zoom", "webinar"}
 # Segments that name the city, not a room: "New Haven, Conn., Ingalls Rink".
 _CITY_SEGMENT = re.compile(r"^(new haven|conn\.?|ct|connecticut)$", re.IGNORECASE)
 _PARENS = re.compile(r"\s*\(([^()]*)\)")
+# A street address run into a venue name: "Room 203, Luce Hall 34 Hillhouse Avenue, New Haven".
+_EMBEDDED_ADDRESS = re.compile(
+    r"\b\d{1,4}\s+(?:[A-Za-z]+\.?\s+){1,3}?(?:street|st|avenue|ave|road|rd|drive|dr|place|pl|boulevard|blvd|lane|ln)\b\.?",
+    re.IGNORECASE,
+)
 _TRAILING_ROOM = re.compile(r"^(.+?)[\s,]+(?:room|rm\.?)\s*([A-Z]?\d+[A-Z]?)$", re.IGNORECASE)
 
 _STREET_ABBR = {
@@ -125,7 +130,13 @@ class LocationResolver:
             bid, room = self._match_segments(variant)
             if bid:
                 return bid, room
-        for candidate in (address, stripped, *inner):
+        # The same, with a street address that was run into the name taken out and tried on its own.
+        embedded = _EMBEDDED_ADDRESS.findall(stripped)
+        if embedded:
+            bid, room = self._match_segments(_EMBEDDED_ADDRESS.sub(",", stripped))
+            if bid:
+                return bid, room
+        for candidate in (address, stripped, *inner, *embedded):
             if candidate and (key := norm_address(candidate)) and (bid := self._by_address.get(key)):
                 return bid, None
         return None, None

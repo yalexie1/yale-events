@@ -11,7 +11,8 @@ from yale_events.adapters.drupal_calendar import parse_calendar_page
 from yale_events.adapters.engineering import EngineeringAdapter, parse_item
 from yale_events.adapters.ical import parse_calendar
 from yale_events.adapters.jsonld import parse_page as parse_jsonld_page
-from yale_events.adapters.macmillan import parse_teasers, upcoming_section
+from yale_events.adapters.macmillan import MacMillanAdapter, parse_teasers, upcoming_section
+from yale_events.adapters.macmillan import _hosts as macmillan_hosts, parse_detail as parse_macmillan_detail
 from yale_events.adapters.music import MusicAdapter, infer_year
 from yale_events.adapters.peabody import parse_listing as parse_peabody
 from yale_events.adapters.text import clean_description, clean_field
@@ -383,3 +384,34 @@ def test_ycba_when(text, expected):
         start, end, all_day = got
         assert (start.hour, start.minute) == expected[0] and not all_day
         assert (end and (end.hour, end.minute)) == expected[1]
+
+
+def test_macmillan_detail_page():
+    d = parse_macmillan_detail((FIXTURES / "macmillan_event.html").read_text())
+    assert d["location_name"] == "Luce Hall, Rm 242" and d["address"] == "34 Hillhouse Ave"
+    assert d["groups"] == ["European Studies Council", "MacMillan Center"]
+    assert d["description"].startswith("Enjoy a sweet treat and Happy Tea Hour")
+    assert "Contact" not in d["description"]
+
+
+def test_macmillan_hosts():
+    glc = ["Gilder Lehrman Center for the Study of Slavery", "Resistance", "and Abolition | MacMillan Center for X"]
+    assert macmillan_hosts({"name": glc}) == [
+        "Gilder Lehrman Center for the Study of Slavery, Resistance, and Abolition", "MacMillan Center",
+    ]
+    assert macmillan_hosts(None) == []
+
+
+def test_macmillan_fetches_each_event_page_once():
+    listing = (FIXTURES / "macmillan_events.html").read_text()
+    detail = (FIXTURES / "macmillan_event.html").read_text()
+    src = SourceConfig(id="macmillan", name="MacMillan", type="macmillan", url="https://macmillan.yale.edu/events")
+    with respx.mock:
+        respx.get("https://macmillan.yale.edu/events").mock(return_value=httpx.Response(200, text=listing.replace("page=1", "")))
+        pages = respx.get(url__regex=r"https://macmillan\.yale\.edu/\w+/events/.+").mock(
+            return_value=httpx.Response(200, text=detail)
+        )
+        with httpx.Client() as c:
+            result = MacMillanAdapter(PoliteClient(c, min_interval=0)).fetch(src)
+    assert pages.call_count == len({e.url for e in result.events}) > 0
+    assert all(e.location_name == "Luce Hall, Rm 242" and e.description for e in result.events)

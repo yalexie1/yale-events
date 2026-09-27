@@ -66,6 +66,12 @@ CAT = N.categorizer
          None, None, None, False, ("humanities-quadrangle", "central", None)),
         ("Harkness Hall (Medical)", None, None, None, False, ("es-harkness-hall", "medical", None)),
         ("Room 101, Harkness Hall (Medical)", None, None, None, False, ("es-harkness-hall", "medical", "Room 101")),
+        # A street address run into the venue name (MacMillan).
+        ("Room 203, Luce Hall 34 Hillhouse Avenue, New Haven, CT06511", None, None, None, False,
+         ("luce-hall", "science-hill", "Room 203")),
+        ("Luce 101 34 Hillhouse Avenue, New Haven, CT06511", None, None, None, False, ("luce-hall", "science-hill", "101")),
+        ("Seminar Room 34 Hillhouse Ave.", None, None, None, False, ("luce-hall", "science-hill", None)),
+        ("ISPS, Room A002", None, None, None, False, ("isps", "science-hill", "Room A002")),
     ],
 )  # fmt: skip
 def test_resolve_location(name, address, lat, lon, virtual, expected):

@@ -52,6 +52,7 @@ sources:
     type: engineering
     url: https://engineering.yale.edu/news-and-events/events/get_events/1421
     enabled: true  # also fetches each event's page (~30/run) for location and description
+    default_category: talks
 
   # School of Medicine incl. Public Health, Child Study Center, and clinical departments (~650 events
   # per 90 days). The calendar page is a React app; its pager calls /website-api-data/ysm/feed-event-list/
@@ -122,8 +123,8 @@ sources:
       days: 90
 
   # MacMillan Center (area-studies councils and programs, ~100 upcoming): Drupal view, no feed.
-  # ~8 listing pages per run; teasers have no venue and event pages aren't fetched. About half its
-  # events are also on events.yale.edu (dedupe keeps the central copy, which has the venue).
+  # ~8 listing pages plus one page per event (~90; robots.txt allows them) for the venue, description,
+  # and host. About two thirds of its events are also on events.yale.edu (dedupe keeps the central copy).
   - id: macmillan
     name: MacMillan Center
     type: macmillan

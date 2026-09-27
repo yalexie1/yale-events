@@ -35,6 +35,19 @@ def ev(id_, source, title, start=T, **kw) -> Event:
         # Similar series titles, different speakers.
         (ev("1", "engineering", "ME Seminar Series: Cari Dutcher"),
          ev("2", "yale-central", "MCDB Seminar Series: Zev Gartner"), False),
+        # Same building and time: one shared distinctive word is enough.
+        (ev("1", "music", "Tenebrae", location_id="woolsey-hall"),
+         ev("2", "yale-central", "The Journey: 25 Years of Tenebrae", location_id="woolsey-hall"), True),
+        (ev("1", "yale-connect", "Sundance Revisited Film Series: BRICK", location_id="hq"),
+         ev("2", "yale-central", "Film: Brick", location_id="hq", start=T + timedelta(minutes=5)), True),
+        # ...but not generic words, a different building, or a start more than a few minutes apart.
+        (ev("1", "yale-connect", "Film Series: Gun Crazy", location_id="hq"),
+         ev("2", "yale-central", "Film: Brick", location_id="hq"), False),
+        (ev("1", "music", "Tenebrae", location_id="woolsey-hall"),
+         ev("2", "yale-central", "The Journey: 25 Years of Tenebrae"), False),
+        (ev("1", "music", "Tenebrae", location_id="woolsey-hall"),
+         ev("2", "yale-central", "The Journey: 25 Years of Tenebrae", location_id="woolsey-hall",
+            start=T + timedelta(minutes=15)), False),
         # Short titles need a near-exact match, not just containment.
         (ev("1", "law", "Yoga"), ev("2", "yale-central", "Yoga at Payne Whitney Gym for Faculty"), False),
     ],

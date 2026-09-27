@@ -244,6 +244,7 @@ buildings:
     lat: 41.3144
     lon: -72.9243
     aliases: [Henry R. Luce Hall]
+    room_codes: [LUCE]
     addresses: [34 Hillhouse Avenue]
   - id: 17-hillhouse
     name: 17 Hillhouse Avenue
@@ -282,6 +283,13 @@ buildings:
     lat: 41.3144
     lon: -72.9245
     addresses: [115 Prospect Street]
+  - id: isps
+    name: Institution for Social and Policy Studies
+    area: science-hill
+    lat: 41.3132
+    lon: -72.9237
+    aliases: [ISPS]
+    addresses: [77 Prospect Street]
   - id: kroon-hall
     name: Kroon Hall
     area: science-hill
