@@ -2,6 +2,7 @@
 # and other offices, centers, and groups. An event belongs to an organization when any of these match:
 #   sources:   the event came from one of these sources (sources.yaml ids)
 #   groups:    one of the event's groups (Localist departments, Yale Connect orgs, ...) is listed here
+#   group_contains: one of the event's groups contains this text, case-insensitive (club name suffixes)
 #   locations: the event is held in one of these buildings (locations.yaml ids); colleges only
 # One event can belong to several (Computer Science and Engineering & Applied Science). Groups not
 # listed here don't show up as a filter; `yev uncategorized` lists them after a scrape.
@@ -16,7 +17,7 @@ colleges:
   - {id: jonathan-edwards, name: Jonathan Edwards, locations: [jonathan-edwards-college]}
   - {id: morse, name: Morse, locations: [morse-college]}
   - {id: pauli-murray, name: Pauli Murray, sources: [pauli-murray], locations: [pauli-murray-college]}
-  - {id: pierson, name: Pierson, sources: [pierson], locations: [pierson-college]}
+  - {id: pierson, name: Pierson, sources: [pierson], groups: [Pierson College], locations: [pierson-college]}
   - {id: saybrook, name: Saybrook, locations: [saybrook-college]}
   - {id: silliman, name: Silliman, sources: [silliman], locations: [silliman-college]}
   - {id: timothy-dwight, name: Timothy Dwight, sources: [timothy-dwight], locations: [timothy-dwight-college]}
@@ -24,28 +25,36 @@ colleges:
 
 departments:
   # Professional schools
-  - {id: medicine, name: School of Medicine, sources: [medicine], groups: [Yale School of Medicine,
+  - {id: medicine, name: School of Medicine, sources: [medicine], groups: [Yale School of Medicine, YSM Financial Aid, Yale Cancer Center - Research Administration,
     Yale School of Medicine - Office of Collaborative Excellence (YSM OCE), Yale Cancer Center - Community Outreach and Engagement]}
-  - {id: law, name: Law School, sources: [law]}
+  - id: law
+    name: Law School
+    sources: [law]
+    groups: ["Orville H. Schell, Jr. Center for International Human Rights", Yale Law & Business Society, YLW+,
+             Yale Law National Security Group, YLS Academic Affairs, Yale Journal of Law and Technology]
   - {id: music, name: School of Music, sources: [music], groups: [Yale School of Music, School of Music]}
   - {id: drama, name: School of Drama, groups: [David Geffen School of Drama, Yale Repertory Theatre]}
   - id: divinity
     name: Divinity School
-    groups: [Yale Divinity School, Berkeley Divinity School at Yale, YDS Office of Spiritual Formation]
+    groups: [Yale Divinity School, Berkeley Divinity School at Yale, YDS Office of Spiritual Formation, YDS Dean's Office]
   - {id: sacred-music, name: Institute of Sacred Music, groups: [Institute of Sacred Music]}
   - {id: architecture, name: School of Architecture, sources: [architecture], groups: [School of Architecture]}
   - {id: nursing, name: School of Nursing, sources: [nursing]}
   - id: public-health
     name: School of Public Health
-    groups: [YSPH Office of Student Affairs, Alzheimer’s & Aging Public Health Initiative (AAPHI)]
+    groups: [YSPH Office of Student Affairs, Alzheimer’s & Aging Public Health Initiative (AAPHI), Public Health PhD Program,
+             Student Association of Yale School of Public Health]
   - {id: art, name: School of Art, groups: [School of Art]}
   - id: environment
     name: School of the Environment
     groups: [School of the Environment, YSE Office of Career and Professional Development,
              YSE Office of Admissions and Financial Aid, Announce at YSE, Center for Industrial Ecology,
-             Urban Resources Initiative, Yale Forest Forum, Yale Forests]
+             Urban Resources Initiative, Yale Forest Forum, Yale Forests, Yale Center for Business and the Environment,
+             YSE Office of Research Programs, YSE Energy and the Environment Learning Community,
+             Yale College Environmental Studies Program, YSE Office of the Dean, YSE Office of Development and Alumni Services,
+             Hixon Center for Urban Sustainability, Yale Center for Geospatial Solutions]
   - {id: som, name: School of Management, groups: [School of Management]}
-  - {id: jackson, name: Jackson School of Global Affairs, sources: [jackson], groups: [Jackson School of Global Affairs]}
+  - {id: jackson, name: Jackson School of Global Affairs, sources: [jackson], groups: [Jackson School of Global Affairs, Academic Workshop Series @ Jackson School]}
   - {id: gsas, name: Graduate School of Arts & Sciences, groups: [Graduate School of Arts and Sciences]}
   - id: engineering
     name: Engineering & Applied Science
@@ -89,8 +98,9 @@ organizations:
   - {id: chaplain, name: Chaplain's Office, sources: [chaplain], groups: [University Church in Yale, Black Church at Yale]}
   - id: poorvu
     name: Poorvu Center
-    groups: ["Poorvu Center: Graduate Writing Lab", "Poorvu Center: Yale College Writing Center"]
-  - {id: oiss, name: International Students & Scholars (OISS), sources: [oiss]}
+    groups: ["Poorvu Center: Graduate Writing Lab", "Poorvu Center: Yale College Writing Center",
+             Poorvu Center for Teaching and Learning]
+  - {id: oiss, name: International Students & Scholars (OISS), sources: [oiss], groups: [Office of International Students & Scholars]}
   - {id: athletics, name: Yale Athletics, sources: [athletics], groups: [Yale Athletics]}
   - {id: library, name: Yale Library, groups: [Yale Library]}
   - {id: art-gallery, name: Yale University Art Gallery, groups: [Yale University Art Gallery]}
@@ -122,15 +132,27 @@ organizations:
   - {id: language-study, name: Center for Language Study, groups: [Center for Language Study (CLS), CLS Graduate Students and FLTAs]}
   - id: cultural-centers
     name: Cultural centers
-    groups: [La Casa Cultural Center, Yale LGBTQ Center,
+    groups: [La Casa Cultural Center, Yale LGBTQ Center, Afro-American Cultural Center, Asian American Cultural Center (AACC),
+             Middle Eastern and North African (MENA) Cultural Community,
+             "La Casa Cultural Julia de Burgos: The Latino Cultural Center at Yale",
              Center for the Study of Race Indigeneity and Transnational Migration (RITM)]
+  - {id: sustainability, name: Office of Sustainability, groups: [The Office of Sustainability]}
+  - {id: dwight-hall, name: Dwight Hall, groups: [Dwight Hall at Yale - Center for Public Service and Social Justice]}
+  - {id: study-abroad, name: Study Abroad, groups: [Study Abroad]}
   - {id: chess, name: YaleCHESS, groups: [Center for Historical Enquiry & the Social Sciences (YaleCHESS)]}
   - {id: yale-health, name: Yale Health, groups: [Yale Health]}
   - {id: shops, name: The Shops at Yale, groups: [The Shops at Yale]}
   - {id: well-being, name: Faculty & Staff Groups, groups: ["Being Well at Yale: Employee Well-Being", Women Faculty Forum (WFF), Yale Postdoctoral Association (YPA)]}
   - id: student-orgs
     name: Student organizations
-    groups: [YDS DivFarm Student Group, "Tota Scriptura: A YDS Student Organization", Jews of Yale (JOY),
+    # Yale Connect clubs often say so in their name; the rest are listed.
+    group_contains: [an undergraduate organization, a student organization, (undergraduate), undergraduate organization]
+    groups: [Smart Woman Securities, Yale Black Culture Network (YBCN), Yale Student Environmental Coalition,
+             Asian Network at Yale, Yale Undergraduate Mock Trial Association, Bioethics Interest Group,
+             Connecticut Culture Club (SIG), Yale Student Quantitative Finance Organization, Undergraduate Production,
+             Global Health Interest Group, Yale Undergraduate Diversified Investments, Radiation Oncology Group,
+             Students for Sustainability and Waste Reduction at YSPH,
+             YDS DivFarm Student Group, "Tota Scriptura: A YDS Student Organization", Jews of Yale (JOY),
              The Purple Crayon of Yale, Yale Black Women's Coalition - An Undergraduate Organization,
              Yale Law Democrats, The Phyllis Bodel Society for Women and Gender Minorities in Medicine,
              Yale Hands-On Pathology (YHOP), Yale Science Policy Hill Day,

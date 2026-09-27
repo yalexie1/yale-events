@@ -44,4 +44,18 @@ CATEGORIES;X-CG-CATEGORY=club_acronym:YCVISA
 CATEGORIES;X-CG-CATEGORY=event_type:Social
 LOCATION: Sign in to download the location
 END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Yale Political Union with Aaron Withe
+DTSTART:20261005T230000Z
+UID:eee@campusgroups.com
+CATEGORIES;X-CG-CATEGORY=event_type:Competition/Debate
+LOCATION: Sign in to download the location
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Debate Practice Rounds
+DTSTART:20261006T230000Z
+UID:fff@campusgroups.com
+CATEGORIES;X-CG-CATEGORY=event_type:Competition/Debate
+LOCATION: Sign in to download the location
+END:VEVENT
 END:VCALENDAR

@@ -211,6 +211,7 @@
   .err { color: var(--danger); }
   #sentinel { height: 1px; }
   .loadmore { display: flex; justify-content: center; padding: 26px 0; }
+  [hidden] { display: none !important; }  /* class display rules would otherwise override it */
   .endnote { text-align: center; padding: 34px 0 0; font: italic 16px var(--serif); color: var(--ink-3); }
   .endnote::before { content: "❦"; display: block; font-style: normal; font-size: 20px; margin-bottom: 4px; }
 
@@ -768,7 +769,7 @@ function renderSheet(e) {
   const addr = [loc.name && loc.name !== v.main ? loc.name : "", loc.address].filter(Boolean).join(" · ");
   const map = loc.lat != null
     ? `https://www.google.com/maps/search/?api=1&query=${loc.lat},${loc.lon}`
-    : (loc.address || (v.main && v.main !== "Online")) ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([v.main, loc.address, "New Haven CT"].filter(Boolean).join(", "))}` : "";
+    : (loc.address || (v.main && v.main !== "Online" && !/sign in/i.test(v.main))) ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([v.main, loc.address, "New Haven CT"].filter(Boolean).join(", "))}` : "";
   const listed = [e.source, ...e.also_listed_by.map((l) => l.source)].map((x) => names.source[x] || x);
   const cost = e.free_food ? "Free food" : "";
   const price = e.cost || (e.free ? "Free" : "");

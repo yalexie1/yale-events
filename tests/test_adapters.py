@@ -103,6 +103,18 @@ def test_ical_campusgroups():
     assert film.description == "A silent classic with live piano."
     assert panel.tags == ["Lecture, Talk, or Panel"]  # commas inside event_type kept together
 
+
+def test_ical_hidden_location_kept_by_type():
+    options = {
+        "hidden_location": "sign in to download",
+        "hidden_keep_tags": "competition/debate|lecture, talk, or panel",
+        "hidden_exclude_title": r"\bpractice\b",
+    }
+    events = parse_calendar((FIXTURES / "campusgroups.ics").read_bytes(), START, END, options)
+    hidden = [e for e in events if e.location_name == "Location on Yale Connect (sign in)"]
+    # The Social dinner (type not kept) and the practice rounds (title excluded) are dropped.
+    assert [e.title for e in hidden] == ["Yale Political Union with Aaron Withe"]
+
 # --- engineering -----------------------------------------------------------------------------
 
 def test_engineering_item_with_detail_page():

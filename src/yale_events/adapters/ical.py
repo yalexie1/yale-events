@@ -8,6 +8,10 @@ Options:
   exclude_location: skip events whose LOCATION matches this regex (e.g. "Sign in to download")
   exclude_tags: skip events with a CATEGORIES value matching this regex (whole value, case-insensitive)
   description_strip: regex removed from descriptions (e.g. a trailing "Event Details: <url>" footer)
+  hidden_location: regex for a LOCATION that hides the venue from anonymous readers (Yale Connect's
+    "Sign in to download the location"). Such events are kept only if a CATEGORIES value fully matches
+    `hidden_keep_tags` and the title doesn't match `hidden_exclude_title`; their location becomes
+    `hidden_location_label`.
 
 CampusGroups feeds (Yale Connect) label each CATEGORIES line with X-CG-CATEGORY: `event_type` values
 contain commas ("Lecture, Talk, or Panel") and are kept whole, `club_acronym` is an internal code and
@@ -27,6 +31,7 @@ from yale_events.normalize.time import NEW_HAVEN
 from yale_events.schemas import FetchResult, RawEvent
 
 DEFAULT_DAYS = 90
+HIDDEN_LOCATION_LABEL = "Location on Yale Connect (sign in)"
 
 
 class ICalAdapter:
@@ -62,6 +67,9 @@ def parse_calendar(data: str | bytes, start: datetime, end: datetime, options: d
     exclude_location = _regex(options.get("exclude_location"))
     exclude_tags = _regex(options.get("exclude_tags"))
     description_strip = _regex(options.get("description_strip"))
+    hidden = _regex(options.get("hidden_location"))
+    hidden_keep_tags = _regex(options.get("hidden_keep_tags"))
+    hidden_exclude_title = _regex(options.get("hidden_exclude_title"))
     events = []
     for o in occurrences:
         location = clean_field(o.get("LOCATION"))
@@ -69,10 +77,18 @@ def parse_calendar(data: str | bytes, start: datetime, end: datetime, options: d
             continue
         if exclude_location and location and exclude_location.search(location):
             continue
+        is_hidden = bool(hidden and location and hidden.search(location))
+        if is_hidden:
+            location = options.get("hidden_location_label", HIDDEN_LOCATION_LABEL)
         ev = parse_occurrence(o, location, recurring, series_dates, title_strip)
         if ev is None or (exclude and exclude.search(ev.title)):
             continue
         if exclude_tags and any(exclude_tags.fullmatch(t) for t in ev.tags):
+            continue
+        if is_hidden and not (
+            hidden_keep_tags and any(hidden_keep_tags.fullmatch(t) for t in ev.tags)
+            and not (hidden_exclude_title and hidden_exclude_title.search(ev.title))
+        ):
             continue
         if description_strip and ev.description:
             ev.description = description_strip.sub("", ev.description).strip() or None

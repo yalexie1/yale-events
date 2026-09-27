@@ -119,10 +119,13 @@ def org_clause(org: Org):
         clauses.append(Event.source_id.in_(org.sources))
     if org.locations:
         clauses.append(Event.location_id.in_(org.locations))
-    if org.groups:
+    if org.groups or org.group_contains:
         e = aliased(Event)
         g = func.json_each(e.groups).table_valued("value")
-        clauses.append(Event.id.in_(select(e.id).join(g, true()).where(g.c.value.in_(org.groups))))
+        group_match = [g.c.value.in_(org.groups)] if org.groups else []
+        # SQLite's LIKE is case-insensitive for ASCII; the substrings hold no % or _.
+        group_match += [g.c.value.like(f"%{sub}%") for sub in org.group_contains]
+        clauses.append(Event.id.in_(select(e.id).join(g, true()).where(or_(*group_match))))
     return or_(*clauses) if clauses else false()
 
 

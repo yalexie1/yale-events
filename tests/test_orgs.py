@@ -19,3 +19,10 @@ def test_org_matches_source_group_or_building():
     assert orgs["computer-science"].matches("yale-central", ["Computer Science"], None)
     assert orgs["engineering"].matches("yale-central", ["Computer Science"], None)
     assert not orgs["law"].matches("yale-central", ["Yale Law Democrats"], None)
+
+
+def test_org_group_contains():
+    orgs = default_orgs()
+    assert orgs["student-orgs"].matches("yale-connect", ["Migration Alliance at Yale - An Undergraduate Organization"], None)
+    assert orgs["student-orgs"].matches("yale-connect", ["The Yale Political Union (Undergraduate)"], None)
+    assert not orgs["student-orgs"].matches("yale-connect", ["Office of Sustainability"], None)

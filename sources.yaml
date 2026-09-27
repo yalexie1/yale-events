@@ -221,16 +221,21 @@ sources:
 
   # Yale Connect (CampusGroups): one public site-wide iCal linked from yaleconnect.yale.edu/events
   # (robots.txt allows /ical/). ~1,700 upcoming events from ~390 orgs, ~3.7 MB. For ~83% the location
-  # reads "Sign in to download the location", i.e. members-only; those are skipped (user's call,
-  # 2026-09-26), as are meetings, rehearsals, and office hours. Listed last so any other source's copy
-  # of an event is canonical (it carries Yale Rep, OISS, and some central-calendar events too).
+  # reads "Sign in to download the location": hidden from anonymous readers, not necessarily
+  # members-only (a Political Union debate open to all reads the same). Of those, only event types
+  # that are usually open are kept (user's call, 2026-09-27), without a venue; meetings, rehearsals,
+  # study halls, socials, and workshops are skipped. Listed last so any other source's copy of an
+  # event is canonical (it carries Yale Rep, OISS, and some central-calendar events too).
   - id: yale-connect
     name: Yale Connect
     type: ical
     url: https://yaleconnect.yale.edu/ical/yale/ical_yale.ics
     enabled: true
     options:
-      exclude_location: 'sign in to download'
+      hidden_location: 'sign in to download'
+      hidden_keep_tags: 'lecture, talk, or panel|speaker/lecture series|seminar|conversation|conference/symposium|town hall or forum|performance|film and media screenings|competition/debate|sport/recreation|fair/festival|tour|info session|ceremony|fundraiser'
+      hidden_exclude_title: '\b(e-?board|board meeting|general (body )?meeting|gbm|interest meeting|members?[- ]only|practice|training sessions?|prounds|rehearsal|tryouts?|auditions?|sharing group)\b'
+      exclude_title: '\(copy\)|\btemplate\b'  # drafts: duplicated or placeholder listings
       exclude_tags: 'group meeting|rehearsal|office hours/drop in hours|due date or deadline'
       description_strip: '\s*-{3}\s*Event Details: \S+\s*$'
 

@@ -86,6 +86,11 @@ tag_map:
   Social: [social]
   Celebration: [social]
   Info Session: [academic]
+  Competition/Debate: [talks]
+  Town Hall or Forum: [talks]
+  Tour: [exhibitions]
+  Ceremony: [social]
+  Fundraiser: [community-service]
 
 # Case-insensitive regexes. Title matches are trusted; description matches only use the first
 # 300 characters to avoid picking up boilerplate further down.

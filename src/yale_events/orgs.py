@@ -18,9 +18,13 @@ class Org:
     sources: frozenset[str] = frozenset()
     groups: frozenset[str] = frozenset()
     locations: frozenset[str] = frozenset()
+    group_contains: tuple[str, ...] = ()  # lowercase substrings of group names ("an undergraduate organization")
+
+    def has_group(self, group: str) -> bool:
+        return group in self.groups or any(sub in group.lower() for sub in self.group_contains)
 
     def matches(self, source_id: str, groups: list[str] | None, location_id: str | None) -> bool:
-        return source_id in self.sources or location_id in self.locations or not self.groups.isdisjoint(groups or ())
+        return source_id in self.sources or location_id in self.locations or any(map(self.has_group, groups or ()))
 
 
 def load_orgs(path: Path = DATA_PATH) -> dict[str, Org]:
@@ -33,6 +37,7 @@ def load_orgs(path: Path = DATA_PATH) -> dict[str, Org]:
             orgs[o["id"]] = Org(
                 o["id"], o["name"], kind,
                 frozenset(o.get("sources", [])), frozenset(o.get("groups", [])), frozenset(o.get("locations", [])),
+                tuple(sub.lower() for sub in o.get("group_contains", [])),
             )  # fmt: skip
     return orgs
 

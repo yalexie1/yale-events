@@ -174,8 +174,8 @@ def uncategorized(limit: int = 40):
         typer.echo(f"\n{sum(no_loc.values())}/{len(rows)} occurrences without an area:")
         for name, n in no_loc.most_common(limit):
             typer.echo(f"  {n:4}  {name}")
-        mapped = {g for o in default_orgs().values() for g in o.groups}
-        unmapped = Counter(g for e in rows for g in e.groups or [] if g not in mapped)
+        orgs = default_orgs().values()
+        unmapped = Counter(g for e in rows for g in e.groups or [] if not any(o.has_group(g) for o in orgs))
         typer.echo(f"\n{len(unmapped)} groups not in organizations.yaml:")
         for name, n in unmapped.most_common(limit):
             typer.echo(f"  {n:4}  {name}")
