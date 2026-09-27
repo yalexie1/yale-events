@@ -170,3 +170,20 @@ def test_normalize_uses_source_defaults():
     assert v["categories"] == ["social"]
     assert (v["location_id"], v["area"]) == ("jonathan-edwards-college", "central")
     assert "source_event_id" not in v
+
+
+@pytest.mark.parametrize(
+    "name, address, expected",
+    [
+        ("Hope Memorial Building", "315 Cedar Street", ("hope-building", None)),
+        ("Sterling Hall of Medicine, L-Wing", "333 Cedar Street", ("sterling-hall-of-medicine", None)),
+        ("M.S. Harkness Memorial Auditorium", "333 Cedar Street", ("sterling-hall-of-medicine", "M.S. Harkness Memorial Auditorium")),
+        ("Yale School of Public Health (LEPH)", "60 College Street", ("ysph", None)),
+        ("Farnam Memorial Building", "310 Cedar Street", ("farnam-building", None)),
+        ("35 Park St", "35 Park St", ("smilow", None)),
+    ],
+)  # fmt: skip
+def test_medical_campus_locations(name, address, expected):
+    m = LOC.resolve(name, address)
+    assert (m.location_id, m.room) == expected
+    assert m.area == "medical"

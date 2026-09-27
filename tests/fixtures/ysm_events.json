@@ -1,0 +1,179 @@
+{
+ "collection": [
+  {
+   "id": 151189,
+   "title": "YSPH Climate Change and Health Seminar, \"Climate Politics from the Age of Oil to the End of History,\" with Dr. Leah Aronowsky",
+   "subTitle": null,
+   "description": "<p>Leah Aronowsky is Assistant Professor at the Columbia Climate School, where she researches and teaches on the history of climate and energy politics. She received a PhD in History of Science from Harvard University. Her research has been recognized by several awards, including the Rachel Carson Prize for best dissertation by the American Society for Environmental History. Before joining the Cli</p>",
+   "pageName": "cch-seminar-leah-aronowsky",
+   "audience": "Everyone",
+   "startDate": "2026-09-28T16:00:00+00:00",
+   "endDate": "2026-09-28T16:50:00+00:00",
+   "isAllDay": false,
+   "status": "Confirmed",
+   "eventLocation": {
+    "building": "Yale School of Public Health (LEPH)",
+    "streetAddress": "60 College Street",
+    "geoPoint": {
+     "latitude": 41.3036657,
+     "longitude": -72.9322184
+    }
+   },
+   "speakers": [
+    {
+     "name": "Leah Aronowsky, PhD",
+     "suffixes": {
+      "familySuffix": null,
+      "nonFamilySuffixes": []
+     }
+    }
+   ],
+   "virtualLocation": {
+    "description": null,
+    "phone": null,
+    "url": "https://bit.ly/2026AronowskySeminar"
+   },
+   "downloadEventUrl": "/event/feed-event-occurrence-download/151189",
+   "detailsEventUrl": "/event/cch-seminar-leah-aronowsky/",
+   "isFeatured": false,
+   "isMultiSession": false,
+   "isRecurring": false,
+   "thumbnailImage": null,
+   "showImage": false,
+   "areSpeakersToBeAnnounced": false
+  },
+  {
+   "id": 148967,
+   "title": "Pancreatic Cancer Support Group",
+   "subTitle": null,
+   "description": null,
+   "pageName": "pancreatic-cancer-support-group-22",
+   "audience": "Everyone",
+   "startDate": "2026-09-28T17:30:00+00:00",
+   "endDate": "2026-09-28T18:30:00+00:00",
+   "isAllDay": false,
+   "status": "Confirmed",
+   "eventLocation": null,
+   "speakers": [],
+   "virtualLocation": {
+    "description": "Register for Zoom link",
+    "phone": null,
+    "url": null
+   },
+   "downloadEventUrl": "/event/feed-event-occurrence-download/148967",
+   "detailsEventUrl": "/event/pancreatic-cancer-support-group-22/",
+   "isFeatured": false,
+   "isMultiSession": false,
+   "isRecurring": true,
+   "thumbnailImage": null,
+   "showImage": false,
+   "areSpeakersToBeAnnounced": false
+  },
+  {
+   "id": 151924,
+   "title": "The 2026 Retreat",
+   "subTitle": "Yale Center for RNA Science and Medicine",
+   "description": "<h3>2026 Yale RNA Center for Science and Medicine Retreat — Registration Now Open</h3> <p>Registration is now open for the 2026 Yale RNA Center for Science and Medicine Retreat. The Center will convene on November 6, 2026, at Harkness Auditorium, Yale School of Medicine.</p> <p>Registration deadline: <strong>October 16, 2026</strong></p> <p><u>Program highlights </u></p> <p>The retreat will featur</p>",
+   "pageName": "the-2026-retreat",
+   "audience": "YaleOnly",
+   "startDate": "2026-11-06T05:00:00+00:00",
+   "endDate": "2026-11-07T05:00:00+00:00",
+   "isAllDay": true,
+   "status": "Confirmed",
+   "eventLocation": {
+    "building": "M.S. Harkness Memorial Auditorium",
+    "streetAddress": "333 Cedar Street",
+    "geoPoint": {
+     "latitude": 41.30323,
+     "longitude": -72.9338699
+    }
+   },
+   "speakers": [],
+   "virtualLocation": null,
+   "downloadEventUrl": "/event/feed-event-occurrence-download/151924",
+   "detailsEventUrl": "/event/the-2026-retreat/",
+   "isFeatured": false,
+   "isMultiSession": false,
+   "isRecurring": false,
+   "thumbnailImage": null,
+   "showImage": false,
+   "areSpeakersToBeAnnounced": true
+  },
+  {
+   "id": 118427,
+   "title": "Yale Cancer Center/Smilow Cancer Hospital Care Center Greenwich Sponsors: \"Breast Cancer Treatment Support Group\"",
+   "subTitle": null,
+   "description": null,
+   "pageName": "yale-cancer-center-smilow-cancer-hospital-care-center-greenwich-sponsors-breast-cancer-treatment-90",
+   "audience": "Everyone",
+   "startDate": "2026-10-08T18:30:00+00:00",
+   "endDate": "2026-10-08T18:45:00+00:00",
+   "isAllDay": false,
+   "status": "Cancelled",
+   "eventLocation": null,
+   "speakers": [],
+   "virtualLocation": {
+    "description": "Zoom link TBD",
+    "phone": null,
+    "url": null
+   },
+   "downloadEventUrl": "/event/feed-event-occurrence-download/118427",
+   "detailsEventUrl": "/event/yale-cancer-center-smilow-cancer-hospital-care-center-greenwich-sponsors-breast-cancer-treatment-90/",
+   "isFeatured": false,
+   "isMultiSession": false,
+   "isRecurring": true,
+   "thumbnailImage": null,
+   "showImage": false,
+   "areSpeakersToBeAnnounced": false
+  },
+  {
+   "id": 151839,
+   "title": "Academic Work-in-Progress (AWIP) - Liza Konnikova",
+   "subTitle": null,
+   "description": "<p>CME texting code for today's session: TBD  203-442-9435</p> <p>Zoom: 725266</p>",
+   "pageName": "academic-work-in-progress-awip-09-29-26",
+   "audience": "OrganizationOnly",
+   "startDate": "2026-09-29T16:00:55+00:00",
+   "endDate": "2026-09-29T17:00:00+00:00",
+   "isAllDay": false,
+   "status": "Confirmed",
+   "eventLocation": {
+    "building": "Laboratory for Medicine and Pediatrics (LMP)",
+    "streetAddress": "15 York Street",
+    "geoPoint": {
+     "latitude": 41.304013,
+     "longitude": -72.9357506
+    }
+   },
+   "speakers": [
+    {
+     "name": "Liza Konnikova",
+     "suffixes": {
+      "familySuffix": null,
+      "nonFamilySuffixes": [
+       "MD",
+       "PhD",
+       "FAAP"
+      ]
+     }
+    }
+   ],
+   "virtualLocation": {
+    "description": "In person Trask 3108 or Zoom\n",
+    "phone": null,
+    "url": "https://yale.zoom.us/j/97437651542"
+   },
+   "downloadEventUrl": "/event/feed-event-occurrence-download/151839",
+   "detailsEventUrl": "/event/academic-work-in-progress-awip-09-29-26/",
+   "isFeatured": false,
+   "isMultiSession": false,
+   "isRecurring": false,
+   "thumbnailImage": null,
+   "showImage": false,
+   "areSpeakersToBeAnnounced": false
+  }
+ ],
+ "pageNumber": 1,
+ "pageSize": 200,
+ "totalItemCount": 5
+}

@@ -11,6 +11,7 @@ from yale_events.adapters.engineering import EngineeringAdapter, parse_item
 from yale_events.adapters.ical import parse_calendar
 from yale_events.adapters.text import clean_description, clean_field
 from yale_events.adapters.yalesites import YaleSitesAdapter, event_links, parse_event_page
+from yale_events.adapters.ysm import YSMAdapter
 from yale_events.config import SourceConfig
 from yale_events.normalize.time import NEW_HAVEN
 
@@ -149,6 +150,49 @@ def test_yalesites_links_same_host_only_and_deduplicated():
     html = """<a href="/events/2026-10-01-a">A</a><a href="/events/2026-10-01-a#x">A again</a>
     <a href="https://other.yale.edu/events/2026-10-02-b">B</a><a href="/events">all</a>"""
     assert event_links(html, "https://td.yale.edu/") == ["https://td.yale.edu/events/2026-10-01-a"]
+
+
+# --- ysm (School of Medicine) ---------------------------------------------------------------
+
+YSM_API = "https://medicine.yale.edu/website-api-data/ysm/feed-event-list/"
+
+
+@respx.mock
+def test_ysm_pages_and_skips_internal_audiences(tmp_path):
+    page = json.loads((FIXTURES / "ysm_events.json").read_text())
+    total = len(page["collection"])
+    route = respx.get(YSM_API).mock(
+        side_effect=[
+            httpx.Response(200, json={**page, "collection": page["collection"][:3], "totalItemCount": total}),
+            httpx.Response(200, json={**page, "collection": page["collection"][3:], "totalItemCount": total}),
+        ]
+    )
+    http = PoliteClient(httpx.Client(), min_interval=0, cache_dir=tmp_path)
+    src = SourceConfig(id="medicine", name="YSM", type="ysm", url="https://medicine.yale.edu/calendar/")
+    result = YSMAdapter(http).fetch(src)
+    assert route.call_count == 2
+    assert route.calls[1].request.url.params["pageNumber"] == "2"
+    assert route.calls[0].request.url.params["organizationId"] == "113592"
+    events = {e.source_event_id: e for e in result.events}
+    assert set(events) == {"151189", "148967", "151924", "118427"}  # OrganizationOnly one dropped
+
+    seminar = events["151189"]
+    assert seminar.start == datetime(2026, 9, 28, 12, tzinfo=NEW_HAVEN)
+    assert seminar.end - seminar.start == timedelta(minutes=50)
+    assert (seminar.location_name, seminar.address) == ("Yale School of Public Health (LEPH)", "60 College Street")
+    assert not seminar.virtual  # hybrid: in person with a stream link
+    assert seminar.description.startswith("Speakers: Leah Aronowsky, PhD")
+    assert seminar.description.endswith("Online: https://bit.ly/2026AronowskySeminar")
+    assert seminar.url == "https://medicine.yale.edu/event/cch-seminar-leah-aronowsky/"
+    assert seminar.audience == ["General Public"]
+
+    support = events["148967"]
+    assert support.virtual and support.location_name == "Register for Zoom link"
+
+    retreat = events["151924"]
+    assert retreat.all_day and retreat.end is None and retreat.start == datetime(2026, 11, 6, tzinfo=NEW_HAVEN)
+    assert retreat.audience == ["Yale Community"]
+    assert events["118427"].cancelled
 
 
 # --- replay ----------------------------------------------------------------------------------

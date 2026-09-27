@@ -350,6 +350,12 @@ buildings:
     lon: -72.922
     aliases: [Divinity School, YDS, Berkeley Divinity School, Niebuhr Hall]
     addresses: [409 Prospect Street]
+  - id: greenberg-conference-center
+    name: Greenberg Conference Center
+    area: science-hill
+    lat: 41.3222
+    lon: -72.9219
+    addresses: [391 Prospect Street]
   - id: marquand-chapel
     name: Marquand Chapel
     area: science-hill
@@ -388,7 +394,7 @@ buildings:
     area: medical
     lat: 41.3037
     lon: -72.9321
-    aliases: [School of Public Health, YSPH]
+    aliases: [School of Public Health, YSPH, Yale School of Public Health (LEPH), LEPH, Laboratory of Epidemiology and Public Health]
     rooms: [Winslow Auditorium]
     addresses: [60 College Street]
   - id: brady-lab
@@ -397,13 +403,105 @@ buildings:
     lat: 41.3023
     lon: -72.9339
     aliases: [Brady Memorial Lab]
-    addresses: [310 Cedar Street]
   - id: child-study-center
     name: Child Study Center
     area: medical
     lat: 41.3044
     lon: -72.9331
-    addresses: [230 South Frontage Road]
+    aliases: [Neison Irving Harris Building, Harris Building]
+    addresses: [230 South Frontage Road, 230 S. Frontage Road]
+  # Coordinates and addresses below are from medicine.yale.edu's own event locations.
+  - id: sterling-hall-of-medicine
+    name: Sterling Hall of Medicine
+    area: medical
+    lat: 41.3032
+    lon: -72.9339
+    aliases: [SHM, "Sterling Hall of Medicine, B-Wing", "Sterling Hall of Medicine, C-Wing", "Sterling Hall of Medicine, I-Wing", "Sterling Hall of Medicine, L-Wing"]
+    rooms: [M.S. Harkness Memorial Auditorium, Harkness Auditorium, Mary S. Harkness Auditorium]
+    addresses: [333 Cedar Street]
+  - id: medical-library
+    name: Cushing/Whitney Medical Library
+    area: medical
+    lat: 41.3033
+    lon: -72.9337
+    aliases: [Harvey Cushing/John Hay Whitney Medical Library, Medical Library]
+  - id: anlyan-center
+    name: The Anlyan Center
+    area: medical
+    lat: 41.3014
+    lon: -72.9338
+    aliases: [Anlyan Center, TAC]
+    addresses: [300 Cedar Street]
+  - id: farnam-building
+    name: Farnam Memorial Building
+    area: medical
+    lat: 41.3027
+    lon: -72.9343
+    aliases: [FMB]
+  - id: boyer-center
+    name: Boyer Center for Molecular Medicine
+    area: medical
+    lat: 41.3024
+    lon: -72.9327
+    aliases: [BCMM, Boyer Center]
+    addresses: [295 Congress Avenue]
+  - id: lmp
+    name: Laboratory for Medicine and Pediatrics (LMP)
+    area: medical
+    lat: 41.304
+    lon: -72.9358
+    aliases: [LMP, Laboratory for Medicine and Pediatrics]
+    addresses: [15 York Street]
+  - id: hunter-building
+    name: Hunter Building
+    area: medical
+    lat: 41.304
+    lon: -72.9358
+  - id: yale-new-haven-hospital
+    name: Yale New Haven Hospital
+    area: medical
+    lat: 41.3044
+    lon: -72.9356
+    aliases: [YNHH]
+    addresses: [20 York Street]
+  - id: fitkin-pavilion
+    name: Fitkin Memorial Pavilion
+    area: medical
+    lat: 41.3028
+    lon: -72.9351
+    aliases: [Fitkin Memorial Pavilion Auditorium, Fitkin Auditorium, Fitkin Amphitheater]
+    addresses: [789 Howard Avenue]
+  - id: clinic-building
+    name: Clinic Building (YNHH)
+    area: medical
+    lat: 41.3028
+    lon: -72.9351
+    aliases: [Clinic Building]
+  - id: tompkins-pavilion
+    name: Tompkins Memorial Pavilion
+    area: medical
+    lat: 41.3028
+    lon: -72.9351
+  - id: smilow
+    name: Smilow Cancer Hospital
+    area: medical
+    lat: 41.3046
+    lon: -72.936
+    aliases: [Smilow Cancer Hospital at Yale New Haven, Smilow]
+    addresses: [35 Park Street]
+  - id: amistad-building
+    name: Amistad Street Building
+    area: medical
+    lat: 41.2999
+    lon: -72.9317
+    addresses: [10 Amistad Street]
+  - id: es-harkness-hall
+    name: E.S. Harkness Memorial Hall
+    area: medical
+    lat: 41.3044
+    lon: -72.9338
+    aliases: [Harkness Hall (Medical), ESH]
+    addresses: [367 Cedar Street]
 
   # --- West Campus ---
   - id: west-campus-conference-center
@@ -475,7 +573,9 @@ buildings:
   - id: hope-building
     name: Jane Ellen Hope Building
     area: medical
-    aliases: [Hope Building, Jane Ellen Hope Memorial Building]
+    lat: 41.3022
+    lon: -72.9334
+    aliases: [Hope Building, Jane Ellen Hope Memorial Building, Hope Memorial Building]
     addresses: [315 Cedar Street]
     room_codes: [HOPE]
 

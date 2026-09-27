@@ -53,6 +53,17 @@ sources:
     url: https://engineering.yale.edu/news-and-events/events/get_events/1421
     enabled: true  # also fetches each event's page (~30/run) for location and description
 
+  # School of Medicine incl. Public Health, Child Study Center, and clinical departments (~650 events
+  # per 90 days). The calendar page is a React app; its pager calls /website-api-data/ysm/feed-event-list/
+  # (robots.txt allows it), which returns everything for the window in one request at pageSize 200+.
+  # Department-internal audiences (OrganizationOnly, Restricted, SchoolOnly) are skipped.
+  - id: medicine
+    name: Yale School of Medicine
+    type: ysm
+    url: https://medicine.yale.edu/calendar/
+    enabled: true
+    default_category: talks
+
   # --- Residential colleges -----------------------------------------------------------------------
 
   # Public Google Calendars embedded on the college sites. calendar.google.com's robots.txt disallows
@@ -128,15 +139,6 @@ sources:
   # public but empty.
 
   # --- Not yet usable -----------------------------------------------------------------------------
-
-  # Largest missing calendar (YSM + YSPH seminars). React app; the listing loads client-side and only
-  # per-event iCal downloads (/event/feed-event-occurrence-download/<id>) are in the HTML. Needs the
-  # data endpoint found before it can be added.
-  - id: medicine
-    name: Yale School of Medicine
-    type: ysm
-    url: https://medicine.yale.edu/calendar/
-    enabled: false
 
   # Also checked: drama.yale.edu/events (robots.txt disallows it), dwighthall.org (The Events
   # Calendar plugin, but 0 upcoming events), som.yale.edu/about/events (no feed; SOM also posts some
