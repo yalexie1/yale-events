@@ -47,13 +47,17 @@ def make_events() -> list[Event]:
 
 @pytest.fixture
 def client():
+    return make_client(make_events())
+
+
+def make_client(events: list[Event]) -> TestClient:
     engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
     Base.metadata.create_all(engine)
     factory = sessionmaker(engine, expire_on_commit=False)
     with factory() as s:
         s.add(Source(id="test", name="Test", type="fake", url="https://example.edu"))
         s.add(ScrapeRun(source_id="test", status="ok", fetched=10))
-        s.add_all(make_events())
+        s.add_all(events)
         s.commit()
     return TestClient(create_app(factory))
 
@@ -90,6 +94,29 @@ def test_default_window(client):
 )
 def test_filters(client, params, expected):
     assert ids(client.get("/events", params=params)) == expected
+
+
+@pytest.mark.parametrize(
+    "q, expected",
+    [
+        ("YPU", ["debate"]),  # shorthand -> the host group's full name
+        ("political union debate", ["debate"]),  # every word, in any field
+        ("school of management", ["mba"]),  # full name -> shorthand
+        ("som", ["mba"]),  # shorthands match whole words: not "Some Things"
+        ("HQ", ["debate"]),  # building alias -> events held there
+        ("GH", []),  # building shorthands match whole words too: not "Things"
+        ("jazz pizza", ["jazz"]),
+        ("100%", []),  # LIKE wildcards are literal
+    ],
+)
+def test_search(q, expected):
+    client = make_client([
+        *make_events(),
+        ev("debate", NOW + timedelta(days=5), ["talks"], location_id="humanities-quadrangle",
+           title="Debate: Resolved, Some Things Are Worth It", groups=["The Yale Political Union (Undergraduate)"]),
+        ev("mba", NOW + timedelta(days=6), ["career"], title="SOM Admissions Info Session"),
+    ])  # fmt: skip
+    assert ids(client.get("/events", params={"q": q})) == expected
 
 
 def test_date_range_end_is_inclusive(client):

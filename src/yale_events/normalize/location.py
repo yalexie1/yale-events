@@ -80,12 +80,15 @@ class LocationResolver:
         self._rooms: dict[str, tuple[str, str]] = {}  # normalized sub-venue -> (building id, room name)
         self._by_address: dict[str, str] = {}
         self._room_codes: dict[str, str] = {}
+        # Names and aliases as typed (lowercase, no leading "the"), for text search: "hq", "whale", "td".
+        self.search_names: dict[str, str] = {}
         for b in data["buildings"]:
             if b["area"] not in self.areas:
                 raise ValueError(f"building {b['id']} has unknown area {b['area']!r}")
             self.buildings[b["id"]] = Building(b["id"], b["name"], b["area"], b.get("lat"), b.get("lon"))
             for name in [b["name"], *b.get("aliases", [])]:
                 self._by_name.setdefault(norm_name(name), b["id"])
+                self.search_names.setdefault(re.sub(r"^the ", "", name.lower()), b["id"])
             for room in b.get("rooms", []):
                 self._rooms[norm_name(room)] = (b["id"], room)
             for addr in b.get("addresses", []):

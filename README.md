@@ -7,7 +7,7 @@ calendars, and Yale Connect. This project scrapes them into one normalized datab
 - a **subscribable iCal feed** for any filtered view (`/events.ics?...`), and
 - a **browser UI** at `/` built on the same public endpoints.
 
-Around 1,800 upcoming events from 20 sources, refreshed every 4 hours, with cross-listed duplicates merged.
+Around 1,800 upcoming events from 21 sources, refreshed every 4 hours, with cross-listed duplicates merged.
 
 ## Quick start
 
@@ -45,7 +45,7 @@ Filters (all optional, on both `/events` and `/events.ics`; list filters accept 
 | `location` | `location=woolsey-hall` | A specific building (~110 known, with aliases, room codes, and addresses). |
 | `org` | `org=computer-science,pauli-murray` | A residential college, department or school, or other organization. |
 | `source` | `source=law` | The calendar it came from. |
-| `q` | `q=pizza` | Text search in title, description, and venue. |
+| `q` | `q=YPU debate` | Text search: every word must appear in the title, description, venue, or hosts. Well-known shorthands match their full names and back (YPU, SOM, EP&E, YUAG; see [`aliases.yaml`](src/yale_events/data/aliases.yaml)), and building names and aliases (HQ, WLH, the Whale) also match events held there. |
 | `free_food` | `free_food=true` | The listing mentions food ("lunch provided", "refreshments", ...). |
 | `include_ongoing`, `include_cancelled` | | Daily occurrences of long exhibitions, and cancelled events, are hidden by default. |
 
@@ -69,7 +69,7 @@ a normalized `location` (`name`, `room`, `building`, `area`, `lat`/`lon`, `virtu
 |---|---|
 | Central calendar | events.yale.edu (Localist API, all ~187 department and office groups) |
 | Schools and departments | Medicine (incl. Public Health, Child Study Center), Law, Music, Architecture, Nursing, Engineering, Jackson School, MacMillan Center (area-studies councils) |
-| Museums and offices | Yale Center for British Art, Peabody Museum, Chaplain's Office, OISS, Athletics |
+| Museums, centers, and offices | Yale Center for British Art, Peabody Museum, Tsai CITY, Chaplain's Office, OISS, Athletics |
 | Residential colleges | Benjamin Franklin, Pauli Murray, Silliman, Timothy Dwight, Davenport |
 | Student organizations | Yale Connect, the site-wide student-organization platform (OrgHub's domain no longer resolves; Yale Connect replaced it) |
 
@@ -77,8 +77,8 @@ Every source, including ones checked and rejected, is recorded in [`sources.yaml
 notes on how it's read and why. Sites are read through the best interface each offers, one adapter per
 format rather than per site: `localist` (Localist API), `ical` (any .ics, including public Google
 Calendars), `jsonld` (schema.org Event data in pages), `yalesites` and `drupal-calendar` (Yale's Drupal
-platforms), `ysm` (the School of Medicine's JSON API), `engineering`, and small HTML parsers for
-`yale-music`, `peabody`, `macmillan`, and `ycba`. `yev discover <url>` looks for feeds on a new site.
+platforms), `ysm` (the School of Medicine's JSON API), `engineering`, `tsai-city` (a Luma calendar feed plus
+blurbs from the center's listing), and small HTML parsers for `yale-music`, `peabody`, `macmillan`, and `ycba`. `yev discover <url>` looks for feeds on a new site.
 
 Coverage notes:
 - Five residential colleges publish a calendar the scraper can read (Davenport's is currently empty).

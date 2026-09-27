@@ -1,0 +1,99 @@
+# Search shorthands: each line is a set of names for the same thing. Searching for any of them (as
+# the whole query or part of it) also finds events that mention any other, in the title,
+# description, venue, or host groups. Matching ignores case. Shorthands of up to 6 characters with
+# no spaces ("YPU", "EP&E") match only as whole words.
+#
+# Buildings don't need entries here: their names and aliases in locations.yaml ("HQ", "WLH", "the
+# Whale", "TD") already match events held there. Leave out shorthands that are ordinary words (YES,
+# JOY, FOOT) or times (PM), and prefer a distinctive fragment ("Sexuality Studies") over listing every
+# punctuation variant of a long name. A shorthand used for two things (YSM: Medicine and Music) goes
+# with the one sources use most, so searching one full name doesn't pull in the other's events.
+aliases:
+  # --- Student organizations and publications ---
+  - [YPU, Yale Political Union]
+  - [YCC, Yale College Council]
+  - [YDN, Yale Daily News]
+  - [YSO, Yale Symphony Orchestra]
+  - [YPMB, Yale Precision Marching Band]
+  - [YDA, Yale Debate Association]
+  - [Dramat, Yale Dramatic Association]
+  - [Whiffs, Whiffenpoofs]
+  - [SOBs, Society of Orpheus and Bacchus]
+  - [YHHAP, Yale Hunger and Homelessness Action Project]
+  - [YMUN, Yale Model United Nations]
+  - [MUN, Model United Nations, Model UN]
+  - [BSAY, Black Student Alliance at Yale]
+  - [AASA, Asian American Students Alliance]
+  - [YSEC, Yale Student Environmental Coalition]
+  - [SWS, Smart Woman Securities]
+  - [YBCN, Yale Black Culture Network]
+  - [GPSS, Graduate and Professional Student Senate]
+  - [FGLI, first-generation, first gen, first-gen]
+
+  # --- Schools ---
+  - [SOM, School of Management]
+  - [YLS, Yale Law School]
+  - [YSM, Yale School of Medicine, School of Medicine]
+  - [YSPH, Yale School of Public Health, School of Public Health]
+  - [EPH, Epidemiology and Public Health]
+  - [YSN, Yale School of Nursing, School of Nursing]
+  - [YDS, Yale Divinity School, Divinity School]
+  - [BDS, Berkeley Divinity School]
+  - [ISM, Institute of Sacred Music]
+  - [YSE, Yale School of the Environment, School of the Environment, F&ES, FES]
+  - [YSoA, School of Architecture]
+  - [DGSD, YSD, David Geffen School of Drama, School of Drama]
+  - [SEAS, School of Engineering and Applied Science, School of Engineering & Applied Science, Yale Engineering]
+  - [GSAS, Graduate School of Arts and Sciences]
+  - [Jackson School, Jackson School of Global Affairs, Jackson Institute]
+
+  # --- Museums, theaters, libraries, hospitals ---
+  - [YUAG, Yale University Art Gallery, Art Gallery]
+  - [YCBA, Yale Center for British Art, British Art]
+  - [YPM, Peabody Museum]
+  - [Yale Rep, YRT, Yale Repertory Theatre]
+  - [SML, Sterling Memorial Library]
+  - [YNHH, Yale New Haven Hospital]
+
+  # --- Centers, institutes, and offices ---
+  - [OCS, Office of Career Strategy]
+  - [OISS, Office of International Students and Scholars, Office of International Students & Scholars]
+  - [Tsai CITY, Tsai Center for Innovative Thinking]
+  - [CEID, Center for Engineering Innovation and Design, Center for Engineering Innovation & Design]
+  - [CCAM, Center for Collaborative Arts and Media]
+  - [CSSSI, Center for Science and Social Science Information]
+  - [YCRC, Center for Research Computing]
+  - [ISPS, Institution for Social and Policy Studies]
+  - [CBEY, Center for Business and the Environment]
+  - [WHC, Whitney Humanities Center]
+  - [GLC, Gilder Lehrman Center]
+  - [YQI, Yale Quantum Institute]
+  - [WTI, Wu Tsai Institute]
+  - [MSI, Microbial Sciences Institute]
+  - [YPSA, Program for the Study of Antisemitism]
+  - [CEAS, Council on East Asian Studies]
+  - [CMES, Council on Middle East Studies]
+  - [CLAIS, Latin American & Iberian Studies, Latin American and Iberian Studies]
+  - [REEES, Eurasian Studies]
+  - [RITM, Transnational Migration]
+  - [AACC, Asian American Cultural Center]
+  - [NACC, Native American Cultural Center]
+  - [La Casa, Latino Cultural Center]
+  - [Af-Am House, Afro-Am, Afro-American Cultural Center]
+
+  # --- Departments and majors ---
+  - [CPSC, CS, Computer Science]
+  - [S&DS, SDS, Statistics and Data Science, Statistics & Data Science]
+  - [EP&E, EPE, "Ethics, Politics, and Economics", "Ethics, Politics & Economics"]
+  - [ER&M, ERM, "Ethnicity, Race, and Migration", "Ethnicity, Race & Migration"]
+  - [WGSS, Sexuality Studies]
+  - [MB&B, MBB, Molecular Biophysics]
+  - [MCDB, Developmental Biology]
+  - [EEB, E&EB, Evolutionary Biology]
+  - [BME, Biomedical Engineering]
+  - [MechE, Mechanical Engineering]
+  - [ECE, Electrical & Computer Engineering, Electrical and Computer Engineering, Electrical Engineering]
+  - [ChemE, Chemical & Environmental Engineering, Chemical and Environmental Engineering]
+  - [AMTH, Applied Mathematics, Applied & Computational Mathematics]
+  - [PoliSci, Poli Sci, Political Science]
+  - [FMS, Film and Media Studies, Film & Media Studies]

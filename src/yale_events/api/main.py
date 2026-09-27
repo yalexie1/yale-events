@@ -61,7 +61,7 @@ def event_filters(
     org: Annotated[
         list[str] | None, Query(description="Any of these colleges, departments, or organizations, see /orgs.")
     ] = None,
-    q: Annotated[str | None, Query(description="Text search in title, description, and venue.")] = None,
+    q: Annotated[str | None, Query(description="Text search: every word must appear in the title, description, venue, or hosts. Shorthands match their full names (YPU, SOM, HQ; see aliases.yaml).")] = None,
     free_food: bool | None = None,
     include_ongoing: Annotated[
         bool, Query(description="Include daily occurrences of long-running exhibitions.")

@@ -13,6 +13,7 @@ from yale_events.models import Event, EventCategory
 from yale_events.normalize import default_normalizer
 from yale_events.normalize.time import NEW_HAVEN
 from yale_events.orgs import Org, default_orgs
+from yale_events.search import search_clause
 
 
 @dataclass
@@ -99,10 +100,7 @@ def build_query(f: EventFilters) -> Select[tuple[Event]]:
     if f.org:
         stmt = stmt.where(or_(*(org_clause(default_orgs()[o]) for o in f.org)))
     if f.q:
-        pattern = f"%{f.q}%"
-        stmt = stmt.where(
-            or_(Event.title.ilike(pattern), Event.description.ilike(pattern), Event.location_name.ilike(pattern))
-        )
+        stmt = stmt.where(search_clause(f.q))
     if f.free_food is not None:
         stmt = stmt.where(Event.free_food.is_(f.free_food))
     if not f.include_ongoing:
