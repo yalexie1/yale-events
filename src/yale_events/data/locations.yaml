@@ -130,7 +130,7 @@ buildings:
     area: central
     lat: 41.3098
     lon: -72.9274
-    aliases: [Hopper, Hopper College]
+    aliases: [Hopper, Hopper College, GH]
     addresses: [189 Elm Street]
   - id: jonathan-edwards-college
     name: Jonathan Edwards College
@@ -365,7 +365,10 @@ buildings:
   - id: tsai-city
     name: Tsai Center for Innovative Thinking
     area: science-hill
-    aliases: [Tsai CITY, Tsai CITY Studio]
+    lat: 41.3125
+    lon: -72.9249
+    aliases: [Tsai CITY, Tsai CITY Studio, Tsai Center for Innovative Thinking at Yale]
+    addresses: [17 Prospect Street]
   - id: divinity-school
     name: Yale Divinity School
     area: science-hill

@@ -46,7 +46,7 @@ CAT = N.categorizer
         ("Alice Tully Hall", "1941 Broadway at W 65th St, New York, NY 10023", 40.7728, -73.9823, False,
          (None, "off-campus", None)),
         # Bad geocode, no city in the address: unknown rather than off-campus.
-        ("Mystery Studio", "17 Prospect Street", 40.7007, -73.9874, False, (None, None, None)),
+        ("Mystery Studio", "12 Nowhere Street", 40.7007, -73.9874, False, (None, None, None)),
         # Unlisted venue right next to a known building takes that building's area.
         ("Some Lab Annex", None, 41.3175, -72.9230, False, (None, "science-hill", None)),
         ("New Haven Museum", None, 41.314, -72.922, False, ("new-haven-museum", "off-campus", None)),

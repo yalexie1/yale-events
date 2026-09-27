@@ -16,6 +16,7 @@ from yale_events.adapters.macmillan import _hosts as macmillan_hosts, parse_deta
 from yale_events.adapters.music import MusicAdapter, infer_year
 from yale_events.adapters.peabody import parse_listing as parse_peabody
 from yale_events.adapters.text import clean_description, clean_field
+from yale_events.adapters.tsai import TsaiCityAdapter
 from yale_events.adapters.yalesites import YaleSitesAdapter, event_links, parse_event_page
 from yale_events.adapters.ycba import parse_grid as parse_ycba, parse_when as ycba_when
 from yale_events.adapters.ysm import YSMAdapter
@@ -427,3 +428,47 @@ def test_macmillan_fetches_each_event_page_once():
             result = MacMillanAdapter(PoliteClient(c, min_interval=0)).fetch(src)
     assert pages.call_count == len({e.url for e in result.events}) > 0
     assert all(e.location_name == "Luce Hall, Rm 242" and e.description for e in result.events)
+
+
+# --- tsai-city ---------------------------------------------------------------------------------
+
+def luma_ics(start: datetime) -> str:
+    """Two Luma events in the shape of Tsai CITY's feed: a boilerplate DESCRIPTION and no URL."""
+    stamp = lambda d: d.astimezone(NEW_HAVEN).strftime("%Y%m%dT%H%M%S")  # noqa: E731
+    events = [("evt-panel", "Panel: From Problem to Possibility", "espzi1pr"), ("evt-test", "TEST Event!", "b99hmehk")]
+    body = "".join(
+        f"BEGIN:VEVENT\r\nDTSTART;TZID=America/New_York:{stamp(start + timedelta(hours=i))}\r\n"
+        f"DTEND;TZID=America/New_York:{stamp(start + timedelta(hours=i + 1))}\r\n"
+        f'ORGANIZER;CN="Tsai CITY":MAILTO:calendar-invite@lu.ma\r\nUID:{uid}@events.lu.ma\r\nSUMMARY:{title}\r\n'
+        f"DESCRIPTION:Get up-to-date information at: https://luma.com/{slug}\\n\\nAddress:\\n17 Prospect St\\, "
+        "New Haven\\, CT 06511\\, USA\\n\\nHosted by Tsai CITY & Sade Owoye\r\n"
+        "LOCATION:Tsai Center for Innovative Thinking at Yale\\, 17 Prospect St\\, New Haven\\, CT 06511\\, USA\r\n"
+        "GEO:41.312448;-72.924889\r\nSTATUS:TENTATIVE\r\nEND:VEVENT\r\n"
+        for i, (uid, title, slug) in enumerate(events)
+    )
+    return f"BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Luma//Tsai CITY Calendar//EN\r\n{body}END:VCALENDAR\r\n"
+
+
+def test_tsai_city_luma_feed_with_listing_blurbs():
+    feed_url = "https://api.lu.ma/ics/get?entity=calendar&id=cal-x"
+    src = SourceConfig(
+        id="tsai-city", name="Tsai CITY", type="tsai-city", url=feed_url,
+        options={"listing": "https://city.yale.edu/events", "exclude_title": r"^test\b"},
+    )  # fmt: skip
+    start = datetime.combine(datetime.now(NEW_HAVEN).date() + timedelta(days=2), datetime.min.time(), NEW_HAVEN)
+    with respx.mock:
+        respx.get(feed_url).mock(return_value=httpx.Response(200, text=luma_ics(start.replace(hour=18))))
+        respx.get("https://city.yale.edu/events").mock(
+            return_value=httpx.Response(200, text=(FIXTURES / "tsai_events.html").read_text())
+        )
+        with httpx.Client() as c:
+            events = TsaiCityAdapter(PoliteClient(c, min_interval=0)).fetch(src).events
+    assert len(events) == 1  # the TEST event is excluded
+    ev = events[0]
+    assert ev.title == "Panel: From Problem to Possibility"
+    assert ev.url == "https://luma.com/espzi1pr"
+    assert ev.description.startswith("Great ideas rarely start with the answer")
+    assert ev.image_url.startswith("https://city.yale.edu/sites/default/files/")
+    assert ev.groups == ["Tsai CITY"]
+    assert ev.location_name.startswith("Tsai Center for Innovative Thinking at Yale")
+    assert not ev.cancelled

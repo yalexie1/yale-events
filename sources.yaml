@@ -143,6 +143,21 @@ sources:
     default_category: exhibitions
     default_location: Yale Center for British Art
 
+  # Tsai CITY (innovation and entrepreneurship center): city.yale.edu/events lists ~20 upcoming talks,
+  # workshops, and showcases, each linking to Luma for registration. The Luma calendar's public iCal
+  # feed has the times; the listing page adds blurbs and images (2 requests per run). Luma's robots.txt
+  # doesn't restrict /ics/. Application deadlines on the listing (Airtable forms) aren't events.
+  - id: tsai-city
+    name: Tsai CITY
+    type: tsai-city
+    url: https://api.lu.ma/ics/get?entity=calendar&id=cal-3dFlCEjNnwqDQ8a
+    enabled: true
+    default_category: career
+    default_location: Tsai Center for Innovative Thinking
+    options:
+      listing: https://city.yale.edu/events
+      exclude_title: '^test\b'
+
   # --- Residential colleges -----------------------------------------------------------------------
 
   # Public Google Calendars embedded on the college sites. calendar.google.com's robots.txt disallows

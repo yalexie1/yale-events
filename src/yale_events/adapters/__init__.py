@@ -7,6 +7,7 @@ from yale_events.adapters.localist import LocalistAdapter
 from yale_events.adapters.macmillan import MacMillanAdapter
 from yale_events.adapters.music import MusicAdapter
 from yale_events.adapters.peabody import PeabodyAdapter
+from yale_events.adapters.tsai import TsaiCityAdapter
 from yale_events.adapters.yalesites import YaleSitesAdapter
 from yale_events.adapters.ycba import YCBAAdapter
 from yale_events.adapters.ysm import YSMAdapter
@@ -23,6 +24,7 @@ ADAPTERS: dict[str, type] = {
     "peabody": PeabodyAdapter,
     "macmillan": MacMillanAdapter,
     "ycba": YCBAAdapter,
+    "tsai-city": TsaiCityAdapter,
 }
 
 
