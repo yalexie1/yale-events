@@ -183,6 +183,23 @@ sources:
   # registrar calendar. Saybrook's intramurals Google Calendar (r3jb5ri3vgom4juerqln0bso44) is
   # public but empty.
 
+  # --- Student organizations ----------------------------------------------------------------------
+
+  # Yale Connect (CampusGroups): one public site-wide iCal linked from yaleconnect.yale.edu/events
+  # (robots.txt allows /ical/). ~1,700 upcoming events from ~390 orgs, ~3.7 MB. For ~83% the location
+  # reads "Sign in to download the location", i.e. members-only; those are skipped (user's call,
+  # 2026-09-26), as are meetings, rehearsals, and office hours. Listed last so any other source's copy
+  # of an event is canonical (it carries Yale Rep, OISS, and some central-calendar events too).
+  - id: yale-connect
+    name: Yale Connect
+    type: ical
+    url: https://yaleconnect.yale.edu/ical/yale/ical_yale.ics
+    enabled: true
+    options:
+      exclude_location: 'sign in to download'
+      exclude_tags: 'group meeting|rehearsal|office hours/drop in hours|due date or deadline'
+      description_strip: '\s*-{3}\s*Event Details: \S+\s*$'
+
   # --- Not yet usable -----------------------------------------------------------------------------
 
   # Also checked: drama.yale.edu/events (robots.txt disallows it), dwighthall.org (The Events

@@ -65,6 +65,21 @@ tag_map:
   Performance: [arts-performance]
   Museum Tour: [exhibitions]
   Exhibition: [exhibitions]
+  # Yale Connect (CampusGroups) event types; "Social", "Info Session" etc. are left to keywords
+  Film and Media Screenings: [film]
+  Sport/Recreation: [sports]
+  Spiritual/Worship: [religious]
+  Lecture, Talk, or Panel: [talks]
+  Speaker/Lecture Series: [talks]
+  Conference/Symposium: [talks]
+  Seminar: [talks]
+  Conversation: [talks]
+  Training/Workshop: [academic]
+  Health/Wellness: [health]
+  Commmunity Service & Volunteer: [community-service]  # sic
+  Community Service & Volunteer: [community-service]
+  Fair/Festival: [social, cultural]
+  Career/Networking: [career]
 
 # Case-insensitive regexes. Title matches are trusted; description matches only use the first
 # 300 characters to avoid picking up boilerplate further down.

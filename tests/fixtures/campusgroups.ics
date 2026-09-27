@@ -1,0 +1,47 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:CAMPUSGROUPS
+X-WR-CALNAME:Yale University
+BEGIN:VEVENT
+SUMMARY;ENCODING=QUOTED-PRINTABLE:Fall Film Series: Metropolis
+DTSTART:20261002T233000Z
+DTEND:20261003T013000Z
+UID:aaa@campusgroups.com
+CATEGORIES;X-CG-CATEGORY=club_acronym:YALEFILMARCHIVE
+CATEGORIES;X-CG-CATEGORY=event_type:Film and Media Screenings
+CATEGORIES;X-CG-CATEGORY=event_tags:Film,Library
+DESCRIPTION:A silent classic with live piano.\n---\nEvent Details: https:/
+ /yaleconnect.yale.edu/rsvp?id=1
+LOCATION:Humanities Quadrangle\, Room L01\, 320 York Street\, New Haven\, C
+ T 06511\, United States
+ORGANIZER;CN="Yale Film Archive":mailto:noreply@yaleconnect.yale.edu
+URL:https://yaleconnect.yale.edu/rsvp?id=1
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Panel on Housing
+DTSTART:20261003T200000Z
+DTEND:20261003T210000Z
+UID:bbb@campusgroups.com
+CATEGORIES;X-CG-CATEGORY=club_acronym:YCHOUSING
+CATEGORIES;X-CG-CATEGORY=event_type:Lecture, Talk, or Panel
+LOCATION:Online Event
+ORGANIZER;CN="Housing Coalition":mailto:noreply@yaleconnect.yale.edu
+URL:https://yaleconnect.yale.edu/rsvp?id=2
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Weekly Board Meeting
+DTSTART:20261004T150000Z
+UID:ccc@campusgroups.com
+CATEGORIES;X-CG-CATEGORY=club_acronym:YCVISA
+CATEGORIES;X-CG-CATEGORY=event_type:Group Meeting
+LOCATION:Online Event
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Members Dinner
+DTSTART:20261004T230000Z
+UID:ddd@campusgroups.com
+CATEGORIES;X-CG-CATEGORY=club_acronym:YCVISA
+CATEGORIES;X-CG-CATEGORY=event_type:Social
+LOCATION: Sign in to download the location
+END:VEVENT
+END:VCALENDAR

@@ -48,5 +48,6 @@ The pipeline runs `sources.yaml → adapter → RawEvent → Normalizer → upse
 - The user approved using the events.yale.edu Localist API lightly, and fetching public Google Calendar `.ics` feeds once per scheduled run, even though both sites' robots.txt disallow crawling.
 - Don't add per-event page fetches against events.yale.edu.
 - Otherwise respect robots.txt: `discover` checks it, and drama.yale.edu is excluded because of it.
+- Yale Connect (CampusGroups site-wide iCal) is used for events with a public location only; members-only events (location "Sign in to download") are skipped by the user's choice. The feed is ~3.7 MB; fetch it once per run.
 - Keep the 1 request per second interval.
 - Before adding a department source, check whether its events are already in the central calendar: `yale-central` fetches all ~187 Localist groups, and many department sites (YaleSites pages with a Localist widget) just mirror it.

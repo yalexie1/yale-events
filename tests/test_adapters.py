@@ -85,6 +85,21 @@ def test_ical_options(ics):
     assert [(e.title, e.cancelled) for e in events] == [("Football vs Dartmouth", True)]
 
 
+
+def test_ical_campusgroups():
+    options = {
+        "exclude_location": "sign in to download",
+        "exclude_tags": "group meeting|rehearsal",
+        "description_strip": r"\s*-{3}\s*Event Details: \S+\s*$",
+    }
+    events = parse_calendar((FIXTURES / "campusgroups.ics").read_bytes(), START, END, options)
+    assert [e.title for e in events] == ["Fall Film Series: Metropolis", "Panel on Housing"]
+    film, panel = events
+    assert film.tags == ["Film and Media Screenings", "Film", "Library"]  # club_acronym dropped
+    assert film.groups == ["Yale Film Archive"]
+    assert film.description == "A silent classic with live piano."
+    assert panel.tags == ["Lecture, Talk, or Panel"]  # commas inside event_type kept together
+
 # --- engineering -----------------------------------------------------------------------------
 
 def test_engineering_item_with_detail_page():

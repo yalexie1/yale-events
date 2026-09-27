@@ -601,6 +601,38 @@ buildings:
     addresses: [315 Cedar Street]
     room_codes: [HOPE]
 
+  # --- Seen in Yale Connect listings (coordinates omitted until verified) ---
+  - id: afro-american-cultural-center
+    name: Afro-American Cultural Center
+    area: central
+    aliases: [AFAM House, Af-Am House, Afro-Am House, "Afro-American Cultural Center at Yale"]
+    addresses: [211 Park Street]
+  - id: poorvu-center
+    name: Poorvu Center for Teaching and Learning
+    area: central
+    aliases: [Poorvu Center]
+    addresses: [301 York Street]
+  - id: bass-library
+    name: Bass Library
+    area: central
+    aliases: [Bass Library, Thain Cafe, Thain Family Cafe]
+    addresses: [110 Wall Street]
+  - id: lgbtq-center
+    name: Yale LGBTQ Center
+    area: science-hill
+    aliases: [LGBTQ Center, Office of LGBTQ Resources, "Yale LGBTQ Center Café"]
+    addresses: [135 Prospect Street]
+  - id: sage-hall
+    name: Sage Hall
+    area: science-hill
+    rooms: [Bowers Auditorium]
+    addresses: [205 Prospect Street]
+  - id: divinity-farm
+    name: Yale Divinity Farm
+    area: science-hill
+    aliases: [DivFarm, Divinity Farm]
+    addresses: [350 Canner Street]
+
   # --- Residential colleges not listed above (coordinates omitted until verified) ---
   - id: benjamin-franklin-college
     name: Benjamin Franklin College
