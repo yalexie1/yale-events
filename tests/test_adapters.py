@@ -342,7 +342,8 @@ def test_replay_serves_latest_run_for_any_extension(tmp_path):
 
 
 @respx.mock
-def test_yalesites_fetch_filters_to_window(tmp_path):
+def test_yalesites_fetch_filters_to_window(tmp_path, monkeypatch):
+    monkeypatch.setattr("yale_events.adapters.yalesites.datetime", _FixedNow)
     respx.get("https://timothydwight.yale.edu/").mock(
         return_value=httpx.Response(200, text='<a href="/events/2026-09-16-td-knit-and-crochet-club">x</a>')
     )
@@ -415,7 +416,8 @@ def test_macmillan_hosts():
     assert macmillan_hosts(None) == []
 
 
-def test_macmillan_fetches_each_event_page_once():
+def test_macmillan_fetches_each_event_page_once(monkeypatch):
+    monkeypatch.setattr("yale_events.adapters.macmillan.datetime", _FixedNow)
     listing = (FIXTURES / "macmillan_events.html").read_text()
     detail = (FIXTURES / "macmillan_event.html").read_text()
     src = SourceConfig(id="macmillan", name="MacMillan", type="macmillan", url="https://macmillan.yale.edu/events")
@@ -449,7 +451,9 @@ def luma_ics(start: datetime) -> str:
     return f"BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Luma//Tsai CITY Calendar//EN\r\n{body}END:VCALENDAR\r\n"
 
 
-def test_tsai_city_luma_feed_with_listing_blurbs():
+def test_tsai_city_luma_feed_with_listing_blurbs(monkeypatch):
+    monkeypatch.setattr("yale_events.adapters.tsai.datetime", _FixedNow)
+    monkeypatch.setattr("yale_events.adapters.ical.datetime", _FixedNow)
     feed_url = "https://api.lu.ma/ics/get?entity=calendar&id=cal-x"
     src = SourceConfig(
         id="tsai-city", name="Tsai CITY", type="tsai-city", url=feed_url,
