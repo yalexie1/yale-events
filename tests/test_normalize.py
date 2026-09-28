@@ -72,6 +72,11 @@ CAT = N.categorizer
         ("Luce 101 34 Hillhouse Avenue, New Haven, CT06511", None, None, None, False, ("luce-hall", "science-hill", "101")),
         ("Seminar Room 34 Hillhouse Ave.", None, None, None, False, ("luce-hall", "science-hill", None)),
         ("ISPS, Room A002", None, None, None, False, ("isps", "science-hill", "Room A002")),
+        # Yale Connect venues: a street address first, or a room code followed by a room name.
+        ("55 Whitney Ave, 3rd Floor, Room 369 , 55 Whitney Ave, New Haven, CT 06510, United States",
+         None, None, None, False, ("55-whitney-avenue", "central", None)),
+        ("Hope 103 Amphitheater, New Haven, CT 06520, United States", None, None, None, False,
+         ("hope-building", "medical", "Hope 103 Amphitheater")),
     ],
 )  # fmt: skip
 def test_resolve_location(name, address, lat, lon, virtual, expected):
@@ -100,7 +105,10 @@ def test_norm_helpers():
         ("Computational Research Support OHs", None, [], ["academic"]),
         ("Call for Proposals: CCAM Studio Fellowship", None, [], ["career"]),
         ("West of the River", "In West of the River, photographer Christian Badach describes...", [], ["exhibitions"]),
+        ("Marital Privilege", "Serena Mayeri recounts the work of the activists who challenged...", [], ["talks"]),
+        ("The Story of My Life", "The Story of My Life follows the friendship of Alvin and Thomas...", [], ["arts-performance"]),
         # Keyword false-positive guards.
+        ("Wei-Yi Yang, Bach, and Schubert", "Wei-Yi Yang traces elements of stylized dance through...", [], ["arts-performance"]),
         ("Satire, Sympathy, and Social Critique", None, [], []),
         ("Mass Incarceration in America", None, [], []),
         ("Game Theory and Elections", None, [], []),

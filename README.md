@@ -24,7 +24,7 @@ yev serve                          # browse at http://127.0.0.1:8000, interactiv
 If `yev` fails with `ModuleNotFoundError: yale_events`, prefix commands with `PYTHONPATH=src`
 (macOS sometimes hides the venv's `.pth` files, so the editable install isn't picked up).
 
-Run the tests with `pytest`. They are offline: every adapter is tested against saved pages with HTTP mocked.
+Run the tests with `pytest`. They are offline: every adapter is tested against saved pages with HTTP mocked. GitHub Actions runs them on every push (`.github/workflows/tests.yml`).
 
 ## API
 

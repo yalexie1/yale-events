@@ -118,6 +118,14 @@ buildings:
     lat: 41.3113
     lon: -72.9239
     addresses: [370 Temple Street]
+  - id: 55-whitney-avenue
+    name: 55 Whitney Avenue
+    area: central
+    addresses: [55 Whitney Avenue]
+  - id: 433-temple-street
+    name: 433 Temple Street
+    area: central
+    addresses: [433 Temple Street]
   - id: 53-wall-street
     name: 53 Wall Street
     area: central
@@ -200,6 +208,10 @@ buildings:
     lon: -72.933
     rooms: [Iseman Theater]
     addresses: [1156 Chapel Street]
+  - id: 168-york-street
+    name: 168 York Street
+    area: arts-district
+    addresses: [168 York Street]
   - id: haas-arts-library
     name: Haas Family Arts Library
     area: arts-district
@@ -253,6 +265,10 @@ buildings:
     lon: -72.9235
     aliases: [17 Hillhouse, Yale Quantum Institute, Quantum Institute, YQI]
     addresses: [17 Hillhouse Avenue]
+  - id: 56-hillhouse-avenue
+    name: 56 Hillhouse Avenue
+    area: science-hill
+    addresses: [56 Hillhouse Avenue]
   - id: warner-house
     name: Warner House
     area: science-hill
@@ -609,6 +625,7 @@ buildings:
     lat: 41.3022
     lon: -72.9334
     aliases: [Hope Building, Jane Ellen Hope Memorial Building, Hope Memorial Building]
+    rooms: [Hope 103 Amphitheater]
     addresses: [315 Cedar Street]
     room_codes: [HOPE]
 
@@ -739,3 +756,13 @@ buildings:
     lat: 41.314
     lon: -72.922
     addresses: [114 Whitney Avenue]
+  - id: bobbis-pizza
+    name: Bobbi's Detroit Style Pizza
+    area: off-campus
+    addresses: [51 Broadway]
+  - id: yale-medicine-north-haven
+    name: Yale Medicine North Haven
+    area: off-campus
+    lat: 41.3821
+    lon: -72.8806
+    addresses: [6 Devine Street]

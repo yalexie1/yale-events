@@ -20,7 +20,7 @@ PYTHONPATH=src python -m yale_events.cli uncategorized          # titles/locatio
 PYTHONPATH=src python -m yale_events.cli discover URL...        # look for iCal/RSS/Google Calendar/Localist feeds
 ```
 
-There is no linter config. Style: line length is about 120, and `# fmt: skip` is used on hand-aligned literals. Query the DB with the venv's Python (SQLAlchemy), not the `sqlite3` CLI.
+CI (`.github/workflows/tests.yml`) runs pytest with `uv sync --frozen` on every push, so update `uv.lock` along with dependencies. There is no linter config. Style: line length is about 120, and `# fmt: skip` is used on hand-aligned literals. Query the DB with the venv's Python (SQLAlchemy), not the `sqlite3` CLI.
 
 ## Architecture
 
