@@ -956,14 +956,35 @@ async function init() {
   if (state.events.length) { const evs = state.events; $("list").innerHTML = ""; append(evs, windowFor(state.range).start || iso(today())); if (!state.cursor) $("list").insertAdjacentHTML("beforeend", `<div class="endnote">That's everything through ${rangeLabel().split(" – ").pop()}.</div>`); }
   renderStatus(!state.cursor);
 
+  lastRun = renderSources(sources);
+  onHash();
+}
+
+/** Header and footer totals; returns the latest scrape time. */
+function renderSources(sources) {
   const live = sources.filter((s) => s.enabled);
   const total = live.reduce((n, s) => n + s.upcoming, 0);
   const last = live.map((s) => s.last_run_at).filter(Boolean).sort().pop();
   $("dek").textContent = `${total.toLocaleString()} upcoming events from ${live.length} Yale calendars, in one listing.`;
   if (last) $("updated").textContent = "Updated " + relTime(last);
-  onHash();
   $("foot-sources").textContent = `Collected from ${live.length} public Yale calendars${last ? ", refreshed " + relTime(last) : ""}. Check the event page before you go.`;
+  return last;
 }
+
+// A tab left open across a scrape would keep old counts and events: check when it's shown again, and now and then.
+let lastRun = null, checkedAt = Date.now();
+async function checkForScrape() {
+  if (document.hidden || Date.now() - checkedAt < 60e3) return;
+  checkedAt = Date.now();
+  try {
+    const sources = await fetch("/sources").then((r) => r.json());
+    const last = renderSources(sources);
+    if (lastRun && last !== lastRun) { countsFor = undefined; reload({ scroll: false }); }  // reload refetches counts
+    lastRun = last;
+  } catch { /* offline; try again later */ }
+}
+document.addEventListener("visibilitychange", checkForScrape);
+setInterval(checkForScrape, 10 * 60e3);
 
 let qTimer;
 $("q").addEventListener("input", () => { clearTimeout(qTimer); qTimer = setTimeout(() => { state.q = $("q").value.trim(); reload({ scroll: false }); }, 220); });
