@@ -8,6 +8,7 @@ calendars, and Yale Connect. This project scrapes them into one normalized datab
 - a **browser UI** at `/` built on the same public endpoints.
 
 Around 1,800 upcoming events from 21 sources, refreshed every 4 hours, with cross-listed duplicates merged.
+Live at **https://yale-events.fly.dev/** (API docs at [/docs](https://yale-events.fly.dev/docs)).
 
 ## Quick start
 
@@ -132,6 +133,18 @@ yev sources check                # exits 1 if a source is failing or overdue
 that suddenly returns zero events or under half its usual number, or where many events vanished at
 once. When scheduled, it posts a macOS notification if anything needs attention. Elsewhere, run
 `yev scrape && yev sources check` from cron.
+
+## Deployment
+
+The public instance runs on [Fly.io](https://fly.io) as one always-on machine (`fly.toml`, `Dockerfile`).
+`deploy/run.sh` serves the API and scrapes every 4 hours (`SCRAPE_EVERY_HOURS`); the database and
+cache live on a 1 GB volume mounted at `/app/data`. To ship a change:
+
+```sh
+fly deploy --ha=false        # one machine only: the SQLite volume can't be shared
+fly logs                     # scrape and request logs
+fly ssh console -C "yev sources check"
+```
 
 ## Scraping policy
 
