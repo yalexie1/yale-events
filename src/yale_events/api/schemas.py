@@ -2,6 +2,7 @@ from datetime import date, datetime
 
 from pydantic import BaseModel
 
+from yale_events.adapters.ical import HIDDEN_LOCATION_LABEL
 from yale_events.models import Event
 from yale_events.normalize.location import LocationResolver, in_yale_bbox
 from yale_events.normalize.time import NEW_HAVEN
@@ -17,6 +18,7 @@ class LocationOut(BaseModel):
     lat: float | None
     lon: float | None
     virtual: bool
+    sign_in_url: str | None = None  # the venue is shown only to signed-in Yale users on this page (Yale Connect)
 
 
 class ListingOut(BaseModel):
@@ -75,6 +77,7 @@ class EventOut(BaseModel):
                 lat=lat,
                 lon=lon,
                 virtual=e.virtual,
+                sign_in_url=e.url if e.location_name == HIDDEN_LOCATION_LABEL else None,
             ),
             categories=list(e.categories),
             free_food=e.free_food,

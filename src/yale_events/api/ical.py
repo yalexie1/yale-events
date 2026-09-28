@@ -3,6 +3,7 @@ from datetime import timedelta
 
 from icalendar import Calendar, Event as VEvent, vDuration, vGeo
 
+from yale_events.adapters.ical import HIDDEN_LOCATION_LABEL
 from yale_events.models import Event
 from yale_events.normalize.location import in_yale_bbox
 from yale_events.normalize.time import NEW_HAVEN
@@ -45,7 +46,10 @@ def to_vevent(e: Event) -> VEvent:
         v.add("location", location)
     if e.lat is not None and e.lon is not None and in_yale_bbox(e.lat, e.lon):
         v.add("geo", vGeo((e.lat, e.lon)))
-    description = "\n\n".join(p for p in [e.description, e.url] if p)
+    if e.location_name == HIDDEN_LOCATION_LABEL and e.url:  # the room is behind a Yale Connect sign-in
+        description = "\n\n".join(p for p in [f"Location: sign in at {e.url}", e.description] if p)
+    else:
+        description = "\n\n".join(p for p in [e.description, e.url] if p)
     if description:
         v.add("description", description)
     if e.url:

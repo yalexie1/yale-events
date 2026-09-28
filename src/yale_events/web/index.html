@@ -213,6 +213,9 @@
                        text-decoration-color: var(--ink-3); }
   .meta { margin-top: 4px; font-size: 13.5px; color: var(--ink-2); display: flex; flex-wrap: wrap; gap: 4px 14px; }
   .meta .venue b { color: var(--ink); font-weight: 500; }
+  /* Above the row's full-size title link, so it opens Yale Connect rather than the detail sheet. */
+  .venue-link { position: relative; z-index: 1; color: var(--blue); text-decoration: underline; text-underline-offset: 2px;
+                text-decoration-thickness: 1px; }
   .flags { display: inline-flex; gap: 6px; }
   .flag { font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 2px 6px 1px;
           border-radius: 2px; align-self: center; }
@@ -533,6 +536,9 @@ function linkify(escaped) {
 function paragraphs(text) {
   return String(text).trim().split(/\n\s*\n/).map((p) => `<p>${linkify(esc(p)).replace(/\n/g, "<br>")}</p>`).join("");
 }
+const SIGN_IN = "Sign in on Yale Connect for the location ↗";
+/** The venue behind a Yale Connect sign-in, as a link to the event page that shows it. */
+const signInLink = (loc) => `<a class="venue-link" href="${esc(loc.sign_in_url)}" target="_blank" rel="noopener">${SIGN_IN}</a>`;
 function venue(loc) {
   if (loc.virtual && !loc.name && !loc.building) return { main: "Online", sub: "" };
   const main = loc.building || loc.name || "";
@@ -687,7 +693,8 @@ function rowHTML(e, underway, i) {
       ${cats ? `<div class="kicker smallcaps">${cats}</div>` : ""}
       <h3 class="title"><a href="#e=${e.id}">${esc(e.title)}</a></h3>
       <div class="meta">
-        ${v.main ? `<span class="venue"><b>${esc(v.main)}</b>${v.sub ? " · " + esc(v.sub) : ""}</span>` : ""}
+        ${e.location.sign_in_url ? `<span class="venue">${signInLink(e.location)}</span>`
+          : v.main ? `<span class="venue"><b>${esc(v.main)}</b>${v.sub ? " · " + esc(v.sub) : ""}</span>` : ""}
         ${flags ? `<span class="flags">${flags}</span>` : ""}
       </div>
     </div>
@@ -811,7 +818,7 @@ async function loadOngoing() {
     const through = !e.series_last_date && iso(endDay) >= iso(addDays(parseDay(windowEnd), -1)) ? "" : `<b>through ${fmtShortDate(endDay)}${endDay.getFullYear() !== today().getFullYear() ? ", " + endDay.getFullYear() : ""}</b>`;
     const cat = e.categories[0];
     return `<li ${cat ? catStyle(cat) : ""}><div class="t"><a href="#e=${e.id}">${esc(e.title)}</a></div>
-      <div class="s">${[through, esc(v.main)].filter(Boolean).join(" · ")}</div></li>`;
+      <div class="s">${[through, e.location.sign_in_url ? signInLink(e.location) : esc(v.main)].filter(Boolean).join(" · ")}</div></li>`;
   }).join("");
   $("ongoing-n").textContent = `${rows.length} listing${rows.length === 1 ? "" : "s"}`;
   $("ongoing").hidden = !rows.length;
@@ -869,7 +876,7 @@ function renderSheet(e) {
   const price = e.cost || (e.free ? "Free" : "");
   const rows = [
     ["When", when],
-    ["Where", v.main ? `${esc(v.main)}${v.sub ? `<small>${esc(v.sub)}</small>` : ""}${addr ? `<small>${esc(addr)}</small>` : ""}${map ? `<small><a href="${map}" target="_blank" rel="noopener">Map ↗</a></small>` : ""}` : "<span style='color:var(--ink-3)'>Not listed</span>"],
+    ["Where", loc.sign_in_url ? `${signInLink(loc)}<small>Yale Connect shows the room only to signed-in Yale users.</small>` : v.main ? `${esc(v.main)}${v.sub ? `<small>${esc(v.sub)}</small>` : ""}${addr ? `<small>${esc(addr)}</small>` : ""}${map ? `<small><a href="${map}" target="_blank" rel="noopener">Map ↗</a></small>` : ""}` : "<span style='color:var(--ink-3)'>Not listed</span>"],
     e.groups.length && ["Host", esc(e.groups.join(", "))],
     (price || cost) && ["Cost", esc([price, cost].filter(Boolean).join(" · "))],
     e.audience.length && ["For", esc(e.audience.join(", "))],

@@ -171,7 +171,7 @@ def test_event_detail(client):
     assert body["location"] == {
         "name": "Kroon Hall", "room": "Burke Auditorium", "address": None, "id": "kroon-hall",
         "building": "Kroon Hall", "area": "science-hill", "lat": body["location"]["lat"],
-        "lon": body["location"]["lon"], "virtual": False,
+        "lon": body["location"]["lon"], "virtual": False, "sign_in_url": None,
     }  # fmt: skip
     # Times come back in New Haven local time.
     assert datetime.fromisoformat(body["start"]).utcoffset() in (timedelta(hours=-4), timedelta(hours=-5))
@@ -232,6 +232,18 @@ def test_counts_match_what_each_filter_lists(client, window):
 def test_health(client):
     r = client.get("/health")  # sources.yaml's sources have no runs here: warnings, not errors
     assert r.status_code == 200 and r.json()["ok"] and {p["level"] for p in r.json()["problems"]} == {"warning"}
+
+
+def test_hidden_location_links_to_the_event_page():
+    from yale_events.adapters.ical import HIDDEN_LOCATION_LABEL
+
+    url = "https://yaleconnect.yale.edu/rsvp?id=1"
+    c = make_client([ev("club", NOW + timedelta(days=1), location_name=HIDDEN_LOCATION_LABEL, url=url),
+                     ev("hall", NOW + timedelta(days=2), location_name="Kroon Hall", url="https://x.edu")])  # fmt: skip
+    locs = {e["id"]: e["location"] for e in c.get("/events").json()["events"]}
+    assert locs["club"]["sign_in_url"] == url and locs["hall"]["sign_in_url"] is None
+    club = next(v for v in Calendar.from_ical(c.get("/events.ics").content).walk("VEVENT") if "Club" in str(v["SUMMARY"]))
+    assert str(club["DESCRIPTION"]).startswith(f"Location: sign in at {url}")
 
 
 def test_home_page(client):
