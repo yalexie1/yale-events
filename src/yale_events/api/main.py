@@ -5,7 +5,7 @@ from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
 from fastapi.responses import FileResponse
-from sqlalchemy import func, select
+from sqlalchemy import Select, func, select
 from sqlalchemy.orm import Session, sessionmaker
 
 from yale_events.api.ical import to_ics
@@ -88,17 +88,33 @@ def event_filters(
 FiltersDep = Annotated[EventFilters, Depends(event_filters)]
 
 
-def upcoming_filter(now: datetime):
-    return (Event.start >= now, Event.stale.is_(False), Event.cancelled.is_(False), Event.ongoing.is_(False),
-            Event.duplicate_of.is_(None))  # fmt: skip
+def default_window(f: EventFilters) -> None:
+    """/events' window when none is given: now through DEFAULT_DAYS ahead."""
+    f.start = f.start or datetime.now(UTC)
+    f.end = f.end or f.start + timedelta(days=DEFAULT_DAYS)
 
 
-def upcoming_counts(session: Session, column, now: datetime) -> dict[str, int]:
-    """Count of events per value of `column` from now on, as the default feed would show them."""
+def counted_events(
+    start: Annotated[str | None, Query(description="Count events in this window, as for /events. Default: now.")] = None,
+    end: Annotated[str | None, Query(description="Default: 90 days after start.")] = None,
+) -> Select:
+    """IDs of the events /events would list for this window with no other filters, so the counts
+    beside each filter match what choosing it shows."""
+    f = EventFilters(start=parse_when(start, "start"), end=parse_when(end, "end", end=True))
+    default_window(f)
+    validate(f)
+    return build_query(f).with_only_columns(Event.id).order_by(None)
+
+
+CountedDep = Annotated[Select, Depends(counted_events)]
+
+
+def upcoming_counts(session: Session, column, counted: Select) -> dict[str, int]:
+    """Count of `counted` events per value of `column`."""
     stmt = (
         select(column, func.count())
         .select_from(Event)
-        .where(*upcoming_filter(now))
+        .where(Event.id.in_(counted))
         .group_by(column)
     )
     if column is EventCategory.category:
@@ -134,8 +150,7 @@ def register_routes(app: FastAPI) -> None:
     ):
         """Events overlapping [start, end), soonest first. Defaults to the next 90 days, without
         cancelled events or daily occurrences of ongoing exhibitions."""
-        f.start = f.start or datetime.now(UTC)
-        f.end = f.end or f.start + timedelta(days=DEFAULT_DAYS)
+        default_window(f)
         validate(f)
         stmt = build_query(f)
         if cursor:
@@ -180,24 +195,24 @@ def register_routes(app: FastAPI) -> None:
         return EventOut.from_event(e, default_normalizer().locations, dupes)
 
     @app.get("/categories", response_model=list[CategoryOut], tags=["reference"])
-    def categories(session: SessionDep):
-        counts = upcoming_counts(session, EventCategory.category, datetime.now(UTC))
+    def categories(session: SessionDep, counted: CountedDep):
+        counts = upcoming_counts(session, EventCategory.category, counted)
         return [
             CategoryOut(id=c, name=name, upcoming=counts.get(c, 0))
             for c, name in default_normalizer().categorizer.categories.items()
         ]
 
     @app.get("/areas", response_model=list[AreaOut], tags=["reference"])
-    def areas(session: SessionDep):
-        counts = upcoming_counts(session, Event.area, datetime.now(UTC))
+    def areas(session: SessionDep, counted: CountedDep):
+        counts = upcoming_counts(session, Event.area, counted)
         return [
             AreaOut(id=a, name=name, upcoming=counts.get(a, 0))
             for a, name in default_normalizer().locations.areas.items()
         ]
 
     @app.get("/locations", response_model=list[BuildingOut], tags=["reference"])
-    def locations(session: SessionDep, area: str | None = None):
-        counts = upcoming_counts(session, Event.location_id, datetime.now(UTC))
+    def locations(session: SessionDep, counted: CountedDep, area: str | None = None):
+        counts = upcoming_counts(session, Event.location_id, counted)
         return [
             BuildingOut(id=b.id, name=b.name, area=b.area, lat=b.lat, lon=b.lon, upcoming=counts.get(b.id, 0))
             for b in default_normalizer().locations.buildings.values()
@@ -205,10 +220,10 @@ def register_routes(app: FastAPI) -> None:
         ]
 
     @app.get("/orgs", response_model=list[OrgOut], tags=["reference"])
-    def orgs(session: SessionDep):
+    def orgs(session: SessionDep, counted: CountedDep):
         """Residential colleges, schools, departments, and other organizations, each alphabetical (see `sort_key`)."""
         rows = session.execute(
-            select(Event.source_id, Event.groups, Event.location_id).where(*upcoming_filter(datetime.now(UTC)))
+            select(Event.source_id, Event.groups, Event.location_id).where(Event.id.in_(counted))
         ).all()
         return [
             OrgOut(id=o.id, name=o.name, kind=o.kind, upcoming=sum(o.matches(*r) for r in rows))
@@ -216,8 +231,8 @@ def register_routes(app: FastAPI) -> None:
         ]
 
     @app.get("/sources", response_model=list[SourceOut], tags=["reference"])
-    def sources(session: SessionDep):
-        counts = upcoming_counts(session, Event.source_id, datetime.now(UTC))
+    def sources(session: SessionDep, counted: CountedDep):
+        counts = upcoming_counts(session, Event.source_id, counted)
         out = []
         for s in session.scalars(select(Source).order_by(Source.id)):
             last = session.scalars(

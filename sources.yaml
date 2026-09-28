@@ -253,6 +253,7 @@ sources:
       exclude_title: '\(copy\)|\btemplate\b'  # drafts: duplicated or placeholder listings
       exclude_tags: 'group meeting|rehearsal|office hours/drop in hours|due date or deadline'
       description_strip: '\s*-{3}\s*Event Details: \S+\s*$'
+      split_long_events: true  # weekly series come as one semester-long span; sessions are in the text
 
   # --- Not yet usable -----------------------------------------------------------------------------
 

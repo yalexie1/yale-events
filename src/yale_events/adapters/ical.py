@@ -12,6 +12,9 @@ Options:
     "Sign in to download the location"). Such events are kept only if a CATEGORIES value fully matches
     `hidden_keep_tags` and the title doesn't match `hidden_exclude_title`; their location becomes
     `hidden_location_label`.
+  split_long_events: a timed, non-recurring event spanning two weeks or more becomes one event per
+    session, with dates read from its text (see schedule.py), or an ongoing event if the text gives none.
+    Yale Connect exports weekly series this way.
 
 CampusGroups feeds (Yale Connect) label each CATEGORIES line with X-CG-CATEGORY: `event_type` values
 contain commas ("Lecture, Talk, or Panel") and are kept whole, `club_acronym` is an internal code and
@@ -25,9 +28,10 @@ import recurring_ical_events
 from icalendar import Calendar
 
 from yale_events.adapters.base import CacheNamer, PoliteClient
+from yale_events.adapters.schedule import session_dates
 from yale_events.adapters.text import clean_description, clean_field
 from yale_events.config import SourceConfig
-from yale_events.normalize.time import NEW_HAVEN
+from yale_events.normalize.time import NEW_HAVEN, ONGOING_MIN_DAYS
 from yale_events.schemas import FetchResult, RawEvent
 
 DEFAULT_DAYS = 90
@@ -70,6 +74,7 @@ def parse_calendar(data: str | bytes, start: datetime, end: datetime, options: d
     hidden = _regex(options.get("hidden_location"))
     hidden_keep_tags = _regex(options.get("hidden_keep_tags"))
     hidden_exclude_title = _regex(options.get("hidden_exclude_title"))
+    split_long = bool(options.get("split_long_events"))
     events = []
     for o in occurrences:
         location = clean_field(o.get("LOCATION"))
@@ -92,8 +97,39 @@ def parse_calendar(data: str | bytes, start: datetime, end: datetime, options: d
             continue
         if description_strip and ev.description:
             ev.description = description_strip.sub("", ev.description).strip() or None
-        events.append(ev)
+        if split_long and ev.series_id is None and ev.end and ev.end - ev.start >= timedelta(days=ONGOING_MIN_DAYS):
+            events += split_long_event(ev, start, end)
+        else:
+            events.append(ev)
     return events
+
+
+def split_long_event(ev: RawEvent, window_start: datetime, window_end: datetime) -> list[RawEvent]:
+    """One event per session in the window, at the span's local start time and length ("12-1 p.m."
+    every Thursday stays 12-1 across the DST change), or the span itself marked ongoing."""
+    first, last = ev.start.astimezone(NEW_HAVEN), ev.end.astimezone(NEW_HAVEN)
+    sessions = session_dates(ev.title, ev.description, first.date(), last.date())
+    if sessions is None:
+        return [ev.model_copy(update={
+            "ongoing": True, "series_id": ev.source_event_id,
+            "series_first_date": first.date(), "series_last_date": last.date(),
+        })]  # fmt: skip
+    length = datetime.combine(first.date(), last.time()) - datetime.combine(first.date(), first.time())
+    out = []
+    for day, topic in sessions:
+        start = datetime.combine(day, first.time(), NEW_HAVEN)
+        if not window_start <= start < window_end:
+            continue
+        out.append(ev.model_copy(update={
+            "source_event_id": f"{ev.source_event_id}/{day.isoformat()}",
+            "title": f"{ev.title} — {topic}" if topic else ev.title,
+            "start": start,
+            "end": start + length if length > timedelta(0) else None,
+            "series_id": ev.source_event_id,
+            "series_first_date": sessions[0][0],
+            "series_last_date": sessions[-1][0],
+        }))  # fmt: skip
+    return out
 
 
 def _regex(pattern: str | None) -> re.Pattern | None:

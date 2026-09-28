@@ -207,7 +207,7 @@ def test_ics_all_day_uses_dates(client):
 
 def test_reference_endpoints(client):
     cats = {c["id"]: c["upcoming"] for c in client.get("/categories").json()}
-    assert cats["talks"] == 1 and cats["music"] == 1 and cats["exhibitions"] == 0 and "film" in cats
+    assert cats["talks"] == 2 and cats["music"] == 1 and cats["exhibitions"] == 0 and cats["film"] == 0
     areas = {a["id"]: a["upcoming"] for a in client.get("/areas").json()}
     assert areas["science-hill"] == 1
     kroon = next(b for b in client.get("/locations", params={"area": "science-hill"}).json() if b["id"] == "kroon-hall")
@@ -216,7 +216,16 @@ def test_reference_endpoints(client):
     assert orgs["music"] == {"id": "music", "name": "School of Music", "kind": "school", "upcoming": 1}
     assert (orgs["arts"]["upcoming"], orgs["berkeley"]["kind"]) == (1, "college")
     (src,) = client.get("/sources").json()
-    assert (src["id"], src["last_run_status"], src["upcoming"]) == ("test", "ok", 4)
+    assert (src["id"], src["last_run_status"], src["upcoming"]) == ("test", "ok", 5)
+
+
+@pytest.mark.parametrize("window", [{}, {"end": (NOW + timedelta(days=1)).date().isoformat()},
+                                    {"start": (NOW + timedelta(days=100)).date().isoformat()}])  # fmt: skip
+def test_counts_match_what_each_filter_lists(client, window):
+    for path, kind in [("/categories", "category"), ("/areas", "area"), ("/orgs", "org")]:
+        for item in client.get(path, params=window).json():
+            listed = ids(client.get("/events", params={**window, kind: item["id"], "limit": 500}))
+            assert item["upcoming"] == len(listed), (kind, item["id"], window)
 
 
 def test_home_page(client):

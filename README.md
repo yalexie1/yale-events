@@ -34,7 +34,7 @@ Run the tests with `pytest`. They are offline: every adapter is tested against s
 | `GET /events` | Events soonest first; the next 90 days by default. Paginate with the returned `next_cursor`. |
 | `GET /events.ics` | The same filters as a calendar to subscribe to (one week back onward; cancelled events are marked `STATUS:CANCELLED` so subscribed calendars update). |
 | `GET /events/{id}`, `/events/{id}.ics` | One event, as JSON or as a single-event calendar file. |
-| `GET /categories`, `/areas`, `/locations`, `/orgs`, `/sources` | Valid filter values, each with its count of upcoming events. |
+| `GET /categories`, `/areas`, `/locations`, `/orgs`, `/sources` | Valid filter values, each with how many events `/events` lists for it (same `start`/`end` and defaults). |
 
 Filters (all optional, on both `/events` and `/events.ics`; list filters accept repeats or commas and match any value):
 

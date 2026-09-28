@@ -570,16 +570,39 @@ function collapsible(container, buttons, few, kind) {
   set(false);
   return t;
 }
+/** The date window as /categories, /areas, and /orgs take it, so each count matches what choosing it lists. */
+function countParams() {
+  const w = windowFor(state.range), p = new URLSearchParams();
+  if (w.start) p.set("start", w.start);
+  if (w.end) p.set("end", w.end);
+  return p.toString();
+}
+let countsFor = null;
+/** Re-fetch the counts when the date range changes. */
+async function refreshCounts() {
+  const key = countParams();
+  if (key === countsFor) return;
+  countsFor = key;
+  const get = (u) => fetch(u + "?" + key).then((r) => { if (!r.ok) throw new Error(r.statusText); return r.json(); });
+  try {
+    const [cats, areas, orgs] = await Promise.all([get("/categories"), get("/areas"), get("/orgs")]);
+    if (key !== countsFor) return;
+    buildFilters(cats, areas, orgs);
+    syncControls();
+  } catch { countsFor = undefined; }  // retried on the next change
+}
 function buildFilters(cats, areas, orgs) {
+  for (const id of ["category", "area", "college", "school", "department", "organization"]) $("f-" + id).replaceChildren();
+  const shown = (kind, item) => item.upcoming || state[kind].has(item.id);  // keep a selection even at 0
   const fc = $("f-category");
-  cats.filter((c) => c.upcoming).sort((a, b) => b.upcoming - a.upcoming).forEach((c) => fc.appendChild(optionButton("category", c, { color: true })));
+  cats.filter((c) => shown("category", c)).sort((a, b) => b.upcoming - a.upcoming).forEach((c) => fc.appendChild(optionButton("category", c, { color: true })));
   const fa = $("f-area");
-  areas.filter((a) => a.upcoming).forEach((a) => fa.appendChild(optionButton("area", { ...a, name: a.name.replace(/ \(.*\)$/, "") })));
+  areas.filter((a) => shown("area", a)).forEach((a) => fa.appendChild(optionButton("area", { ...a, name: a.name.replace(/ \(.*\)$/, "") })));
   // All fourteen colleges, alphabetical, even with nothing listed, so a missing calendar is visible.
   orgs.filter((o) => o.kind === "college").forEach((o) => $("f-college").appendChild(optionButton("org", o)));
   // The rest alphabetically, as /orgs returns them; long lists collapse to the first ten.
   for (const kind of ["school", "department", "organization"]) {
-    const live = orgs.filter((o) => o.kind === kind && o.upcoming);
+    const live = orgs.filter((o) => o.kind === kind && shown("org", o));
     collapsible($("f-" + kind), live.map((o) => optionButton("org", o)), kind === "school" ? Infinity : 10, "org");
   }
 }
@@ -734,6 +757,7 @@ function reload({ scroll = true } = {}) {
   const p = toParams();
   history.replaceState(history.state, "", (p.toString() ? "?" + p : location.pathname) + location.hash);
   syncControls();
+  if (countsFor !== null) refreshCounts();
   Object.assign(state, { cursor: null, events: [], loading: false, gen: state.gen + 1 });
   if (scroll && window.scrollY > $("list").offsetTop) window.scrollTo({ top: $("list").offsetTop - 80 });
   load();
@@ -919,7 +943,9 @@ async function init() {
   load();  // start fetching events while the reference lists load
 
   const get = (u) => fetch(u).then((r) => { if (!r.ok) throw new Error(r.statusText); return r.json(); });
-  const [cats, areas, sources, orgs] = await Promise.all([get("/categories"), get("/areas"), get("/sources"), get("/orgs")]);
+  countsFor = countParams();
+  const c = "?" + countsFor;
+  const [cats, areas, sources, orgs] = await Promise.all([get("/categories" + c), get("/areas" + c), get("/sources"), get("/orgs" + c)]);
   cats.forEach((c) => (names.category[c.id] = c.name));
   areas.forEach((a) => (names.area[a.id] = a.name.replace(/ \(.*\)$/, "")));
   sources.forEach((s) => (names.source[s.id] = s.name));

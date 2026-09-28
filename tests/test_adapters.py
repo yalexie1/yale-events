@@ -15,6 +15,7 @@ from yale_events.adapters.macmillan import MacMillanAdapter, parse_teasers, upco
 from yale_events.adapters.macmillan import _hosts as macmillan_hosts, parse_detail as parse_macmillan_detail
 from yale_events.adapters.music import MusicAdapter, infer_year
 from yale_events.adapters.peabody import parse_listing as parse_peabody
+from yale_events.adapters.schedule import session_dates
 from yale_events.adapters.text import clean_description, clean_field
 from yale_events.adapters.tsai import TsaiCityAdapter
 from yale_events.adapters.yalesites import YaleSitesAdapter, event_links, parse_event_page
@@ -270,6 +271,78 @@ class _FixedNow(datetime):
     @classmethod
     def now(cls, tz=None):
         return datetime(2026, 9, 26, 12, tzinfo=tz)
+
+
+# --- long spans (Yale Connect exports a weekly series as one semester-long event) ----------------
+
+FALL = (date(2026, 9, 3), date(2026, 12, 10))
+
+
+def test_sessions_from_weekday_with_skipped_dates():
+    text = "Join us every Thursday from September 3 to December 10. There will be no webinars on October 22 or November 26."
+    days = [d for d, _ in session_dates("Speaker Series", text, *FALL)]
+    assert len(days) == 13 and all(d.weekday() == 3 for d in days)
+    assert date(2026, 10, 22) not in days and date(2026, 11, 26) not in days
+
+
+def test_sessions_from_dated_lines_skip_breaks_and_allow_a_closing_date():
+    text = "Sundays, 7 - 8 PM\nSep 6: Welcome\nOct 25: Fall Break\nNov 22: Recess\nDec 6: Last Class\nDec 13: Bodhi Day"
+    assert session_dates("Practicing the Buddhist Path (Sundays)", text, date(2026, 9, 6), date(2026, 12, 6)) == [
+        (date(2026, 9, 6), "Welcome"), (date(2026, 12, 6), "Last Class"), (date(2026, 12, 13), "Bodhi Day"),
+    ]  # fmt: skip
+    parts = "Part 1: Reading (Sept. 23)\nPart 2: Synthesizing  (Sept. 30)\nPart 5: Revising (Tue 11/10)"
+    assert [d for d, _ in session_dates("Series", parts, date(2026, 9, 23), date(2026, 11, 10))] == [
+        date(2026, 9, 23), date(2026, 9, 30), date(2026, 11, 10),
+    ]  # fmt: skip
+
+
+def test_sessions_weekly_or_unknown():
+    weekly = session_dates("Confluence Speaker Series", "Weekly speaker series for YSE students.", date(2026, 9, 10), date(2026, 10, 1))
+    assert [d for d, _ in weekly] == [date(2026, 9, 10), date(2026, 9, 17), date(2026, 9, 24), date(2026, 10, 1)]
+    assert session_dates("Greenspace Volunteering", "Sign up for any posted activity. Open Thursday.", *FALL) is None
+
+
+LONG_ICS = """BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:forest@campusgroups.com
+SUMMARY:Forest Forum Speaker Series
+DTSTART:20260903T160000Z
+DTEND:20261210T180000Z
+DESCRIPTION:Join us every Thursday from 12-1 p.m. There will be no webinars on October 22 or November 26.
+END:VEVENT
+BEGIN:VEVENT
+UID:greenspace@campusgroups.com
+SUMMARY:Greenspace Volunteering
+DTSTART:20260829T130000Z
+DTEND:20261219T170000Z
+DESCRIPTION:Find and sign up for any of the posted activities.
+END:VEVENT
+END:VCALENDAR
+"""
+
+
+def test_split_long_events():
+    start = datetime(2026, 10, 1, tzinfo=NEW_HAVEN)
+    events = parse_calendar(LONG_ICS, start, start + timedelta(days=90), {"split_long_events": True})
+    forest = [e for e in events if e.title.startswith("Forest")]
+    assert [e.start.date() for e in forest][:4] == [date(2026, 10, 1), date(2026, 10, 8), date(2026, 10, 15), date(2026, 10, 29)]
+    # 12-1 local on both sides of the DST change, each with its own stable id.
+    assert {(e.start.astimezone(NEW_HAVEN).hour, e.end - e.start) for e in forest} == {(12, timedelta(hours=1))}
+    assert forest[0].source_event_id == "forest@campusgroups.com/2026-10-01" and forest[0].series_id == "forest@campusgroups.com"
+    (green,) = [e for e in events if e.title.startswith("Greenspace")]
+    assert green.ongoing and green.end.date() == date(2026, 12, 19) and green.series_last_date == date(2026, 12, 19)
+    assert len(parse_calendar(LONG_ICS, start, start + timedelta(days=90))) == 2  # off unless asked for
+
+
+def test_ongoing_span_keeps_its_end():
+    from yale_events.normalize import default_normalizer
+
+    start = datetime(2026, 10, 1, tzinfo=NEW_HAVEN)
+    events = parse_calendar(LONG_ICS, start, start + timedelta(days=90), {"split_long_events": True})
+    green = next(e for e in events if e.ongoing)
+    values = default_normalizer().normalize(green, SourceConfig(id="x", name="X", type="ical", url="https://x.edu"))
+    assert values["ongoing"] and values["end"] == green.end
 
 
 # --- drupal-calendar (OISS, Nursing) -------------------------------------------------------
