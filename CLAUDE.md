@@ -2,14 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Yale events aggregator: scrapers feed a normalized SQLite DB, and a FastAPI app serves it as a filterable JSON feed and as subscribable iCal. Python 3.13, uv, SQLAlchemy 2, pydantic v2, typer, httpx.
+Yale events aggregator: scrapers feed a normalized SQLite DB, and a FastAPI app serves it as a filterable JSON feed and as subscribable iCal.
 
 ## Commands
 
 Shell state doesn't persist between commands, so start each one with `source .venv/bin/activate &&`. Also prefix Python commands with `PYTHONPATH=src`: macOS hides the venv's `.pth` files, so the editable install often isn't found (`ModuleNotFoundError: yale_events`). `python -m yale_events.cli ...` works the same as `yev ...`.
 
 ```sh
-uv sync                                                   # install
 PYTHONPATH=src python -m pytest -q                        # all tests (offline; HTTP mocked with respx)
 PYTHONPATH=src python -m pytest tests/test_adapters.py::test_ical_options -q   # one test
 PYTHONPATH=src python -m yale_events.cli scrape [--source ID]   # live scrape (1 req/s, ~2 min for all)
@@ -26,14 +25,13 @@ CI (`.github/workflows/tests.yml`) runs pytest with `uv sync --frozen` on every 
 
 The pipeline runs `sources.yaml → adapter → RawEvent → Normalizer → upsert → dedupe → API`.
 
-- **Sources and adapters.** `sources.yaml` is both the config and the survey record: it holds disabled entries and comments on why each site is or isn't used. Adapters are picked by `type`, not by site: `localist` (events.yale.edu API), `ical` (any .ics, including public Google Calendars), `engineering` (a SEAS JSON endpoint plus detail pages), and `yalesites` (Drupal event pages), `ysm` (medicine.yale.edu JSON API), `jsonld` (any page with schema.org Event JSON-LD; try it first on a new site), `drupal-calendar`, and one-site HTML parsers (`yale-music`, `peabody`, `macmillan` (listing plus each event page, for venue and description), `ycba`, `tsai-city` (Tsai CITY's Luma iCal feed, with blurbs and images from city.yale.edu/events matched by Luma link)). They're registered in `adapters/__init__.py`. An adapter returns a `FetchResult(events, window_start, window_end)`. Per-source quirks go in `options` (for example the ical adapter's `location_contains`, `title_strip`, `exclude_title`, `hidden_location`), not in code.
+- **Sources and adapters.** `sources.yaml` is both the config and the survey record: it holds disabled entries and comments on why each site is or isn't used. Adapters are picked by `type`, not by site, and registered in `adapters/__init__.py`; on a new site, try the generic `jsonld` adapter (schema.org Event JSON-LD) first. An adapter returns a `FetchResult(events, window_start, window_end)`. Per-source quirks go in `options` (for example the ical adapter's `location_contains`, `title_strip`, `exclude_title`, `hidden_location`), not in code.
 - **HTTP.** Adapters make every request through `PoliteClient`, which enforces a minimum interval and writes each raw response to `data/cache/<source>-<stamp>-p<N>.<ext>`, named by `CacheNamer` in request order. `ReplayClient` serves the latest cached run back by the same names. An adapter must therefore make the same sequence of requests on every run for replay to work. `prune_cache` keeps 3 runs per source.
 - **Normalization.** `normalize/` turns a RawEvent into Event column values. Times are stored as UTC through the `UTCDateTime` TypeDecorator (naive UTC in SQLite, tz-aware in Python); all-day events are local midnight. Locations resolve to canonical buildings and campus areas through aliases and room codes in `data/locations.yaml`, falling back to the source's `default_location`. Categories come from `data/categories.yaml`, first matching rule wins: source/event tags via `tag_map` (the source's `tags` count as event tags), then keyword regexes, then `default_category`. After changing a rule, run `scrape --replay` and `uncategorized`.
 - **Storage.**
   - There is one `Event` row per occurrence; recurring events are expanded. The ID is `sha1(source:source_event_id)[:16]`, so `source_event_id` must stay stable across runs.
   - Events in the fetched window that a source stops listing are marked `stale`; nothing is deleted.
   - There are no migrations (`create_all` only). A schema change means rebuilding `data/events.db`, for example by moving it aside and running `scrape --replay`.
-  - SQLite runs in WAL mode.
 - **Dedupe.** `dedupe.py` runs after each scrape across sources. Two events are the same when:
   - their titles fuzzy-match (rapidfuzz),
   - they start within 15 minutes of each other,
