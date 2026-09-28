@@ -85,6 +85,7 @@ def test_default_window(client):
         ({"q": "RESUME"}, ["online"]),
         ({"free_food": "true"}, ["jazz"]),
         ({"include_ongoing": "true", "area": "arts-district"}, ["exhibit"]),
+        ({"only_ongoing": "true"}, ["exhibit"]),
         ({"include_cancelled": "true", "category": "talks"}, ["in-progress", "lecture", "cancelled"]),
         ({"source": "other"}, []),
         ({"org": "music"}, ["jazz"]),  # by group

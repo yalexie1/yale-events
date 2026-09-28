@@ -38,7 +38,9 @@ class RawEvent(BaseModel):
     series_id: str | None = None
     series_first_date: date | None = None
     series_last_date: date | None = None
-    ongoing: bool = False  # a long span with no known session dates; keeps its end however far off
+    # True: a long span with no known session dates (keeps its end however far off); False: a discrete
+    # event whatever its category; None: decided by the normalizer (see normalize.time.is_ongoing).
+    ongoing: bool | None = None
 
 
 class FetchResult(BaseModel):

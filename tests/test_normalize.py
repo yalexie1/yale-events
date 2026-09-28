@@ -180,6 +180,27 @@ def test_is_ongoing(first, last, all_day, cats, expected):
     assert is_ongoing(first, last, all_day, cats) is expected
 
 
+def test_sparse_series_without_end_is_discrete():
+    from yale_events.normalize.time import mark_sparse_series
+    from yale_events.schemas import RawEvent
+
+    def occ(sid, day, hour=15):
+        return RawEvent(source_event_id=f"{sid}{day}", title=sid, start=datetime(2026, 10, day, hour, tzinfo=NEW_HAVEN), series_id=sid)
+
+    tour = [occ("tour", d) for d in (3, 10, 17, 24)]  # Saturdays
+    exhibit = [occ("exhibit", d, 10) for d in range(1, 29)]  # daily
+    mark_sparse_series(tour + exhibit)
+    assert {e.ongoing for e in tour} == {False} and {e.ongoing for e in exhibit} == {None}
+
+
+def test_short_timed_occurrence_is_not_ongoing():
+    series = (date(2026, 9, 1), date(2026, 12, 1), False, ["exhibitions"])
+    tour = dt("2026-10-03T13:30:00-04:00")
+    assert not is_ongoing(*series, tour, tour + timedelta(minutes=45))  # weekly gallery tour
+    assert is_ongoing(*series, tour, tour + timedelta(hours=7))  # gallery open hours
+    assert is_ongoing(*series, tour, None)  # no end given: as before
+
+
 # --- end to end ------------------------------------------------------------------------------
 
 def test_normalize_uses_source_defaults():

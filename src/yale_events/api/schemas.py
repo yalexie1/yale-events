@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel
 
@@ -44,6 +44,7 @@ class EventOut(BaseModel):
     groups: list[str]
     source: str
     series_id: str | None
+    series_last_date: date | None  # a recurring series' last date per its source (an exhibition's closing day)
     also_listed_by: list[ListingOut]  # other sources carrying the same event (merged by dedupe)
     updated_at: datetime
 
@@ -87,6 +88,7 @@ class EventOut(BaseModel):
             groups=e.groups or [],
             source=e.source_id,
             series_id=e.series_id,
+            series_last_date=e.series_last_date,
             also_listed_by=[ListingOut(source=d.source_id, url=d.url) for d in duplicates],
             updated_at=e.updated_at,
         )

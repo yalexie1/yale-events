@@ -66,6 +66,9 @@ def event_filters(
     include_ongoing: Annotated[
         bool, Query(description="Include daily occurrences of long-running exhibitions.")
     ] = False,
+    only_ongoing: Annotated[
+        bool, Query(description="Only ongoing listings: exhibitions and long-running programs without set session dates.")
+    ] = False,
     include_cancelled: bool = False,
 ) -> EventFilters:
     f = EventFilters(
@@ -79,6 +82,7 @@ def event_filters(
         q=q.strip() or None if q else None,
         free_food=free_food,
         include_ongoing=include_ongoing,
+        only_ongoing=only_ongoing,
         include_cancelled=include_cancelled,
     )
     validate(f)
@@ -139,7 +143,8 @@ def register_routes(app: FastAPI) -> None:
     @app.get("/", include_in_schema=False)
     def home():
         """A small browser UI over the API."""
-        return FileResponse(WEB_DIR / "index.html")
+        # Revalidate on every visit so a deploy reaches open-and-reloaded pages, not a heuristically cached copy.
+        return FileResponse(WEB_DIR / "index.html", headers={"Cache-Control": "no-cache"})
 
     @app.get("/events", response_model=EventPage, tags=["events"])
     def list_events(

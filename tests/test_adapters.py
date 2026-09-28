@@ -273,6 +273,28 @@ class _FixedNow(datetime):
         return datetime(2026, 9, 26, 12, tzinfo=tz)
 
 
+def test_hidden_location_kept_when_open_by_text_or_organizer():
+    def vevent(uid, title, desc, cat, org):
+        return (f"BEGIN:VEVENT\nUID:{uid}\nSUMMARY:{title}\nDTSTART:20261001T230000Z\nDTEND:20261002T000000Z\n"
+                f"LOCATION:Sign in to download the location\nDESCRIPTION:{desc}\n"
+                f"CATEGORIES;X-CG-CATEGORY=event_type:{cat}\nORGANIZER;CN={org}:mailto:x@yale.edu\nEND:VEVENT\n")  # fmt: skip
+    ics = "BEGIN:VCALENDAR\nVERSION:2.0\n" + "".join([
+        vevent("a", "Diwali 2026", "Food and dance. All are welcome!", "Social", "SASA"),
+        vevent("b", "Practicing the Buddhist Path", "Taught by the chaplain.", "Spiritual/Worship", "Buddhist Life at Yale"),
+        vevent("c", "Board Meeting", "All are welcome.", "Social", "Some Club"),
+        vevent("d", "Game Night", "Bring snacks.", "Social", "Some Club"),
+    ]) + "END:VCALENDAR\n"  # fmt: skip
+    options = {
+        "hidden_location": "sign in to download", "hidden_keep_tags": "lecture, talk, or panel",
+        "hidden_keep_text": r"\ball (are )?welcome\b", "hidden_keep_groups": "Buddhist Life at Yale",
+        "hidden_exclude_title": r"\bboard meeting\b",
+    }  # fmt: skip
+    start = datetime(2026, 9, 28, tzinfo=NEW_HAVEN)
+    assert sorted(e.title for e in parse_calendar(ics, start, start + timedelta(days=30), options)) == [
+        "Diwali 2026", "Practicing the Buddhist Path",
+    ]  # fmt: skip
+
+
 # --- long spans (Yale Connect exports a weekly series as one semester-long event) ----------------
 
 FALL = (date(2026, 9, 3), date(2026, 12, 10))
@@ -333,6 +355,23 @@ def test_split_long_events():
     (green,) = [e for e in events if e.title.startswith("Greenspace")]
     assert green.ongoing and green.end.date() == date(2026, 12, 19) and green.series_last_date == date(2026, 12, 19)
     assert len(parse_calendar(LONG_ICS, start, start + timedelta(days=90))) == 2  # off unless asked for
+
+
+def test_session_posted_on_its_own_replaces_the_series_copy():
+    own = """BEGIN:VEVENT
+UID:nutshell@campusgroups.com
+SUMMARY:Buddhism in a Nutshell (+Crossword Puzzle Competition!)
+DTSTART:20261008T160000Z
+DTEND:20261008T170000Z
+ORGANIZER;CN=Forest Forum:mailto:x@yale.edu
+END:VEVENT
+"""
+    ics = LONG_ICS.replace("SUMMARY:Forest Forum Speaker Series", "SUMMARY:Forest Forum Speaker Series\nORGANIZER;CN=Forest Forum:mailto:x@yale.edu")
+    ics = ics.replace("END:VCALENDAR", own + "END:VCALENDAR")
+    start = datetime(2026, 10, 1, tzinfo=NEW_HAVEN)
+    oct8 = [e.title for e in parse_calendar(ics, start, start + timedelta(days=90), {"split_long_events": True})
+            if e.start.date() == date(2026, 10, 8)]  # fmt: skip
+    assert oct8 == ["Buddhism in a Nutshell (+Crossword Puzzle Competition!)"]
 
 
 def test_ongoing_span_keeps_its_end():

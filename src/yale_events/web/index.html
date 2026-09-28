@@ -156,6 +156,28 @@
   .btn.quiet { border-color: var(--rule); }
   .btn svg { flex: none; }
 
+  /* ---------- Ongoing (exhibitions, open programs) ---------- */
+  .ongoing { margin: 14px 0 4px; border-top: 2px solid var(--rule-strong); border-bottom: 1px solid var(--rule); }
+  .ongoing summary { display: flex; align-items: baseline; gap: 12px; padding: 12px 0 10px; cursor: pointer; list-style: none; }
+  .ongoing summary::-webkit-details-marker { display: none; }
+  .ongoing summary .dow { font: italic 400 24px/1 var(--serif); }
+  .ongoing summary .date { font: 500 12px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+  .ongoing summary .n { margin-left: auto; font: 12px var(--mono); color: var(--ink-3); }
+  .ongoing summary .n::after { content: " ▾"; }
+  .ongoing[open] summary .n::after { content: " ▴"; }
+  .ongoing ul { list-style: none; margin: 0; padding: 0 0 10px; display: grid; gap: 2px 28px;
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+  .ongoing li { position: relative; display: grid; grid-template-columns: 7px minmax(0, 1fr); gap: 10px; padding: 7px 8px;
+                margin: 0 -8px; border-radius: 2px; }
+  .ongoing li:hover { background: var(--paper-2); }
+  .ongoing li::before { content: ""; grid-row: span 2; width: 7px; height: 7px; margin-top: 7px; background: var(--cat, var(--ink-3)); }
+  .ongoing .t { font: 500 16px/1.25 var(--serif); }
+  .ongoing .t a { color: inherit; text-decoration: none; }
+  .ongoing .t a::after { content: ""; position: absolute; inset: 0; }
+  .ongoing li:hover .t a { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  .ongoing .s { grid-column: 2; font-size: 12.5px; color: var(--ink-2); margin-top: 2px; }
+  .ongoing .s b { font: 500 11.5px var(--mono); color: var(--ink-2); }
+
   /* ---------- Event list ---------- */
   .day { margin-top: 6px; }
   .day-h { position: sticky; top: var(--tb); z-index: 5; background: var(--paper); display: flex; align-items: baseline;
@@ -389,6 +411,10 @@
       </div>
       <div class="status-row" id="status" aria-live="polite"></div>
     </div>
+    <details class="ongoing" id="ongoing" hidden>
+      <summary><span class="dow">Ongoing</span><span class="date">exhibitions &amp; open programs</span><span class="n" id="ongoing-n"></span></summary>
+      <ul id="ongoing-list"></ul>
+    </details>
     <div id="list"></div>
     <div id="sentinel"></div>
     <div class="loadmore" id="loadmore" hidden><button class="btn quiet" id="more">Load more</button></div>
@@ -753,6 +779,44 @@ async function load() {
   if (gen === state.gen && state.cursor && sentinelVisible) load();
 }
 
+/** Exhibitions and programs without set session dates (the feed hides them), one row per series. */
+async function loadOngoing() {
+  const gen = state.gen, p = apiParams();
+  p.set("only_ongoing", "true"); p.set("limit", "500");
+  const events = [];  // exhibitions are listed daily, so this runs to a few pages
+  try {
+    for (let cursor = null, i = 0; i < 10; i++) {
+      if (cursor) p.set("cursor", cursor);
+      const page = await fetch("/events?" + p).then((r) => (r.ok ? r.json() : { events: [] }));
+      if (gen !== state.gen) return;
+      events.push(...page.events);
+      if (!(cursor = page.next_cursor)) break;
+    }
+  } catch { /* show what arrived */ }
+  if (gen !== state.gen) return;
+  const groups = new Map();
+  for (const e of events) {
+    const k = e.series_id || e.id, last = e.end || e.start;
+    const g = groups.get(k);
+    if (!g) groups.set(k, { e, last });
+    else if (last > g.last) g.last = last;
+  }
+  const w = windowFor(state.range), windowEnd = w.end || iso(addDays(today(), UPCOMING_DAYS));
+  const rows = [...groups.values()].sort((a, b) => a.e.title.localeCompare(b.e.title));
+  $("ongoing-list").innerHTML = rows.map(({ e, last }) => {
+    state.byId.set(e.id, e);
+    const v = venue(e.location);
+    // The source's last date is the real closing day; the last occurrence we hold may stop at the scrape window.
+    const endDay = e.series_last_date ? parseDay(e.series_last_date) : e.all_day && e.end ? new Date(new Date(e.end) - 1) : new Date(last);
+    const through = !e.series_last_date && iso(endDay) >= iso(addDays(parseDay(windowEnd), -1)) ? "" : `<b>through ${fmtShortDate(endDay)}${endDay.getFullYear() !== today().getFullYear() ? ", " + endDay.getFullYear() : ""}</b>`;
+    const cat = e.categories[0];
+    return `<li ${cat ? catStyle(cat) : ""}><div class="t"><a href="#e=${e.id}">${esc(e.title)}</a></div>
+      <div class="s">${[through, esc(v.main)].filter(Boolean).join(" · ")}</div></li>`;
+  }).join("");
+  $("ongoing-n").textContent = `${rows.length} listing${rows.length === 1 ? "" : "s"}`;
+  $("ongoing").hidden = !rows.length;
+}
+
 function reload({ scroll = true } = {}) {
   const p = toParams();
   history.replaceState(history.state, "", (p.toString() ? "?" + p : location.pathname) + location.hash);
@@ -761,6 +825,7 @@ function reload({ scroll = true } = {}) {
   Object.assign(state, { cursor: null, events: [], loading: false, gen: state.gen + 1 });
   if (scroll && window.scrollY > $("list").offsetTop) window.scrollTo({ top: $("list").offsetTop - 80 });
   load();
+  loadOngoing();
 }
 
 let sentinelVisible = false;
@@ -941,6 +1006,7 @@ async function init() {
   restore();
   syncControls();
   load();  // start fetching events while the reference lists load
+  loadOngoing();
 
   const get = (u) => fetch(u).then((r) => { if (!r.ok) throw new Error(r.statusText); return r.json(); });
   countsFor = countParams();

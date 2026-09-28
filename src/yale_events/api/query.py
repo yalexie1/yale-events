@@ -28,6 +28,7 @@ class EventFilters:
     q: str | None = None
     free_food: bool | None = None
     include_ongoing: bool = False
+    only_ongoing: bool = False
     include_cancelled: bool = False
 
 
@@ -103,7 +104,9 @@ def build_query(f: EventFilters) -> Select[tuple[Event]]:
         stmt = stmt.where(search_clause(f.q))
     if f.free_food is not None:
         stmt = stmt.where(Event.free_food.is_(f.free_food))
-    if not f.include_ongoing:
+    if f.only_ongoing:
+        stmt = stmt.where(Event.ongoing.is_(True))
+    elif not f.include_ongoing:
         stmt = stmt.where(Event.ongoing.is_(False))
     if not f.include_cancelled:
         stmt = stmt.where(Event.cancelled.is_(False))

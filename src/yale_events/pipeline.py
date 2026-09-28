@@ -8,6 +8,7 @@ from yale_events.adapters.base import PoliteClient
 from yale_events.config import SourceConfig
 from yale_events.models import Event, ScrapeRun, Source, event_id, utcnow
 from yale_events.normalize import Normalizer, default_normalizer
+from yale_events.normalize.time import mark_sparse_series
 from yale_events.schemas import FetchResult
 
 log = logging.getLogger(__name__)
@@ -35,6 +36,7 @@ def upsert(
         e.source_event_id: e for e in session.scalars(select(Event).where(Event.source_id == source_id))
     }
     seen: set[str] = set()
+    mark_sparse_series(result.events)
     for raw in result.events:
         if raw.source_event_id in seen:
             continue

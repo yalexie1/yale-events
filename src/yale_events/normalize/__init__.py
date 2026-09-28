@@ -19,7 +19,7 @@ class Normalizer:
     def normalize(self, raw: RawEvent, source: SourceConfig) -> dict[str, Any]:
         """Event column values for this occurrence: the raw fields, cleaned, plus derived ones."""
         values = raw.model_dump()
-        values["start"], values["end"] = clean_times(raw.start, raw.end, raw.all_day, raw.ongoing)
+        values["start"], values["end"] = clean_times(raw.start, raw.end, raw.all_day, bool(raw.ongoing))
 
         loc = self.locations.resolve(raw.location_name, raw.address, raw.lat, raw.lon, raw.virtual)
         if loc.location_id is None and loc.area is None and source.default_location:
@@ -32,7 +32,9 @@ class Normalizer:
         )
         values["categories"] = categories
         values["free_food"] = self.categorizer.free_food(raw.title, raw.description)
-        values["ongoing"] = raw.ongoing or is_ongoing(raw.series_first_date, raw.series_last_date, raw.all_day, categories)
+        values["ongoing"] = raw.ongoing if raw.ongoing is not None else is_ongoing(
+            raw.series_first_date, raw.series_last_date, raw.all_day, categories, values["start"], values["end"]
+        )
         del values["source_event_id"]
         return values
 

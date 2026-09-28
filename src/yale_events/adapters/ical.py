@@ -9,9 +9,10 @@ Options:
   exclude_tags: skip events with a CATEGORIES value matching this regex (whole value, case-insensitive)
   description_strip: regex removed from descriptions (e.g. a trailing "Event Details: <url>" footer)
   hidden_location: regex for a LOCATION that hides the venue from anonymous readers (Yale Connect's
-    "Sign in to download the location"). Such events are kept only if a CATEGORIES value fully matches
-    `hidden_keep_tags` and the title doesn't match `hidden_exclude_title`; their location becomes
-    `hidden_location_label`.
+    "Sign in to download the location"). Such events are kept only if they look open to anyone -- a
+    CATEGORIES value fully matches `hidden_keep_tags`, the title or description matches `hidden_keep_text`
+    ("all welcome"), or an organizer fully matches `hidden_keep_groups` -- and the title doesn't match
+    `hidden_exclude_title`; their location becomes `hidden_location_label`.
   split_long_events: a timed, non-recurring event spanning two weeks or more becomes one event per
     session, with dates read from its text (see schedule.py), or an ongoing event if the text gives none.
     Yale Connect exports weekly series this way.
@@ -73,9 +74,11 @@ def parse_calendar(data: str | bytes, start: datetime, end: datetime, options: d
     description_strip = _regex(options.get("description_strip"))
     hidden = _regex(options.get("hidden_location"))
     hidden_keep_tags = _regex(options.get("hidden_keep_tags"))
+    hidden_keep_text = _regex(options.get("hidden_keep_text"))
+    hidden_keep_groups = _regex(options.get("hidden_keep_groups"))
     hidden_exclude_title = _regex(options.get("hidden_exclude_title"))
     split_long = bool(options.get("split_long_events"))
-    events = []
+    events, sessions = [], []
     for o in occurrences:
         location = clean_field(o.get("LOCATION"))
         if location_filter and location_filter not in (location or "").lower():
@@ -91,17 +94,24 @@ def parse_calendar(data: str | bytes, start: datetime, end: datetime, options: d
         if exclude_tags and any(exclude_tags.fullmatch(t) for t in ev.tags):
             continue
         if is_hidden and not (
-            hidden_keep_tags and any(hidden_keep_tags.fullmatch(t) for t in ev.tags)
+            (
+                (hidden_keep_tags and any(hidden_keep_tags.fullmatch(t) for t in ev.tags))
+                or (hidden_keep_text and hidden_keep_text.search(f"{ev.title}\n{ev.description or ''}"))
+                or (hidden_keep_groups and any(hidden_keep_groups.fullmatch(g) for g in ev.groups))
+            )
             and not (hidden_exclude_title and hidden_exclude_title.search(ev.title))
         ):
             continue
         if description_strip and ev.description:
             ev.description = description_strip.sub("", ev.description).strip() or None
         if split_long and ev.series_id is None and ev.end and ev.end - ev.start >= timedelta(days=ONGOING_MIN_DAYS):
-            events += split_long_event(ev, start, end)
+            sessions += split_long_event(ev, start, end)
         else:
             events.append(ev)
-    return events
+    # An organizer may also post a session on its own ("Buddhism in a Nutshell (+Crossword Puzzle
+    # Competition!)"); that listing has the details, so the session read from the series gives way.
+    posted = {(e.start, g) for e in events for g in e.groups}
+    return events + [s for s in sessions if s.ongoing or not any((s.start, g) in posted for g in s.groups)]
 
 
 def split_long_event(ev: RawEvent, window_start: datetime, window_end: datetime) -> list[RawEvent]:
