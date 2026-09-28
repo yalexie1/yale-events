@@ -1,0 +1,25 @@
+name: live health
+
+# Polls the deployed site's /health (`yev sources check` over HTTP) every 6 hours. A failed run means
+# a source is failing or overdue, or the site is down; GitHub emails the repo owner about failed
+# scheduled runs. Run it by hand from the Actions tab to check now.
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: GET https://yale-events.fly.dev/health
+        run: |
+          code=$(curl -sS --retry 3 --retry-delay 30 --retry-all-errors --max-time 60 -o health.json -w '%{http_code}' \
+            https://yale-events.fly.dev/health) || { echo "::error::site unreachable"; exit 1; }
+          python3 -m json.tool health.json
+          python3 - <<'PY'
+          import json
+          for p in json.load(open("health.json"))["problems"]:
+              print(f"::{'error' if p['level'] == 'error' else 'warning'}::{p['source_id']}: {p['message']}")
+          PY
+          test "$code" = 200

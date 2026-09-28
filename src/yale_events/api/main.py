@@ -1,4 +1,5 @@
 from collections.abc import Iterator
+from dataclasses import asdict
 from datetime import UTC, datetime, time, timedelta
 from pathlib import Path
 from typing import Annotated
@@ -13,7 +14,9 @@ from yale_events.api.query import (
     EventFilters, apply_cursor, build_query, encode_cursor, parse_when, split_values, validate,
 )
 from yale_events.api.schemas import AreaOut, BuildingOut, CategoryOut, EventOut, EventPage, OrgOut, SourceOut
+from yale_events.config import load_sources
 from yale_events.db import make_session_factory
+from yale_events.health import check_sources
 from yale_events.models import Event, EventCategory, ScrapeRun, Source
 from yale_events.normalize import default_normalizer
 from yale_events.normalize.time import NEW_HAVEN
@@ -234,6 +237,15 @@ def register_routes(app: FastAPI) -> None:
             OrgOut(id=o.id, name=o.name, kind=o.kind, upcoming=sum(o.matches(*r) for r in rows))
             for o in sorted(default_orgs().values(), key=sort_key)
         ]
+
+    @app.get("/health", tags=["reference"])
+    def health(session: SessionDep, response: Response):
+        """`yev sources check` over HTTP: 503 if any source is failing, overdue, or suddenly empty.
+        A scheduled GitHub Actions job polls it (.github/workflows/health.yml) so failures email the owner."""
+        problems = check_sources(session, load_sources(), datetime.now(UTC))
+        errors = [p for p in problems if p.level == "error"]
+        response.status_code = 503 if errors else 200
+        return {"ok": not errors, "problems": [asdict(p) for p in problems]}
 
     @app.get("/sources", response_model=list[SourceOut], tags=["reference"])
     def sources(session: SessionDep, counted: CountedDep):

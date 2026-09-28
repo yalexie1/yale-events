@@ -146,6 +146,10 @@ fly logs                     # scrape and request logs
 fly ssh console -C "yev sources check"
 ```
 
+`GET /health` returns the same check as JSON (503 if a source is failing or overdue). The `live health`
+workflow polls it every 6 hours, so a broken source or a down site shows up as a failed GitHub Actions
+run and an email.
+
 ## Scraping policy
 
 Requests are rate-limited to one per second per run and identify the project in the User-Agent.

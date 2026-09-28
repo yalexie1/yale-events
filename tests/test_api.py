@@ -229,6 +229,11 @@ def test_counts_match_what_each_filter_lists(client, window):
             assert item["upcoming"] == len(listed), (kind, item["id"], window)
 
 
+def test_health(client):
+    r = client.get("/health")  # sources.yaml's sources have no runs here: warnings, not errors
+    assert r.status_code == 200 and r.json()["ok"] and {p["level"] for p in r.json()["problems"]} == {"warning"}
+
+
 def test_home_page(client):
     r = client.get("/")
     assert r.status_code == 200

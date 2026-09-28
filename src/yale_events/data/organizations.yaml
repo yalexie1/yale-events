@@ -32,7 +32,8 @@ schools:
     name: Law School
     sources: [law]
     groups: ["Orville H. Schell, Jr. Center for International Human Rights", Yale Law & Business Society, YLW+,
-             Yale Law National Security Group, YLS Academic Affairs, Yale Journal of Law and Technology]
+             Yale Law National Security Group, YLS Academic Affairs, Yale Journal of Law and Technology,
+             American Constitution Society for Law and Policy at Yale Law School]
   - {id: music, name: School of Music, sources: [music], groups: [Yale School of Music, School of Music]}
   - {id: drama, name: School of Drama, groups: [David Geffen School of Drama, Yale Repertory Theatre]}
   - id: divinity
@@ -53,7 +54,8 @@ schools:
              Urban Resources Initiative, Yale Forest Forum, Yale Forests, Yale Center for Business and the Environment,
              YSE Office of Research Programs, YSE Energy and the Environment Learning Community,
              Yale College Environmental Studies Program, YSE Office of the Dean, YSE Office of Development and Alumni Services,
-             Hixon Center for Urban Sustainability, Yale Center for Geospatial Solutions]
+             Hixon Center for Urban Sustainability, Yale Center for Geospatial Solutions, Yale Center for Natural Carbon Capture,
+             "YSE Office of Student Affairs, Student Community Engagement"]
   - {id: som, name: School of Management, groups: [School of Management]}
   - {id: jackson, name: Jackson School of Global Affairs, sources: [jackson], groups: [Jackson School of Global Affairs, Academic Workshop Series @ Jackson School]}
   - {id: gsas, name: Graduate School of Arts & Sciences, groups: [Graduate School of Arts and Sciences]}
@@ -98,11 +100,13 @@ departments:
   - {id: wgss, name: "Women's, Gender & Sexuality Studies", groups: [Women Gender and Sexuality Studies]}
 
 organizations:
-  - {id: chaplain, name: Chaplain's Office, sources: [chaplain], groups: [University Church in Yale, Black Church at Yale]}
+  - {id: chaplain, name: Chaplain's Office, sources: [chaplain], groups: [University Church in Yale, Black Church at Yale,
+    Yale University Chaplain's Office, Buddhist Life at Yale]}
   - id: poorvu
     name: Poorvu Center
     groups: ["Poorvu Center: Graduate Writing Lab", "Poorvu Center: Yale College Writing Center",
-             Poorvu Center for Teaching and Learning]
+             Poorvu Center for Teaching and Learning, "Poorvu Center: Faculty Programs and Initiatives",
+             "Poorvu Center: Graduate and Postdoctoral Teaching Development"]
   - {id: oiss, name: International Students & Scholars (OISS), sources: [oiss], groups: [Office of International Students & Scholars]}
   - {id: athletics, name: Yale Athletics, sources: [athletics], groups: [Yale Athletics]}
   - {id: library, name: Yale Library, groups: [Yale Library]}
@@ -122,7 +126,8 @@ organizations:
              Council on Latin American & Iberian Studies (CLAIS), Council on Latin American & Iberian Studies,
              Russian East European and Eurasian Studies (REEES), Committee on Canadian Studies, Leitner Program,
              Leitner Program in International and Comparative Political Economy, Fox International Fellowship,
-             Nuclear Security Program, Yale Program for the Study of Antisemitism (YPSA)]
+             Nuclear Security Program, Yale Program for the Study of Antisemitism (YPSA),
+             "Russian, East European, and Eurasian Studies", Baltic Studies]
   - {id: whitney, name: Whitney Humanities Center, groups: [Whitney Humanities Center, Franke Program in Science and the Humanities, Early Modern Studies]}
   - {id: gilder-lehrman, name: Gilder Lehrman Center, groups: [Gilder Lehrman Center for the Study of Slavery Resistance and Abolition,
     "Gilder Lehrman Center for the Study of Slavery, Resistance, and Abolition"]}
@@ -140,6 +145,9 @@ organizations:
              "La Casa Cultural Julia de Burgos: The Latino Cultural Center at Yale",
              Center for the Study of Race Indigeneity and Transnational Migration (RITM)]
   - {id: sustainability, name: Office of Sustainability, groups: [The Office of Sustainability]}
+  - {id: tsai-city, name: Tsai CITY, sources: [tsai-city], groups: [Tsai CITY]}
+  - {id: good-life, name: Good Life Center, groups: [Good Life Center]}
+  - {id: oeo, name: Office of Educational Opportunity, groups: [Office of Educational Opportunity]}
   - {id: dwight-hall, name: Dwight Hall, groups: [Dwight Hall at Yale - Center for Public Service and Social Justice]}
   - {id: study-abroad, name: Study Abroad, groups: [Study Abroad]}
   - {id: chess, name: YaleCHESS, groups: [Center for Historical Enquiry & the Social Sciences (YaleCHESS)]}
@@ -159,4 +167,4 @@ organizations:
              The Purple Crayon of Yale, Yale Black Women's Coalition - An Undergraduate Organization,
              Yale Law Democrats, The Phyllis Bodel Society for Women and Gender Minorities in Medicine,
              Yale Hands-On Pathology (YHOP), Yale Science Policy Hill Day,
-             "Disability Empowerment For Yale: An Undergraduate Advocacy Group"]
+             "Disability Empowerment For Yale: An Undergraduate Advocacy Group", Urology Interest Group]
