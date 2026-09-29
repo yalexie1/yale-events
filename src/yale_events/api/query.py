@@ -130,17 +130,34 @@ def org_clause(org: Org):
     return or_(*clauses) if clauses else false()
 
 
-# Keyset pagination: the cursor is the (start, id) of the last event on the previous page.
+# Keyset pagination: the cursor holds the sort key and id of the last event on the previous page.
+# sort=start lists soonest first; sort=added lists the most recently added first, and a scrape's
+# batch (one first_seen) soonest first.
 
-def encode_cursor(e: Event) -> str:
-    return base64.urlsafe_b64encode(f"{e.start.isoformat()}|{e.id}".encode()).decode().rstrip("=")
+def sort_by(stmt: Select[tuple[Event]], sort: str) -> Select[tuple[Event]]:
+    if sort == "added":
+        return stmt.order_by(None).order_by(Event.first_seen.desc(), Event.start, Event.id)
+    return stmt
 
 
-def apply_cursor(stmt: Select[tuple[Event]], cursor: str) -> Select[tuple[Event]]:
+def encode_cursor(e: Event, sort: str = "start") -> str:
+    keys = [e.first_seen, e.start] if sort == "added" else [e.start]
+    return base64.urlsafe_b64encode("|".join([*(k.isoformat() for k in keys), e.id]).encode()).decode().rstrip("=")
+
+
+def apply_cursor(stmt: Select[tuple[Event]], cursor: str, sort: str = "start") -> Select[tuple[Event]]:
     try:
-        raw = base64.urlsafe_b64decode(cursor + "=" * (-len(cursor) % 4)).decode()
-        start_s, id_ = raw.split("|", 1)
-        start = datetime.fromisoformat(start_s)
+        *keys, id_ = base64.urlsafe_b64decode(cursor + "=" * (-len(cursor) % 4)).decode().split("|")
+        keys = [datetime.fromisoformat(k) for k in keys]
+        if len(keys) != (2 if sort == "added" else 1):
+            raise ValueError
     except ValueError:
         raise HTTPException(422, "invalid cursor") from None
+    if sort == "added":
+        seen, start = keys
+        return stmt.where(or_(
+            Event.first_seen < seen,
+            and_(Event.first_seen == seen, or_(Event.start > start, and_(Event.start == start, Event.id > id_))),
+        ))  # fmt: skip
+    (start,) = keys
     return stmt.where(or_(Event.start > start, and_(Event.start == start, Event.id > id_)))

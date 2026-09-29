@@ -6,6 +6,7 @@ from icalendar import Calendar, Event as VEvent, vDuration, vGeo
 from yale_events.adapters.ical import HIDDEN_LOCATION_LABEL
 from yale_events.models import Event
 from yale_events.normalize.location import in_yale_bbox
+from yale_events.normalize.online import split_online
 from yale_events.normalize.time import NEW_HAVEN
 
 UID_DOMAIN = "yale-events.local"
@@ -46,10 +47,12 @@ def to_vevent(e: Event) -> VEvent:
         v.add("location", location)
     if e.lat is not None and e.lon is not None and in_yale_bbox(e.lat, e.lon):
         v.add("geo", vGeo((e.lat, e.lon)))
+    online = split_online(e.location_name)
+    join = f"Join online: {online.details or online.url}" if online.details or online.url else None
     if e.location_name == HIDDEN_LOCATION_LABEL and e.url:  # the room is behind a Yale Connect sign-in
         description = "\n\n".join(p for p in [f"Location: sign in at {e.url}", e.description] if p)
     else:
-        description = "\n\n".join(p for p in [e.description, e.url] if p)
+        description = "\n\n".join(p for p in [join, e.description, e.url] if p)
     if description:
         v.add("description", description)
     if e.url:
@@ -61,9 +64,11 @@ def to_vevent(e: Event) -> VEvent:
 
 
 def format_location(e: Event) -> str | None:
-    if e.virtual and not e.location_name:
-        return "Online"
-    parts = [e.location_name]
-    if e.room and e.room not in (e.location_name or ""):
+    """The venue; join links and passcodes go in the description instead (see split_online)."""
+    split = split_online(e.location_name)
+    if not split.venue and not e.room:
+        return "Online" if e.virtual or split.online else None
+    parts = [split.venue]
+    if e.room and e.room not in (split.venue or ""):
         parts.insert(0, e.room)
-    return ", ".join(p for p in parts if p) or None
+    return ", ".join(p for p in parts if p)

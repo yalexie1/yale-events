@@ -11,7 +11,7 @@
 <style>
   :root {
     --paper: #f5f1e8; --paper-2: #ede7da; --paper-3: #e4dccb; --sheet: #fbf9f4;
-    --ink: #1c1f23; --ink-2: #5d5a52; --ink-3: #8b867a; --rule: #d8cfbc; --rule-strong: #1c1f23;
+    --ink: #1c1f23; --ink-2: #4f4c45; --ink-3: #6b675d; --rule: #d8cfbc; --rule-strong: #1c1f23;
     --blue: #00356b; --blue-soft: #dfe6ee; --accent: #b0501c; --accent-soft: #f6e2d3; --danger: #a4262c;
     --serif: "EB Garamond", "Garamond", "Iowan Old Style", Georgia, serif;
     --sans: "Public Sans", "Helvetica Neue", Helvetica, sans-serif;
@@ -30,7 +30,7 @@
   @media (prefers-color-scheme: dark) {
     :root {
       --paper: #0e131a; --paper-2: #151c25; --paper-3: #1d2631; --sheet: #121922;
-      --ink: #ece6d8; --ink-2: #a9a595; --ink-3: #75736a; --rule: #263140; --rule-strong: #ece6d8;
+      --ink: #ece6d8; --ink-2: #bdb9aa; --ink-3: #948f83; --rule: #263140; --rule-strong: #ece6d8;
       --blue: #9cc0ea; --blue-soft: #1a2a3d; --accent: #eb9a62; --accent-soft: #33241a; --danger: #f08b8f;
       --c-talks: #8db4e3; --c-arts-performance: #e48aa3; --c-music: #7cc6cf; --c-film: #bdbdbd;
       --c-exhibitions: #dcbc5e; --c-academic: #8fc79c; --c-career: #a8b7cc; --c-social: #f09a66;
@@ -50,7 +50,7 @@
   a { color: var(--blue); }
   :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 2px; }
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  .smallcaps { font-size: 11px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; }
+  .smallcaps { font-size: 11.5px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; }
 
   /* ---------- Masthead ---------- */
   .masthead { max-width: 1240px; margin: 0 auto; padding: 28px 24px 0; }
@@ -95,13 +95,29 @@
   .ranges button:last-child { border-right: 0; }
   .ranges button:hover { color: var(--ink); background: var(--paper-2); }
   .ranges button[aria-pressed=true] { background: var(--ink); color: var(--paper); }
+  .ranges.sort { margin-left: auto; }
+  .days { display: flex; align-items: stretch; gap: 2px; overflow-x: auto; scrollbar-width: none; margin: 0 -2px;
+          padding: 0 2px; }
+  .days::-webkit-scrollbar { display: none; }
+  .days .mon { flex: none; align-self: center; padding: 0 6px 0 8px; font: 600 11.5px var(--sans); letter-spacing: .08em;
+               text-transform: uppercase; color: var(--accent); }
+  .days .mon:first-child { padding-left: 0; }
+  .dchip { flex: none; display: grid; justify-items: center; width: 38px; padding: 4px 0 5px; border: 1px solid transparent;
+           border-radius: 3px; background: none; cursor: pointer; line-height: 1.15; }
+  .dchip .wd { font-size: 11px; color: var(--ink-2); }
+  .dchip .dn { font: 500 15px var(--mono); }
+  .dchip:hover:not(:disabled) { background: var(--paper-2); border-color: var(--rule); }
+  .dchip:disabled { cursor: default; opacity: .4; }
+  .dchip.weekend .wd { color: var(--accent); }
+  .dchip[aria-current=true] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+  .dchip[aria-current=true] .wd { color: var(--paper); }
   .custom-dates { display: none; gap: 6px; align-items: center; font-size: 13px; color: var(--ink-2); }
   .custom-dates.on { display: flex; }
   .custom-dates input { height: 36px; padding: 0 8px; border: 1px solid var(--rule); border-radius: 3px;
                         background: var(--sheet); font-family: var(--mono); font-size: 13px; }
 
   .status-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-height: 26px; }
-  .count { font-family: var(--mono); font-size: 12px; color: var(--ink-2); margin-right: 4px; }
+  .count { font-family: var(--mono); font-size: 12.5px; color: var(--ink-2); margin-right: 4px; }
   .pill { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 4px 0 10px; font-size: 12.5px;
           border: 1px solid var(--rule); border-radius: 13px; background: var(--sheet); cursor: pointer; }
   .pill:hover { border-color: var(--ink-3); }
@@ -130,18 +146,20 @@
   .opt[aria-pressed=true] .box { background: var(--cat, var(--ink)); border-color: var(--cat, var(--ink)); }
   .opt[aria-pressed=true] .box::after { content: ""; width: 6px; height: 3px; border: 1.5px solid var(--paper);
                                         border-top: 0; border-right: 0; transform: rotate(-45deg) translate(0, -1px); }
-  .opt .n { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); }
+  .opt .n { font-family: var(--mono); font-size: 12.5px; color: var(--ink-2); }
   .opt[aria-pressed=true] { font-weight: 500; }
-  .opt.dim { color: var(--ink-3); }
+  .opt:disabled { cursor: default; color: var(--ink-3); }
+  .opt:disabled:hover { background: none; }
+  .opt:disabled .box { opacity: .55; }
   .opt[hidden] { display: none; }
   .opt .nm { min-width: 0; overflow-wrap: anywhere; }
-  .fnote { margin: 6px 0 0; font-size: 12px; color: var(--ink-3); line-height: 1.4; }
+  .fnote { margin: 6px 0 0; font-size: 13px; color: var(--ink-2); line-height: 1.45; }
   .more-toggle { margin-top: 6px; }
 
   .toggle { display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer;
             font-size: 14px; padding: 2px 0; }
   .toggle .lbl { display: flex; flex-direction: column; }
-  .toggle .lbl small { color: var(--ink-3); font-size: 12px; }
+  .toggle .lbl small { color: var(--ink-2); font-size: 12.5px; }
   .switch { position: relative; width: 34px; height: 20px; flex: none; }
   .switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
   .switch span { position: absolute; inset: 0; border-radius: 10px; background: var(--paper-3); border: 1px solid var(--rule);
@@ -172,7 +190,7 @@
   .ongoing summary::-webkit-details-marker { display: none; }
   .ongoing summary .dow { font: italic 400 24px/1 var(--serif); }
   .ongoing summary .date { font: 500 12px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
-  .ongoing summary .n { margin-left: auto; font: 12px var(--mono); color: var(--ink-3); }
+  .ongoing summary .n { margin-left: auto; font: 12.5px var(--mono); color: var(--ink-2); }
   .ongoing summary .n::after { content: " ▾"; }
   .ongoing[open] summary .n::after { content: " ▴"; }
   .ongoing ul { list-style: none; margin: 0; padding: 0 0 10px; display: grid; gap: 2px 28px;
@@ -185,8 +203,8 @@
   .ongoing .t a { color: inherit; text-decoration: none; }
   .ongoing .t a::after { content: ""; position: absolute; inset: 0; }
   .ongoing li:hover .t a { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
-  .ongoing .s { grid-column: 2; font-size: 12.5px; color: var(--ink-2); margin-top: 2px; }
-  .ongoing .s b { font: 500 11.5px var(--mono); color: var(--ink-2); }
+  .ongoing .s { grid-column: 2; font-size: 13.5px; color: var(--ink-2); margin-top: 2px; }
+  .ongoing .s b { font: 500 12.5px var(--mono); color: var(--ink-2); }
 
   /* ---------- Event list ---------- */
   .day { margin-top: 6px; }
@@ -196,7 +214,7 @@
   .day-h .date { font: 500 12px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
   .day-h .rel { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--paper);
                 background: var(--blue); padding: 3px 7px 2px; border-radius: 2px; }
-  .day-h .n { margin-left: auto; font: 12px var(--mono); color: var(--ink-3); }
+  .day-h .n { margin-left: auto; font: 12.5px var(--mono); color: var(--ink-2); }
   .day.underway .day-h .dow { color: var(--ink-2); }
 
   .ev { position: relative; display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 18px; padding: 14px 10px 15px;
@@ -204,9 +222,11 @@
   .ev:hover { background: var(--paper-2); }
   .ev.sel { background: var(--blue-soft); }
   .ev.cancelled .title { text-decoration: line-through; text-decoration-thickness: 1px; color: var(--ink-2); }
-  .when { font-family: var(--mono); font-size: 13px; line-height: 1.45; font-variant-numeric: tabular-nums; padding-top: 3px; }
-  .when .end { color: var(--ink-3); display: block; }
-  .when .ampm { font-size: 10.5px; margin-left: 1px; color: var(--ink-2); }
+  .when { font-family: var(--mono); font-size: 13.5px; line-height: 1.45; font-variant-numeric: tabular-nums; padding-top: 3px; }
+  .when .end { color: var(--ink-2); display: block; }
+  .when .d { display: block; font-weight: 500; color: var(--ink); }
+  .when .tbd { font: italic 13.5px/1.35 var(--sans); color: var(--ink-2); }
+  .when .ampm { font-size: 11.5px; margin-left: 1px; color: var(--ink-2); }
   .now { display: inline-flex; align-items: center; gap: 5px; margin-top: 6px; color: var(--accent); font: 600 10.5px var(--sans);
          letter-spacing: .09em; text-transform: uppercase; }
   .now::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor;
@@ -221,13 +241,13 @@
   .title a::after { content: ""; position: absolute; inset: 0; }
   .ev:hover .title a { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px;
                        text-decoration-color: var(--ink-3); }
-  .meta { margin-top: 4px; font-size: 13.5px; color: var(--ink-2); display: flex; flex-wrap: wrap; gap: 4px 14px; }
+  .meta { margin-top: 4px; font-size: 14px; color: var(--ink-2); display: flex; flex-wrap: wrap; gap: 4px 14px; }
   .meta .venue b { color: var(--ink); font-weight: 500; }
   /* Above the row's full-size title link, so it opens Yale Connect rather than the detail sheet. */
   .venue-link { position: relative; z-index: 1; color: var(--blue); text-decoration: underline; text-underline-offset: 2px;
                 text-decoration-thickness: 1px; }
   .flags { display: inline-flex; gap: 6px; }
-  .flag { font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 2px 6px 1px;
+  .flag { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 2px 6px 1px;
           border-radius: 2px; align-self: center; }
   .flag.food { background: var(--accent-soft); color: var(--accent); }
   .flag.free { background: var(--blue-soft); color: var(--blue); }
@@ -251,7 +271,7 @@
   .endnote::before { content: "❦"; display: block; font-style: normal; font-size: 20px; margin-bottom: 4px; }
 
   footer { max-width: 1240px; margin: 0 auto; padding: 18px 24px 40px; border-top: 1px solid var(--rule);
-           display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 12.5px; color: var(--ink-3); }
+           display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 13px; color: var(--ink-2); }
   footer a { color: var(--ink-2); }
 
   /* ---------- Detail sheet ---------- */
@@ -274,9 +294,10 @@
   .sheet-body h2 { font: 500 34px/1.1 var(--serif); margin: 0 0 20px; letter-spacing: -0.01em; text-wrap: balance; }
   .facts { display: grid; grid-template-columns: 92px 1fr; margin: 0 0 22px; border-top: 1px solid var(--rule); }
   .facts dt, .facts dd { padding: 10px 0; border-bottom: 1px solid var(--rule); margin: 0; }
-  .facts dt { color: var(--ink-3); padding-top: 12px; }
+  .facts dt { color: var(--ink-2); padding-top: 12px; }
   .facts dd { font-size: 14.5px; }
-  .facts dd small { display: block; color: var(--ink-2); font-size: 13px; }
+  .facts dd small { display: block; color: var(--ink-2); font-size: 13.5px; }
+  .facts .access { white-space: pre-line; overflow-wrap: anywhere; margin-top: 4px; }
   .actions-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 26px; }
   .hero { width: 100%; max-height: 300px; object-fit: cover; display: block; margin: 0 0 22px; background: var(--paper-2); }
   .desc { font: 18px/1.55 var(--serif); overflow-wrap: anywhere; }
@@ -288,7 +309,7 @@
   .toast.on { opacity: 1; transform: translate(-50%, 0); }
 
   /* ---------- Subscribe dialog ---------- */
-  .modal { border: 1px solid var(--rule); padding: 0; background: var(--sheet); width: min(480px, calc(100vw - 32px));
+  .modal { border: 1px solid var(--rule); padding: 0; background: var(--sheet); width: min(540px, calc(100vw - 32px));
            box-shadow: 0 20px 50px rgb(0 0 0 / .2); }
   .modal[open] { animation: rise .25s cubic-bezier(.2, .8, .2, 1); }
   .modal .inner { padding: 24px 26px 22px; }
@@ -299,6 +320,28 @@
   .copyfield input { flex: 1; min-width: 0; height: 36px; padding: 0 10px; border: 1px solid var(--rule); border-radius: 3px;
                      background: var(--paper); font: 12px var(--mono); }
   .modal .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .picker { margin: 0 0 12px; }
+  .picker label { display: block; margin: 0 0 6px; font-size: 13.5px; font-weight: 600; }
+  .picker input { width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--rule); border-radius: 3px;
+                  background: var(--paper); outline: none; }
+  .picker input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-soft); }
+  .suggest { list-style: none; margin: 4px 0 0; padding: 4px; border: 1px solid var(--rule); border-radius: 3px;
+             background: var(--paper); max-height: 236px; overflow-y: auto; }
+  .suggest li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 8px; border-radius: 2px; cursor: pointer;
+                font-size: 14px; }
+  .suggest li small { color: var(--ink-2); font-size: 12px; white-space: nowrap; }
+  .suggest li[aria-selected=true], .suggest li:hover { background: var(--paper-3); }
+  .suggest .none { cursor: default; color: var(--ink-2); }
+  .suggest .none:hover { background: none; }
+  .chosen { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; }
+  .chosen:empty { display: none; }
+  .modal .scope { min-height: 40px; }
+  .modal .scope .n { display: block; margin-top: 3px; font: 12.5px var(--mono); color: var(--ink-2); }
+  .btn[aria-disabled=true] { opacity: .4; pointer-events: none; }
+  .sub-help { margin: 16px 0 0; padding: 14px 0 0; border-top: 1px solid var(--rule); list-style: none; display: grid; gap: 9px;
+              font-size: 13.5px; line-height: 1.45; color: var(--ink-2); }
+  .sub-help b { color: var(--ink); font-weight: 600; }
+  .modal .fine { margin: 14px 0 0; font-size: 13px; }
   .modal .close { position: absolute; top: 10px; right: 10px; }
 
   /* ---------- Mobile ---------- */
@@ -321,7 +364,8 @@
     body.filters-open .drawer-foot { transform: none; }
     .ranges { overflow-x: auto; max-width: 100%; scrollbar-width: none; }
     .ev { grid-template-columns: 76px minmax(0, 1fr); gap: 12px; }
-    .when { font-size: 11.5px; white-space: nowrap; }
+    .when { font-size: 12.5px; white-space: nowrap; }
+    .when .tbd { white-space: normal; font-size: 12.5px; }
     .search { flex-basis: 180px; }
     .title { font-size: 18px; }
     .day-h .dow { font-size: 24px; }
@@ -362,6 +406,7 @@
     <div class="fgroup">
       <h3>Category <button class="linkish" data-clear="category" hidden>clear</button></h3>
       <div id="f-category"></div>
+      <p class="fnote">Counts are for the dates you've picked. Greyed-out filters have nothing listed then.</p>
     </div>
     <div class="fgroup">
       <h3>Where <button class="linkish" data-clear="area" hidden>clear</button></h3>
@@ -370,7 +415,7 @@
     <div class="fgroup">
       <h3>Residential colleges <button class="linkish" data-clear="org:college" hidden>clear</button></h3>
       <div id="f-college"></div>
-      <p class="fnote">Only five colleges publish a public calendar. For the rest, these are events held there that other calendars list.</p>
+      <p class="fnote">Only five colleges publish a public calendar. For the rest, these are events held there that other calendars list, so some have none.</p>
     </div>
     <div class="fgroup">
       <h3>Schools <button class="linkish" data-clear="org:school" hidden>clear</button></h3>
@@ -386,7 +431,7 @@
     </div>
     <div class="subscribe-card">
       <h3>Keep it in your calendar</h3>
-      <p>Subscribe to this filtered view. New events appear on their own.</p>
+      <p>Pick the departments, organizations or topics you care about and get only their events in Apple Calendar, Google Calendar or Outlook, kept up to date.</p>
       <button class="btn solid block" data-open-subscribe>
         <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="11" rx="1"/><path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3"/></svg>
         Subscribe
@@ -422,7 +467,12 @@
         <div class="custom-dates" id="custom-dates">
           <input type="date" id="start" aria-label="From"> <span>to</span> <input type="date" id="end" aria-label="Through">
         </div>
+        <div class="ranges sort" role="group" aria-label="Sort" id="sort">
+          <button data-sort="start" title="Soonest first, by day">Soonest</button>
+          <button data-sort="added" title="Most recently added listings first">Newest</button>
+        </div>
       </div>
+      <nav class="days" id="days" aria-label="Jump to a date" hidden></nav>
       <div class="status-row" id="status" aria-live="polite"></div>
     </div>
     <details class="ongoing" id="ongoing" hidden>
@@ -460,16 +510,30 @@
     <button class="icon-btn close" data-close aria-label="Close">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m3.5 3.5 9 9m0-9-9 9"/></svg></button>
     <h2 id="sub-title">Subscribe</h2>
-    <p>Your calendar app will check this feed and pick up new and changed events. Dates are left out so the feed keeps rolling forward.</p>
-    <div class="scope" id="sub-scope"></div>
+    <p>Choose what goes in your calendar. Only matching events are added, and your calendar app keeps them up to date.</p>
+    <div class="picker">
+      <label for="sub-find">Departments, organizations, topics or places</label>
+      <input id="sub-find" type="search" autocomplete="off" placeholder="e.g. Computer Science, Tsai CITY, Music…"
+             role="combobox" aria-expanded="false" aria-controls="sub-suggest" aria-autocomplete="list">
+      <ul class="suggest" id="sub-suggest" role="listbox" hidden></ul>
+      <div class="chosen" id="sub-chosen"></div>
+    </div>
+    <div class="scope" id="sub-scope" aria-live="polite"></div>
     <div class="copyfield">
       <input id="sub-url" readonly aria-label="Feed URL">
       <button class="btn quiet" id="sub-copy">Copy</button>
     </div>
     <div class="row">
-      <a class="btn solid" id="sub-webcal">Open in calendar app</a>
-      <a class="btn quiet" id="sub-download" download>Download .ics</a>
+      <a class="btn solid" id="sub-webcal">Open in Apple Calendar</a>
+      <a class="btn quiet" id="sub-google" target="_blank" rel="noopener">Add to Google Calendar ↗</a>
     </div>
+    <ul class="sub-help">
+      <li><b>Apple Calendar</b> (Mac, iPhone, iPad): the first button opens Calendar and asks you to confirm. Pick how often it refreshes there.</li>
+      <li><b>Google Calendar</b>: the second button opens Google's “Add calendar” prompt. You can also paste the URL under Other calendars → From URL.</li>
+      <li><b>Outlook</b>: copy the URL and paste it under Add calendar → Subscribe from web.</li>
+      <li><b>How updates arrive</b>: this site rechecks Yale's calendars about every 4 hours, and your app fetches the feed on its own schedule. Apple Calendar and Outlook usually catch up within a few hours; Google Calendar can take up to a day. New, changed and cancelled events all come through, so you never need to resubscribe.</li>
+    </ul>
+    <p class="fine">Your choices are saved in the link, but not the dates, so the calendar keeps rolling forward. A <a id="sub-download" download>one-time .ics download</a> is a snapshot that won't update.</p>
   </div>
 </dialog>
 
@@ -483,10 +547,11 @@ const orgKind = {};
 const KINDS = ["category", "area", "org", "source"];  // source: no list of its own, but old links still work
 const UPCOMING_DAYS = 90;  // the API's default window
 const state = {
-  q: "", range: "upcoming", start: "", end: "", free_food: false,
+  q: "", range: "upcoming", start: "", end: "", free_food: false, sort: "start",
   category: new Set(), area: new Set(), org: new Set(), source: new Set(),
-  cursor: null, loading: false, events: [], byId: new Map(), gen: 0,
+  cursor: null, loading: false, pending: null, events: [], byId: new Map(), gen: 0,
 };
+const newest = () => state.sort === "added";
 
 // ---------- Dates ----------
 const iso = (d) => d.toLocaleDateString("en-CA");  // YYYY-MM-DD, local
@@ -526,9 +591,19 @@ const fmtLongDate = (d) => d.toLocaleDateString([], { weekday: "long", month: "l
 // "12:00am – 11:59pm" is a day-long listing (often a deadline) that the source didn't mark all-day.
 const wholeDay = (s, en) => en && s.getHours() === 0 && s.getMinutes() === 0 && en - s >= DAY - 2 * 6e4 && en - s <= DAY;
 
-function whenCell(e, underway) {
+// Some calendars give a date but no time; those arrive as a timed event starting at midnight.
+const noTime = (e) => { const s = new Date(e.start); return !e.all_day && s.getHours() === 0 && s.getMinutes() === 0 && !wholeDay(s, e.end ? new Date(e.end) : null); };
+
+/** The time column. With `dated` (the Newest list, which has no day headings) the date leads. */
+function whenCell(e, underway, dated = false) {
   const s = new Date(e.start), en = e.end ? new Date(e.end) : null;
-  if (!underway && !e.all_day && wholeDay(s, en)) return "All day";
+  const d = dated ? `<span class="d">${s.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" })}</span>` : "";
+  if (dated) underway = false;
+  if (!underway && !e.all_day && wholeDay(s, en)) return d + "All day";
+  if (!underway && noTime(e)) {
+    const ends = en && iso(en) === iso(s) ? `<span class="end">ends ${fmtClock(e.end)}</span>` : "";
+    return `${d}<span class="tbd">Time not listed</span>${ends}`;
+  }
   const multiDay = en && iso(en) !== iso(s) && !(e.all_day && en - s <= DAY);
   let html;
   if (underway) html = (en ? `to ${fmtShortDate(e.all_day ? new Date(en - 1) : en)}` : "ongoing") + `<span class="end">from ${fmtShortDate(s)}</span>`;
@@ -536,7 +611,7 @@ function whenCell(e, underway) {
   else html = fmtClock(e.start) + (en ? `<span class="end">${multiDay ? "to " + fmtShortDate(en) : "– " + fmtClock(e.end)}</span>` : "");
   const now = Date.now();
   if (!e.all_day && !e.cancelled && s <= now && en && en > now && en - s < 12 * 36e5) html += `<span class="now">Now</span>`;
-  return html;
+  return d + html;
 }
 
 // ---------- Text helpers ----------
@@ -565,6 +640,7 @@ function toParams({ forFeed = false } = {}) {
   if (!forFeed) {
     if (state.range !== "upcoming") p.set("range", state.range);
     if (state.range === "custom") { if (state.start) p.set("start", state.start); if (state.end) p.set("end", state.end); }
+    if (newest()) p.set("sort", "added");
   }
   for (const k of KINDS) if (state[k].size) p.set(k, [...state[k]].join(","));
   if (state.free_food) p.set("free_food", "true");
@@ -585,13 +661,14 @@ function restore() {
   state.end = p.get("end") || iso(addDays(today(), 13));
   for (const k of KINDS) state[k] = new Set((p.get(k) || "").split(",").filter(Boolean));
   state.free_food = p.get("free_food") === "true";
+  state.sort = p.get("sort") === "added" ? "added" : "start";
 }
 
 // ---------- Filters UI ----------
 function optionButton(kind, item, { color = false } = {}) {
   const b = document.createElement("button");
-  b.className = "opt" + (item.upcoming ? "" : " dim");
-  b.dataset.kind = kind; b.dataset.id = item.id;
+  b.className = "opt";
+  b.dataset.kind = kind; b.dataset.id = item.id; b.dataset.n = item.upcoming;
   if (color) b.style.setProperty("--cat", `var(--c-${item.id})`);
   b.innerHTML = `<span class="box"></span><span class="nm">${esc(item.name)}</span><span class="n">${item.upcoming.toLocaleString()}</span>`;
   b.addEventListener("click", () => { toggle(kind, item.id); });
@@ -634,13 +711,22 @@ async function refreshCounts() {
     syncControls();
   } catch { countsFor = undefined; }  // retried on the next change
 }
+/** Everything the subscribe picker can add: [{ kind, id, name, label }]. */
+let catalog = [];
+const KIND_LABEL = { college: "College", school: "School", department: "Department", organization: "Organization" };
 function buildFilters(cats, areas, orgs) {
+  catalog = [
+    ...orgs.map((o) => ({ kind: "org", id: o.id, name: o.kind === "college" ? o.name + " College" : o.name, label: KIND_LABEL[o.kind] })),
+    ...cats.map((c) => ({ kind: "category", id: c.id, name: c.name, label: "Topic" })),
+    ...areas.map((a) => ({ kind: "area", id: a.id, name: a.name.replace(/ \(.*\)$/, ""), label: "Place" })),
+  ];
   for (const id of ["category", "area", "college", "school", "department", "organization"]) $("f-" + id).replaceChildren();
   const shown = (kind, item) => item.upcoming || state[kind].has(item.id);  // keep a selection even at 0
+  // Categories and places stay listed at 0 (disabled, see syncControls) so they don't vanish on a short range.
   const fc = $("f-category");
-  cats.filter((c) => shown("category", c)).sort((a, b) => b.upcoming - a.upcoming).forEach((c) => fc.appendChild(optionButton("category", c, { color: true })));
+  cats.sort((a, b) => b.upcoming - a.upcoming).forEach((c) => fc.appendChild(optionButton("category", c, { color: true })));
   const fa = $("f-area");
-  areas.filter((a) => shown("area", a)).forEach((a) => fa.appendChild(optionButton("area", { ...a, name: a.name.replace(/ \(.*\)$/, "") })));
+  areas.sort((a, b) => !a.upcoming - !b.upcoming).forEach((a) => fa.appendChild(optionButton("area", { ...a, name: a.name.replace(/ \(.*\)$/, "") })));
   // All fourteen colleges, alphabetical, even with nothing listed, so a missing calendar is visible.
   orgs.filter((o) => o.kind === "college").forEach((o) => $("f-college").appendChild(optionButton("org", o)));
   // The rest alphabetically, as /orgs returns them; long lists collapse to the first ten.
@@ -664,7 +750,13 @@ function syncControls() {
   $("start").value = state.start; $("end").value = state.end;
   $("custom-dates").classList.toggle("on", state.range === "custom");
   document.querySelectorAll("#ranges button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.range === state.range));
-  document.querySelectorAll(".opt").forEach((b) => b.setAttribute("aria-pressed", state[b.dataset.kind].has(b.dataset.id)));
+  document.querySelectorAll("#sort button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.sort === state.sort));
+  document.querySelectorAll(".opt").forEach((b) => {
+    const on = state[b.dataset.kind].has(b.dataset.id), empty = b.dataset.n === "0";
+    b.setAttribute("aria-pressed", on);
+    b.disabled = empty && !on;
+    b.title = empty ? "Nothing listed for these dates" : "";
+  });
   document.querySelectorAll("[data-clear]").forEach((b) => (b.hidden = !clearable(b.dataset.clear).length));
   const n = KINDS.reduce((n, k) => n + state[k].size, state.free_food ? 1 : 0);
   $("filters-n").textContent = n ? ` · ${n}` : "";
@@ -687,7 +779,7 @@ function renderStatus(done) {
       pills.push(`<button class="pill" data-rm="${k}" data-id="${esc(id)}">${k === "category" ? `<span class="sw" ${catStyle(id)}></span>` : ""}${esc(names[k][id] || id)}<span class="x">✕</span></button>`);
   const count = state.loading && !n ? "Loading…" : `${n.toLocaleString()}${done ? "" : "+"} event${n === 1 ? "" : "s"} · ${rangeLabel()}`;
   $("drawer-done").textContent = state.loading && !n ? "Show events" : n ? `Show ${n.toLocaleString()}${done ? "" : "+"} event${n === 1 ? "" : "s"}` : "No matches";
-  st.innerHTML = `<span class="count">${count}</span>${pills.join("")}${pills.length > 1 ? `<button class="linkish" data-rm="all">Clear all</button>` : ""}`;
+  st.innerHTML = `<span class="count">${count}</span>${pills.join("")}${pills.length > 1 ? `<button class="linkish" data-rm="all">Clear all</button>` : ""}${pills.length ? `<button class="linkish" data-open-subscribe>Subscribe to these</button>` : ""}`;
 }
 
 // ---------- List ----------
@@ -699,7 +791,7 @@ function rowHTML(e, underway, i) {
     e.free_food ? `<span class="flag food">Free food</span>` : "",
   ].join("");
   return `<article class="ev${e.cancelled ? " cancelled" : ""}${i < 14 ? " reveal" : ""}" data-id="${e.id}" style="${i < 14 ? `animation-delay:${i * 28}ms` : ""}">
-    <div class="when">${whenCell(e, underway)}</div>
+    <div class="when">${whenCell(e, underway, newest())}</div>
     <div>
       ${cats ? `<div class="kicker smallcaps">${cats}</div>` : ""}
       <h3 class="title"><a href="#e=${e.id}">${esc(e.title)}</a></h3>
@@ -718,13 +810,15 @@ function append(events, rangeStartKey) {
   let i = 0;
   for (const e of events) {
     const k = dayKey(e);
-    const underway = k < rangeStartKey;
-    const key = underway ? "underway" : k;
+    const underway = !newest() && k < rangeStartKey;
+    const key = newest() ? "newest" : underway ? "underway" : k;
     if (!section || section.dataset.key !== key) {
       section = document.createElement("section");
       section.className = "day" + (underway ? " underway" : "");
       section.dataset.key = key;
-      if (underway) {
+      if (newest()) {
+        section.innerHTML = `<h2 class="day-h"><span class="dow">Newest</span><span class="date">most recently added first</span><span class="n"></span></h2>`;
+      } else if (underway) {
         section.innerHTML = `<h2 class="day-h"><span class="dow">Already underway</span><span class="date">multi-day</span><span class="n"></span></h2>`;
       } else {
         const d = parseDay(k), t = iso(today()), tm = iso(addDays(today(), 1));
@@ -761,12 +855,18 @@ function emptyState() {
     </div></div>`;
 }
 
-async function load() {
-  if (state.loading || state.cursor === undefined) return;
+/** Fetch the next page. Callers that need the page (the date jumper) can await it, even if it's already loading. */
+function load(limit = 80) {
+  if (state.cursor === undefined) return Promise.resolve();
+  if (!state.loading) state.pending = loadPage(limit);
+  return state.pending;
+}
+async function loadPage(limit) {
   state.loading = true;
   const gen = state.gen;
   const p = apiParams();
-  p.set("limit", "80");
+  p.set("limit", String(limit));
+  if (newest()) p.set("sort", "added");
   if (state.cursor) p.set("cursor", state.cursor);
   if (!state.events.length) { skeleton(); renderStatus(false); }
   try {
@@ -785,6 +885,7 @@ async function load() {
     $("loadmore").hidden = !state.cursor;
     renderStatus(!state.cursor);
     updateSheetNav();
+    spy();
   } catch (err) {
     if (gen !== state.gen) return;
     $("list").innerHTML = `<div class="empty"><h2>Couldn't load events</h2><p class="err">${esc(err.message)}</p>
@@ -794,8 +895,65 @@ async function load() {
     if (gen === state.gen) state.loading = false;
   }
   // The sentinel may still be visible if a page was short.
-  if (gen === state.gen && state.cursor && sentinelVisible) load();
+  if (gen === state.gen && state.cursor && sentinelVisible) setTimeout(load);
 }
+
+// ---------- Date jumper ----------
+/** A strip of the window's days; days with nothing listed are disabled. Hidden for Newest and one-day ranges. */
+async function loadDays() {
+  const gen = state.gen, nav = $("days");
+  if (newest()) { nav.hidden = true; return; }
+  let days;
+  try { days = await fetch("/days?" + apiParams()).then((r) => (r.ok ? r.json() : [])); } catch { days = []; }
+  if (gen !== state.gen) return;
+  nav.hidden = days.length < 2;
+  let month = "";
+  nav.innerHTML = days.map(({ date, events }) => {
+    const d = parseDay(date), m = d.toLocaleDateString([], { month: "short" });
+    const label = `${d.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" })}: ${events ? `${events} event${events === 1 ? "" : "s"}` : "nothing listed"}`;
+    const head = m !== month ? `<span class="mon">${m}</span>` : "";
+    month = m;
+    return `${head}<button class="dchip${d.getDay() % 6 === 0 ? " weekend" : ""}" data-day="${date}" title="${label}" aria-label="${label}"${events ? "" : " disabled"}>
+      <span class="wd">${d.toLocaleDateString([], { weekday: "short" })}</span><span class="dn">${d.getDate()}</span></button>`;
+  }).join("");
+  spied = null;
+  spy();
+}
+
+/** Scroll to a day's heading, loading pages until it arrives. */
+async function jumpTo(day) {
+  const gen = state.gen;
+  const find = () => [...$("list").querySelectorAll(".day")].find((s) => /^\d/.test(s.dataset.key) && s.dataset.key >= day);
+  let section = find();
+  while (!section && state.cursor && gen === state.gen) { await load(500); section = find(); }
+  // Instant: a smooth scroll across hundreds of events is slow, and the strip's own scrolling can cancel it.
+  // The heading sticks just under the toolbar, so put the section's top there.
+  if (section && gen === state.gen)
+    window.scrollTo({ top: section.getBoundingClientRect().top + scrollY - $("toolbar").offsetHeight, behavior: "instant" });
+}
+$("days").addEventListener("click", (ev) => { const b = ev.target.closest(".dchip"); if (b) jumpTo(b.dataset.day); });
+
+/** Highlight the day at the top of the list in the strip. */
+let spied = null, spyFrame = 0;
+function spy() {
+  const nav = $("days");
+  if (nav.hidden) return;
+  const top = $("toolbar").getBoundingClientRect().bottom + 8;
+  let current = null;
+  for (const s of $("list").querySelectorAll(".day")) {
+    if (s.getBoundingClientRect().top > top) break;
+    if (/^\d/.test(s.dataset.key)) current = s.dataset.key;
+  }
+  if (current === spied) return;
+  spied = current;
+  nav.querySelectorAll("[aria-current]").forEach((b) => b.removeAttribute("aria-current"));
+  const chip = current && nav.querySelector(`[data-day="${current}"]`);
+  if (chip) {
+    chip.setAttribute("aria-current", "true");
+    nav.scrollTo({ left: chip.offsetLeft - nav.offsetLeft - nav.clientWidth / 2 + chip.offsetWidth / 2 });
+  }
+}
+addEventListener("scroll", () => { cancelAnimationFrame(spyFrame); spyFrame = requestAnimationFrame(spy); }, { passive: true });
 
 /** Exhibitions and programs without set session dates (the feed hides them), one row per series. */
 async function loadOngoing() {
@@ -840,10 +998,11 @@ function reload({ scroll = true } = {}) {
   history.replaceState(history.state, "", (p.toString() ? "?" + p : location.pathname) + location.hash);
   syncControls();
   if (countsFor !== null) refreshCounts();
-  Object.assign(state, { cursor: null, events: [], loading: false, gen: state.gen + 1 });
+  Object.assign(state, { cursor: null, events: [], loading: false, pending: null, gen: state.gen + 1 });
   if (scroll && window.scrollY > $("list").offsetTop) window.scrollTo({ top: $("list").offsetTop - 80 });
   load();
   loadOngoing();
+  loadDays();
 }
 
 let sentinelVisible = false;
@@ -861,7 +1020,7 @@ function gcalLink(e) {
     : `${f(new Date(e.start))}/${f(new Date(e.end || new Date(new Date(e.start).getTime() + 36e5)))}`;
   const loc = e.location;
   const p = new URLSearchParams({ action: "TEMPLATE", text: e.title, dates,
-    details: [e.url, (e.description || "").slice(0, 1200)].filter(Boolean).join("\n\n"),
+    details: [loc.online && (loc.online.details || loc.online.url), e.url, (e.description || "").slice(0, 1200)].filter(Boolean).join("\n\n"),
     location: [loc.building || loc.name, loc.room, loc.address].filter(Boolean).join(", ") });
   return "https://calendar.google.com/calendar/render?" + p;
 }
@@ -874,10 +1033,16 @@ function renderSheet(e) {
     when = iso(last) !== iso(s) ? `${fmtLongDate(s)} – ${fmtLongDate(last)}` : `${fmtLongDate(s)}<small>All day</small>`;
   } else if (en && iso(en) !== iso(s)) {
     when = `${fmtLongDate(s)}, ${fmtClock(e.start)} –<br>${fmtLongDate(en)}, ${fmtClock(e.end)}`;
+  } else if (noTime(e)) {
+    when = `${fmtLongDate(s)}<small>Time not listed${en && iso(en) === iso(s) ? ` · ends ${fmtClock(e.end)}` : ""}</small>`;
   } else {
     when = `${fmtLongDate(s)}<small>${fmtClock(e.start)}${en ? " – " + fmtClock(e.end) : ""}</small>`;
   }
   const loc = e.location, v = venue(loc);
+  // Join links, meeting IDs and passcodes, split out of the venue by the API.
+  const on = loc.online;
+  const join = on && [on.url ? `<a href="${esc(on.url)}" target="_blank" rel="noopener">${/register|forms?\b/i.test(on.url + " " + (on.details || "")) ? "Registration link" : "Join link"} ↗</a><small>${esc(new URL(on.url).host)}</small>` : "",
+    on.details && on.details !== on.url ? `<small class="access">${linkify(esc(on.details))}</small>` : ""].join("");
   const addr = [loc.name && loc.name !== v.main ? loc.name : "", loc.address].filter(Boolean).join(" · ");
   const map = loc.lat != null
     ? `https://www.google.com/maps/search/?api=1&query=${loc.lat},${loc.lon}`
@@ -888,6 +1053,7 @@ function renderSheet(e) {
   const rows = [
     ["When", when],
     ["Where", loc.sign_in_url ? `${signInLink(loc)}<small>Yale Connect shows the room only to signed-in Yale users.</small>` : v.main ? `${esc(v.main)}${v.sub ? `<small>${esc(v.sub)}</small>` : ""}${addr ? `<small>${esc(addr)}</small>` : ""}${map ? `<small><a href="${map}" target="_blank" rel="noopener">Map ↗</a></small>` : ""}` : "<span style='color:var(--ink-3)'>Not listed</span>"],
+    join && [loc.virtual ? "Join online" : "Access", join],
     e.groups.length && ["Host", esc(e.groups.join(", "))],
     (price || cost) && ["Cost", esc([price, cost].filter(Boolean).join(" · "))],
     e.audience.length && ["For", esc(e.audience.join(", "))],
@@ -985,23 +1151,121 @@ $("list").addEventListener("click", (ev) => {
 window.addEventListener("hashchange", () => { openedByNav = true; onHash(); });
 
 // ---------- Subscribe ----------
+// The dialog keeps its own picks, starting from the page's filters, so choosing a feed doesn't change the list.
+const sub = { q: "", free_food: false, category: new Set(), area: new Set(), org: new Set(), source: new Set() };
+const subPicked = () => sub.q || sub.free_food || KINDS.some((k) => sub[k].size);
+const orList = (ids, kind) => [...ids].map((id) => names[kind][id] || id).join(" or ");
+
 function openSubscribe() {
-  const p = toParams({ forFeed: true });
-  const url = location.origin + "/events.ics" + (p.toString() ? "?" + p : "");
-  const parts = [];
-  if (state.category.size) parts.push([...state.category].map((c) => names.category[c]).join(", "));
-  if (state.area.size) parts.push([...state.area].map((c) => names.area[c]).join(", "));
-  if (state.org.size) parts.push("from " + [...state.org].map((c) => names.org[c]).join(", "));
-  if (state.source.size) parts.push("from " + [...state.source].map((c) => names.source[c]).join(", "));
-  if (state.free_food) parts.push("with free food");
-  if (state.q) parts.push(`matching “${state.q}”`);
-  $("sub-scope").innerHTML = parts.length ? `<b>This view:</b> ${esc(parts.join(" · "))}` : "<b>Everything</b>: all categories, places and calendars. Use the filters first to narrow it.";
-  $("sub-url").value = url;
-  $("sub-webcal").href = url.replace(/^https?:/, "webcal:");
-  $("sub-download").href = url;
+  for (const k of KINDS) sub[k] = new Set(state[k]);
+  Object.assign(sub, { q: state.q, free_food: state.free_food });
+  $("sub-find").value = "";
+  suggest("");
+  renderSub();
   $("subscribe").showModal();
+  $("sub-find").focus();
 }
-document.querySelectorAll("[data-open-subscribe]").forEach((b) => b.addEventListener("click", openSubscribe));
+
+let subCountFor = "";
+function renderSub() {
+  const p = new URLSearchParams();
+  if (sub.q) p.set("q", sub.q);
+  for (const k of KINDS) if (sub[k].size) p.set(k, [...sub[k]].join(","));
+  if (sub.free_food) p.set("free_food", "true");
+  const picked = subPicked();
+  const url = location.origin + "/events.ics" + (p.toString() ? "?" + p : "");
+
+  const chip = (k, id) => `<button class="pill" data-sub-rm="${k}" data-id="${esc(id)}" aria-label="Remove ${esc(names[k][id] || id)}">${k === "category" ? `<span class="sw" ${catStyle(id)}></span>` : ""}${esc(names[k][id] || id)}<span class="x">✕</span></button>`;
+  $("sub-chosen").innerHTML = [
+    ...KINDS.flatMap((k) => [...sub[k]].map((id) => chip(k, id))),
+    sub.free_food ? `<button class="pill" data-sub-rm="free_food">Free food<span class="x">✕</span></button>` : "",
+    sub.q ? `<button class="pill" data-sub-rm="q">“${esc(sub.q)}”<span class="x">✕</span></button>` : "",
+  ].join("");
+
+  // Within a group any pick matches; across groups all must (as /events.ics filters).
+  const parts = [];
+  if (sub.category.size) parts.push(orList(sub.category, "category"));
+  if (sub.org.size || sub.source.size) parts.push("from " + [orList(sub.org, "org"), orList(sub.source, "source")].filter(Boolean).join(" or "));
+  if (sub.area.size) parts.push("on " + orList(sub.area, "area"));
+  if (sub.free_food) parts.push("with free food");
+  if (sub.q) parts.push(`matching “${sub.q}”`);
+  $("sub-scope").innerHTML = picked
+    ? `<b>Your calendar will get:</b> ${sub.category.size ? "" : "events "}${esc(parts.join(", "))}<span class="n" id="sub-n">Counting…</span>`
+    : `Pick at least one above. The full calendar has thousands of events, most of them for other departments.`;
+
+  $("sub-url").value = picked ? url : "";
+  $("sub-url").placeholder = "Pick something first";
+  for (const [id, href] of [["sub-webcal", url.replace(/^https?:/, "webcal:")], ["sub-google", "https://calendar.google.com/calendar/render?cid=" + encodeURIComponent(url.replace(/^https?:/, "webcal:"))], ["sub-download", url]]) {
+    const a = $(id);
+    if (picked) { a.href = href; a.removeAttribute("aria-disabled"); a.removeAttribute("tabindex"); }
+    else { a.removeAttribute("href"); a.setAttribute("aria-disabled", "true"); a.tabIndex = -1; }
+  }
+  $("sub-copy").disabled = !picked;
+
+  // How many events that is over the next three months, from /days with the same filters.
+  if (!picked) return;
+  const key = p.toString();
+  subCountFor = key;
+  fetch("/days?" + key).then((r) => (r.ok ? r.json() : Promise.reject())).then((days) => {
+    if (subCountFor !== key || !$("sub-n")) return;
+    const n = days.reduce((t, d) => t + d.events, 0);
+    $("sub-n").textContent = n ? `${n.toLocaleString()} event${n === 1 ? "" : "s"} in the next 3 months` : "Nothing in the next 3 months yet; new events will still arrive.";
+  }).catch(() => { if (subCountFor === key && $("sub-n")) $("sub-n").textContent = ""; });
+}
+
+/** Catalog entries matching the typed text, words matching at their start first. */
+let subMatches = [], subActive = -1;
+function suggest(text) {
+  const list = $("sub-suggest"), t = text.trim().toLowerCase();
+  subMatches = !t ? [] : catalog
+    .filter((c) => !sub[c.kind].has(c.id) && c.name.toLowerCase().includes(t))
+    .map((c) => ({ c, rank: c.name.toLowerCase().startsWith(t) ? 0 : new RegExp("\\b" + t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).test(c.name.toLowerCase()) ? 1 : 2 }))
+    .sort((a, b) => a.rank - b.rank || a.c.name.localeCompare(b.c.name)).slice(0, 8).map((m) => m.c);
+  subActive = subMatches.length ? 0 : -1;
+  list.hidden = !t;
+  $("sub-find").setAttribute("aria-expanded", String(!!t));
+  list.innerHTML = subMatches.length
+    ? subMatches.map((c, i) => `<li role="option" id="sub-opt-${i}" data-i="${i}" aria-selected="${i === subActive}">${esc(c.name)}<small>${c.label}</small></li>`).join("")
+    : `<li class="none">No department, organization, topic or place by that name. <button class="linkish" data-sub-text>Match “${esc(text.trim())}” in event text instead</button></li>`;
+  $("sub-find").setAttribute("aria-activedescendant", subActive >= 0 ? "sub-opt-" + subActive : "");
+}
+function pick(c) {
+  sub[c.kind].add(c.id);
+  $("sub-find").value = "";
+  suggest("");
+  renderSub();
+  $("sub-find").focus();
+}
+$("sub-find").addEventListener("input", () => suggest($("sub-find").value));
+$("sub-find").addEventListener("keydown", (ev) => {
+  if (ev.key === "ArrowDown" || ev.key === "ArrowUp") {
+    if (!subMatches.length) return;
+    ev.preventDefault();
+    subActive = (subActive + (ev.key === "ArrowDown" ? 1 : -1) + subMatches.length) % subMatches.length;
+    $("sub-suggest").querySelectorAll("li").forEach((li, i) => li.setAttribute("aria-selected", String(i === subActive)));
+    $("sub-find").setAttribute("aria-activedescendant", "sub-opt-" + subActive);
+    $("sub-opt-" + subActive)?.scrollIntoView({ block: "nearest" });
+  } else if (ev.key === "Enter" && subActive >= 0) {
+    ev.preventDefault(); pick(subMatches[subActive]);
+  } else if (ev.key === "Escape" && $("sub-find").value) {
+    ev.preventDefault(); $("sub-find").value = ""; suggest("");  // clear first; a second Esc closes the dialog
+  }
+});
+$("sub-suggest").addEventListener("mousedown", (ev) => ev.preventDefault());  // keep focus in the input
+$("sub-suggest").addEventListener("click", (ev) => {
+  if (ev.target.closest("[data-sub-text]")) { sub.q = $("sub-find").value.trim(); $("sub-find").value = ""; suggest(""); renderSub(); return; }
+  const li = ev.target.closest("li[data-i]");
+  if (li) pick(subMatches[+li.dataset.i]);
+});
+$("sub-chosen").addEventListener("click", (ev) => {
+  const b = ev.target.closest("[data-sub-rm]");
+  if (!b) return;
+  const k = b.dataset.subRm;
+  if (k === "q") sub.q = ""; else if (k === "free_food") sub.free_food = false; else sub[k].delete(b.dataset.id);
+  renderSub();
+  $("sub-find").focus();
+});
+document.addEventListener("click", (ev) => { if (ev.target.closest("[data-open-subscribe]")) openSubscribe(); });
 $("subscribe").querySelector("[data-close]").addEventListener("click", () => $("subscribe").close());
 $("subscribe").addEventListener("click", (ev) => { if (ev.target === $("subscribe")) $("subscribe").close(); });
 $("sub-copy").addEventListener("click", () => copy($("sub-url").value, "Feed URL copied"));
@@ -1025,6 +1289,7 @@ async function init() {
   syncControls();
   load();  // start fetching events while the reference lists load
   loadOngoing();
+  loadDays();
 
   const get = (u) => fetch(u).then((r) => { if (!r.ok) throw new Error(r.statusText); return r.json(); });
   countsFor = countParams();
@@ -1086,7 +1351,13 @@ for (const id of ["start", "end"]) $(id).addEventListener("change", () => {
   if (state.start && state.end && state.end < state.start) { state.end = state.start; }
   reload();
 });
-$("more").addEventListener("click", load);
+$("more").addEventListener("click", () => load());
+$("sort").addEventListener("click", (ev) => {
+  const b = ev.target.closest("button");
+  if (!b || b.dataset.sort === state.sort) return;
+  state.sort = b.dataset.sort;
+  reload();
+});
 document.querySelectorAll("[data-clear]").forEach((b) => b.addEventListener("click", () => {
   clearable(b.dataset.clear).forEach(([k, id]) => state[k].delete(id));
   reload();

@@ -5,6 +5,7 @@ import pytest
 from yale_events.config import SourceConfig
 from yale_events.normalize import Normalizer
 from yale_events.normalize.location import norm_address, norm_name
+from yale_events.normalize.online import split_online
 from yale_events.normalize.time import NEW_HAVEN, clean_times, is_ongoing
 from yale_events.schemas import RawEvent
 
@@ -230,3 +231,25 @@ def test_medical_campus_locations(name, address, expected):
     m = LOC.resolve(name, address)
     assert (m.location_id, m.room) == expected
     assert m.area == "medical"
+
+
+@pytest.mark.parametrize(
+    "name, venue, url, details",
+    [
+        ("Kroon Hall", "Kroon Hall", None, None),
+        ("Online (Zoom)", None, None, None),
+        ("DL 501 or Zoom", "DL 501", None, None),
+        ("Hybrid (SLB Room 109 and Zoom)", "SLB Room 109", None, None),
+        ("Burke + Zoom, New Haven, CT", "Burke, New Haven, CT", None, None),
+        ("Zoom link will be sent", None, None, "Zoom link will be sent"),
+        ("email contact for link", None, None, "email contact for link"),
+        ("Meeting ID: 973 6295, Password: See Flyer Also in-person, Yale Med Campus, FMP 132",
+         "Yale Med Campus, FMP 132", None, "Meeting ID: 973 6295, Password: See Flyer"),
+        ("Join: https://yale.zoom.us/j/943. Meeting ID: 943", None, "https://yale.zoom.us/j/943",
+         "Join: https://yale.zoom.us/j/943. Meeting ID: 943"),
+    ],
+)  # fmt: skip
+def test_split_online(name, venue, url, details):
+    split = split_online(name)
+    assert (split.venue, split.url, split.details) == (venue, url, details)
+    assert split.online is (venue != name and "email" not in name)

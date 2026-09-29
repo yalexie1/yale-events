@@ -1,8 +1,9 @@
+from collections import Counter
 from collections.abc import Iterator
 from dataclasses import asdict
 from datetime import UTC, datetime, time, timedelta
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
 from fastapi.responses import FileResponse
@@ -11,9 +12,11 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from yale_events.api.ical import to_ics
 from yale_events.api.query import (
-    EventFilters, apply_cursor, build_query, encode_cursor, parse_when, split_values, validate,
+    EventFilters, apply_cursor, build_query, encode_cursor, parse_when, sort_by, split_values, validate,
 )
-from yale_events.api.schemas import AreaOut, BuildingOut, CategoryOut, EventOut, EventPage, OrgOut, SourceOut
+from yale_events.api.schemas import (
+    AreaOut, BuildingOut, CategoryOut, DayOut, EventOut, EventPage, OrgOut, SourceOut,
+)
 from yale_events.config import load_sources
 from yale_events.db import make_session_factory
 from yale_events.health import check_sources
@@ -155,21 +158,36 @@ def register_routes(app: FastAPI) -> None:
         f: FiltersDep,
         limit: Annotated[int, Query(ge=1, le=MAX_LIMIT)] = 50,
         cursor: str | None = None,
+        sort: Annotated[
+            Literal["start", "added"], Query(description="start: soonest first. added: most recently added first.")
+        ] = "start",
     ):
         """Events overlapping [start, end), soonest first. Defaults to the next 90 days, without
         cancelled events or daily occurrences of ongoing exhibitions."""
         default_window(f)
         validate(f)
-        stmt = build_query(f)
+        stmt = sort_by(build_query(f), sort)
         if cursor:
-            stmt = apply_cursor(stmt, cursor)
+            stmt = apply_cursor(stmt, cursor, sort)
         rows = list(session.scalars(stmt.limit(limit + 1)))
         dupes = duplicates_of(session, [e.id for e in rows[:limit]])
         locations = default_normalizer().locations
         return EventPage(
             events=[EventOut.from_event(e, locations, dupes.get(e.id, [])) for e in rows[:limit]],
-            next_cursor=encode_cursor(rows[limit - 1]) if len(rows) > limit else None,
+            next_cursor=encode_cursor(rows[limit - 1], sort) if len(rows) > limit else None,
         )
+
+    @app.get("/days", response_model=list[DayOut], tags=["events"])
+    def days(session: SessionDep, f: FiltersDep):
+        """How many events /events lists starting on each day of the window (New Haven dates), with
+        the same filters. Days with none are included, so a date picker can show them as empty."""
+        default_window(f)
+        validate(f)
+        starts = session.execute(build_query(f).with_only_columns(Event.start).order_by(None)).scalars()
+        counts = Counter(s.astimezone(NEW_HAVEN).date() for s in starts)
+        first, last = f.start.astimezone(NEW_HAVEN).date(), (f.end - timedelta(microseconds=1)).astimezone(NEW_HAVEN).date()
+        return [DayOut(date=first + timedelta(days=i), events=counts[first + timedelta(days=i)])
+                for i in range((last - first).days + 1)]
 
     # Registered before /events/{event_id}, which would otherwise capture "abc.ics".
     @app.get("/events.ics", tags=["ical"], response_class=Response)

@@ -171,7 +171,7 @@ def test_event_detail(client):
     assert body["location"] == {
         "name": "Kroon Hall", "room": "Burke Auditorium", "address": None, "id": "kroon-hall",
         "building": "Kroon Hall", "area": "science-hill", "lat": body["location"]["lat"],
-        "lon": body["location"]["lon"], "virtual": False, "sign_in_url": None,
+        "lon": body["location"]["lon"], "virtual": False, "online": None, "sign_in_url": None,
     }  # fmt: skip
     # Times come back in New Haven local time.
     assert datetime.fromisoformat(body["start"]).utcoffset() in (timedelta(hours=-4), timedelta(hours=-5))
@@ -251,3 +251,51 @@ def test_home_page(client):
     assert r.status_code == 200
     assert r.headers["content-type"].startswith("text/html")
     assert "<title>Yale Events</title>" in r.text
+
+
+def test_online_access_kept_out_of_the_venue():
+    teams = "Join: https://teams.microsoft.com/meet/123?p=abc Meeting ID: 123 Passcode: Tq6k Also in-person, FMP 132"
+    client = make_client([
+        ev("hybrid", NOW + timedelta(days=1), location_name=teams, virtual=True),
+        ev("label", NOW + timedelta(days=2), location_name="Online Event"),
+    ])  # fmt: skip
+    hybrid = client.get("/events/hybrid").json()["location"]
+    assert hybrid["name"] == "FMP 132"
+    assert hybrid["virtual"] is True
+    assert hybrid["online"] == {"url": "https://teams.microsoft.com/meet/123?p=abc",
+                                "details": "Join: https://teams.microsoft.com/meet/123?p=abc Meeting ID: 123 Passcode: Tq6k"}
+    label = client.get("/events/label").json()["location"]
+    assert (label["name"], label["virtual"], label["online"]) == (None, True, None)
+    vevents = {str(v["uid"]).split("@")[0]: v for v in parse_ics(client.get("/events.ics"))}
+    assert str(vevents["hybrid"]["location"]) == "FMP 132"
+    assert "Passcode: Tq6k" in str(vevents["hybrid"]["description"])
+    assert str(vevents["label"]["location"]) == "Online"
+
+
+def test_sort_by_added():
+    client = make_client([
+        ev(f"e{i}", NOW + timedelta(days=i), first_seen=NOW - timedelta(days=10 - i)) for i in range(1, 6)
+    ])  # fmt: skip
+    first = client.get("/events", params={"sort": "added", "limit": 2}).json()
+    assert [e["id"] for e in first["events"]] == ["e5", "e4"]
+    rest = client.get("/events", params={"sort": "added", "limit": 10, "cursor": first["next_cursor"]})
+    assert ids(rest) == ["e3", "e2", "e1"]
+    # One scrape's batch shares first_seen; it pages soonest first.
+    batch = make_client([ev(f"b{i}", NOW + timedelta(days=6 - i), first_seen=NOW) for i in range(1, 6)])
+    page = batch.get("/events", params={"sort": "added", "limit": 3}).json()
+    rest = batch.get("/events", params={"sort": "added", "cursor": page["next_cursor"]})
+    assert [e["id"] for e in page["events"]] + ids(rest) == ["b5", "b4", "b3", "b2", "b1"]
+    assert client.get("/events", params={"sort": "nope"}).status_code == 422
+
+
+def test_days_counts_each_start_date(client):
+    start = datetime.now(NEW_HAVEN).date()
+    days = client.get("/days", params={"start": start.isoformat(), "end": (start + timedelta(days=6)).isoformat()}).json()
+    assert [d["date"] for d in days] == [(start + timedelta(days=i)).isoformat() for i in range(7)]
+    listed = ids(client.get("/events", params={"start": start.isoformat(), "end": (start + timedelta(days=6)).isoformat()}))
+    assert sum(d["events"] for d in days) == len(listed)
+    # Events already underway when the window opens aren't counted on any day.
+    params = {"start": start.isoformat(), "category": "talks"}
+    talks = client.get("/events", params=params).json()["events"]
+    started = [e for e in talks if datetime.fromisoformat(e["start"]).date() >= start]
+    assert sum(d["events"] for d in client.get("/days", params=params).json()) == len(started) >= 1
