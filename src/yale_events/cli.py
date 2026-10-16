@@ -204,6 +204,16 @@ def discover(urls: list[str]):
 
 
 @app.command()
+def stats(days: int = typer.Option(14, help="How many days back, including today (New Haven dates).")):
+    """Visitors, event views, calendar adds, and calendar subscriptions recorded by the API.
+    On Fly: fly ssh console -C "yev stats"."""
+    from yale_events.stats import build_report, format_report
+
+    with make_session_factory()() as session:
+        typer.echo(format_report(build_report(session, days)))
+
+
+@app.command()
 def serve(host: str = "127.0.0.1", port: int = 8000, reload: bool = False):
     """Run the API (docs at /docs)."""
     import uvicorn

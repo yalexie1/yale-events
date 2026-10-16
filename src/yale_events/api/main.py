@@ -1,12 +1,15 @@
 from collections import Counter
 from collections.abc import Iterator
+import os
+import re
 from dataclasses import asdict
+from functools import cache
 from datetime import UTC, datetime, time, timedelta
 from pathlib import Path
 from typing import Annotated, Literal
 
-from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
-from fastapi.responses import FileResponse
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query, Request, Response
+from fastapi.responses import HTMLResponse
 from sqlalchemy import Select, func, select
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -24,6 +27,7 @@ from yale_events.models import Event, EventCategory, ScrapeRun, Source
 from yale_events.normalize import default_normalizer
 from yale_events.normalize.time import NEW_HAVEN
 from yale_events.orgs import default_orgs, sort_key
+from yale_events.stats import feed_query, record
 
 DEFAULT_DAYS = 90
 ICS_PAST_DAYS = 7
@@ -31,6 +35,8 @@ MAX_LIMIT = 500
 ICS_MAX_EVENTS = 5000
 ICS_MEDIA_TYPE = "text/calendar; charset=utf-8"
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
+TRACKED = {"view", "link", "gcal"}  # hits the page reports through POST /track; the rest are counted server-side
+EVENT_ID = re.compile(r"[\w-]{1,64}")
 
 
 def create_app(session_factory: sessionmaker[Session] | None = None) -> FastAPI:
@@ -53,6 +59,26 @@ def get_session(request: Request) -> Iterator[Session]:
 
 
 SessionDep = Annotated[Session, Depends(get_session)]
+
+
+def count_hit(
+    request: Request, background: BackgroundTasks, kind: str, event_id: str | None = None, query: str | None = None
+) -> None:
+    """Record a hit for `yev stats` after the response is sent, so a scrape holding the write lock can't slow it."""
+    # Fly's proxy puts the visitor's address in Fly-Client-IP; request.client is the proxy.
+    ip = request.headers.get("fly-client-ip") or (request.client.host if request.client else "")
+    ua = request.headers.get("user-agent", "")
+    background.add_task(record, request.app.state.session_factory, kind, ip, ua, event_id, query)
+
+
+@cache
+def index_html() -> str:
+    """The web page, with GoatCounter's script when YEV_GOATCOUNTER names a site code."""
+    html = (WEB_DIR / "index.html").read_text()
+    if code := os.environ.get("YEV_GOATCOUNTER"):
+        tag = f'<script data-goatcounter="https://{code}.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>'
+        html = html.replace("</head>", tag + "\n</head>", 1)
+    return html
 
 
 def event_filters(
@@ -147,10 +173,18 @@ def calendar_name(f: EventFilters) -> str:
 
 def register_routes(app: FastAPI) -> None:
     @app.get("/", include_in_schema=False)
-    def home():
+    def home(request: Request, background: BackgroundTasks):
         """A small browser UI over the API."""
+        count_hit(request, background, "page")
         # Revalidate on every visit so a deploy reaches open-and-reloaded pages, not a heuristically cached copy.
-        return FileResponse(WEB_DIR / "index.html", headers={"Cache-Control": "no-cache"})
+        return HTMLResponse(index_html(), headers={"Cache-Control": "no-cache"})
+
+    @app.post("/track", include_in_schema=False, status_code=204)
+    def track(request: Request, background: BackgroundTasks, kind: str, event: str):
+        """The page's beacon for things only it sees: opening an event's details, following its link, adding it to Google Calendar."""
+        if kind not in TRACKED or not EVENT_ID.fullmatch(event):
+            raise HTTPException(400, "unknown hit")
+        count_hit(request, background, kind, event)
 
     @app.get("/events", response_model=EventPage, tags=["events"])
     def list_events(
@@ -191,7 +225,7 @@ def register_routes(app: FastAPI) -> None:
 
     # Registered before /events/{event_id}, which would otherwise capture "abc.ics".
     @app.get("/events.ics", tags=["ical"], response_class=Response)
-    def events_ics(session: SessionDep, f: FiltersDep):
+    def events_ics(session: SessionDep, f: FiltersDep, request: Request, background: BackgroundTasks):
         """Subscribable calendar with the same filters as /events. Defaults to one week back through
         everything scraped ahead, and includes cancelled events (marked CANCELLED) so subscribed
         calendars update them."""
@@ -201,11 +235,13 @@ def register_routes(app: FastAPI) -> None:
         f.include_cancelled = True
         validate(f)
         events = session.scalars(build_query(f).limit(ICS_MAX_EVENTS))
+        count_hit(request, background, "feed", query=feed_query(list(request.query_params.multi_items())))
         return Response(to_ics(events, calendar_name(f)), media_type=ICS_MEDIA_TYPE)
 
     @app.get("/events/{event_id}.ics", tags=["ical"], response_class=Response)
-    def event_ics(session: SessionDep, event_id: str):
+    def event_ics(session: SessionDep, event_id: str, request: Request, background: BackgroundTasks):
         e = get_event_or_404(session, event_id)
+        count_hit(request, background, "ics", e.id)
         return Response(
             to_ics([e], e.title),
             media_type=ICS_MEDIA_TYPE,

@@ -1013,6 +1013,11 @@ new IntersectionObserver(([en]) => { sentinelVisible = en.isIntersecting; if (se
 const sheet = $("sheet");
 let sheetId = null, openedByNav = false;
 
+// Counts for `yev stats`: things only the page sees. Adds via the .ics link and feed fetches are counted server-side.
+function track(kind, id) {
+  try { navigator.sendBeacon(`/track?kind=${kind}&event=${encodeURIComponent(id)}`); } catch {}
+}
+
 function gcalLink(e) {
   const f = (d) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
   const dates = e.all_day
@@ -1064,14 +1069,15 @@ function renderSheet(e) {
     <h2 id="sheet-title">${esc(e.title)}</h2>
     <dl class="facts">${rows.map(([k, v]) => `<dt class="smallcaps">${k}</dt><dd>${v}</dd>`).join("")}</dl>
     <div class="actions-row">
-      ${e.url ? `<a class="btn solid" href="${esc(e.url)}" target="_blank" rel="noopener">Event page ↗</a>` : ""}
+      ${e.url ? `<a class="btn solid" data-track="link" href="${esc(e.url)}" target="_blank" rel="noopener">Event page ↗</a>` : ""}
       <a class="btn quiet" href="/events/${e.id}.ics">Add to calendar</a>
-      <a class="btn quiet" href="${gcalLink(e)}" target="_blank" rel="noopener">Google Calendar</a>
+      <a class="btn quiet" data-track="gcal" href="${gcalLink(e)}" target="_blank" rel="noopener">Google Calendar</a>
       <button class="btn quiet" id="copy-link">Copy link</button>
     </div>
     ${e.image_url ? `<img class="hero" src="${esc(e.image_url)}" alt="" loading="lazy" onerror="this.remove()">` : ""}
     <div class="desc${e.description ? "" : " none"}">${e.description ? paragraphs(e.description) : "<p>No description was posted for this event.</p>"}</div>`;
   $("sheet-body").scrollTop = 0;
+  document.querySelectorAll("#sheet-body [data-track]").forEach((a) => a.addEventListener("click", () => track(a.dataset.track, e.id)));
   $("copy-link").addEventListener("click", () => copy(location.origin + location.pathname + location.search + "#e=" + e.id, "Link copied"));
   document.querySelectorAll(".ev.sel").forEach((x) => x.classList.remove("sel"));
   document.querySelector(`.ev[data-id="${e.id}"]`)?.classList.add("sel");
@@ -1103,6 +1109,7 @@ async function openSheet(id) {
   }
   if (sheetId !== id) return;
   renderSheet(e);
+  track("view", e.id);
   updateSheetNav();
 }
 

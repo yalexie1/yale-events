@@ -1,6 +1,9 @@
 app = "yale-events"
 primary_region = "iad"
 
+[env]
+  YEV_GOATCOUNTER = "yalexie"  # https://yalexie.goatcounter.com
+
 [mounts]
   source = "yev_data"
   destination = "/app/data"

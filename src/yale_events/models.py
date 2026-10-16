@@ -127,3 +127,19 @@ class ScrapeRun(Base):
     updated: Mapped[int] = mapped_column(Integer, default=0)
     marked_stale: Mapped[int] = mapped_column(Integer, default=0)
     error: Mapped[str | None] = mapped_column(Text)
+
+
+class Hit(Base):
+    """One page load, event view, calendar add, or calendar feed fetch, for `yev stats`. No IP is kept:
+    `visitor` hashes IP and user agent with a salt that changes daily, so it tells visitors apart
+    within a day but can't follow anyone across days."""
+
+    __tablename__ = "hits"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, index=True)
+    kind: Mapped[str] = mapped_column(String, index=True)  # see stats.KINDS
+    event_id: Mapped[str | None] = mapped_column(String, index=True)
+    visitor: Mapped[str] = mapped_column(String)
+    client: Mapped[str | None] = mapped_column(String)  # feeds: which calendar app, see stats.feed_client
+    query: Mapped[str | None] = mapped_column(String)  # feeds: the filters subscribed to
