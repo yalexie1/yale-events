@@ -53,7 +53,7 @@
   .smallcaps { font-size: 11.5px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; }
 
   /* ---------- Masthead ---------- */
-  .masthead { max-width: 1240px; margin: 0 auto; padding: 28px 24px 0; }
+  .masthead { max-width: var(--page); margin: 0 auto; padding: 28px 24px 0; }
   .mast-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
   .wordmark { margin: 0; font: 500 52px/0.95 var(--serif); letter-spacing: -0.015em; }
   .wordmark em { font-style: italic; font-weight: 400; color: var(--blue); }
@@ -68,8 +68,9 @@
          font-family: var(--serif); font-style: italic; font-size: 16px; color: var(--ink-2); }
 
   /* ---------- Layout ---------- */
-  .layout { max-width: 1240px; margin: 0 auto; padding: 0 24px 60px; display: grid;
-            grid-template-columns: 256px minmax(0, 1fr); gap: 36px; }
+  :root { --page: 1640px; }
+  .layout { max-width: var(--page); margin: 0 auto; padding: 0 24px 60px; display: grid;
+            grid-template-columns: 280px minmax(0, 1fr); gap: 36px; }
 
   /* ---------- Toolbar (sticky) ---------- */
   .toolbar { position: sticky; top: 0; z-index: 20; background: var(--dots); padding: 14px 10px 12px; margin: 0 -10px;
@@ -131,7 +132,15 @@
   /* ---------- Sidebar filters ---------- */
   aside { position: sticky; top: 12px; align-self: start; max-height: calc(100vh - 24px); overflow: hidden auto;
           padding: 18px 14px 30px 18px; margin-top: 12px; background: var(--side); border: 1px solid var(--side-rule);
-          border-radius: 3px; -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); scrollbar-width: thin; scrollbar-gutter: stable; overscroll-behavior: contain; }
+          border-radius: 3px; -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); overscroll-behavior: contain;
+          /* A colored scrollbar is drawn in its own gutter rather than as a macOS overlay, which widens on hover over the counts. */
+          scrollbar-width: thin; scrollbar-color: var(--rule-strong) transparent; scrollbar-gutter: stable; }
+  .side-hide { display: flex; align-items: center; gap: 6px; margin: -6px 0 10px auto; font-size: 12.5px; }
+  @media (min-width: 881px) {
+    body.side-collapsed .layout { grid-template-columns: minmax(0, 1fr); }
+    body.side-collapsed aside { display: none; }
+    body.side-collapsed .btn.filters-btn { display: inline-flex; }
+  }
   .fgroup { padding: 0 0 18px; margin-top: 22px; border-top: 2px solid var(--rule-strong); }
   .fgroup:first-of-type { margin-top: 0; padding-top: 12px; border-top: 0; }
   .fgroup h3 { margin: 0 0 10px; padding: 9px 0 7px; border-bottom: 1px solid var(--rule); font: 500 21px/1.1 var(--serif);
@@ -170,7 +179,7 @@
   .switch input:checked + span::after { transform: translateX(14px); }
   .switch input:focus-visible + span { outline: 2px solid var(--blue); outline-offset: 2px; }
 
-  .subscribe-card { margin-top: 18px; padding: 14px; background: var(--sheet); border: 1px solid var(--rule); }
+  .subscribe-card { margin: 0 0 22px; padding: 14px; background: var(--sheet); border: 1px solid var(--rule); }
   .subscribe-card p { margin: 4px 0 10px; font-size: 13px; color: var(--ink-2); line-height: 1.45; }
   .subscribe-card h3 { margin: 0; font: 500 18px/1.2 var(--serif); }
 
@@ -205,6 +214,28 @@
   .ongoing li:hover .t a { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
   .ongoing .s { grid-column: 2; font-size: 13.5px; color: var(--ink-2); margin-top: 2px; }
   .ongoing .s b { font: 500 12.5px var(--mono); color: var(--ink-2); }
+
+  /* ---------- Ask (plain-English suggestions) ---------- */
+  .btn.ask-btn { border: 1.5px solid var(--blue); color: var(--blue); }
+  .btn.ask-btn:hover { background: var(--blue-soft); }
+  .ask-btn[aria-expanded=true] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .ask-bar { display: grid; gap: 8px; }
+  .ask-bar .row { display: flex; gap: 8px; }
+  .ask-bar input { flex: 1; min-width: 0; height: 38px; padding: 0 12px; border: 1px solid var(--rule); background: var(--sheet);
+                   border-radius: 3px; outline: none; }
+  .ask-bar input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-soft); }
+  .ask-bar .eg { display: flex; flex-wrap: wrap; gap: 6px; font-size: 12.5px; color: var(--ink-2); align-items: center; }
+  .ask-bar .eg button { height: 24px; padding: 0 9px; border: 1px solid var(--rule); border-radius: 12px; background: var(--sheet);
+                        cursor: pointer; font-size: 12.5px; color: var(--ink-2); }
+  .ask-bar .eg button:hover { color: var(--ink); border-color: var(--ink-3); }
+  .ask { margin: 14px 0 4px; border-top: 2px solid var(--rule-strong); border-bottom: 1px solid var(--rule); padding-bottom: 6px; }
+  .ask-h { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; padding: 12px 0 8px; }
+  .ask-h .dow { font: italic 400 24px/1 var(--serif); }
+  .ask-h .q { font-size: 14px; color: var(--ink-2); }
+  .ask-h .acts { margin-left: auto; display: flex; gap: 12px; }
+  .ask .reason { margin-top: 4px; font-size: 14px; font-style: italic; color: var(--ink); }
+  .ask .note { padding: 6px 0 12px; color: var(--ink-2); font-size: 14px; }
+  .ask .note.err { color: var(--danger); }
 
   /* ---------- Event list ---------- */
   .day { margin-top: 6px; }
@@ -270,7 +301,7 @@
   .endnote { text-align: center; padding: 34px 0 0; font: italic 16px var(--serif); color: var(--ink-3); }
   .endnote::before { content: "❦"; display: block; font-style: normal; font-size: 20px; margin-bottom: 4px; }
 
-  footer { max-width: 1240px; margin: 0 auto; padding: 18px 24px 40px; border-top: 1px solid var(--rule);
+  footer { max-width: var(--page); margin: 0 auto; padding: 18px 24px 40px; border-top: 1px solid var(--rule);
            display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 13px; color: var(--ink-2); }
   footer a { color: var(--ink-2); }
 
@@ -353,6 +384,7 @@
     .mast-meta .full { display: none; }
     .layout { grid-template-columns: minmax(0, 1fr); padding: 0 16px 40px; gap: 0; }
     .btn.filters-btn { display: inline-flex; }
+    .side-hide { display: none; }
     aside { position: fixed; z-index: 60; top: 0; bottom: 0; left: 0; width: min(340px, 88vw); max-height: none;
             margin: 0; border: 0; border-radius: 0; background: var(--paper); padding: 20px 18px 90px; transform: translateX(-102%); transition: transform .25s ease;
             box-shadow: 10px 0 30px rgb(0 0 0 / .15); }
@@ -397,11 +429,21 @@
 
 <div class="layout">
   <aside id="filters" aria-label="Filters">
+    <button class="linkish side-hide" id="side-hide" title="Hide the filters to give the listing the full width">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 3 5 8l5 5"/></svg>Hide filters</button>
     <div class="fgroup">
       <label class="toggle">
         <span class="lbl">Free food <small>Where the listing mentions it</small></span>
         <span class="switch"><input type="checkbox" id="free_food"><span></span></span>
       </label>
+    </div>
+    <div class="subscribe-card">
+      <h3>Keep it in your calendar</h3>
+      <p>Pick the departments, organizations or topics you care about and get only their events in Apple Calendar, Google Calendar or Outlook, kept up to date.</p>
+      <button class="btn solid block" data-open-subscribe>
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="11" rx="1"/><path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3"/></svg>
+        Subscribe
+      </button>
     </div>
     <div class="fgroup">
       <h3>Category <button class="linkish" data-clear="category" hidden>clear</button></h3>
@@ -429,14 +471,6 @@
       <h3>Other organizations <button class="linkish" data-clear="org:organization" hidden>clear</button></h3>
       <div id="f-organization"></div>
     </div>
-    <div class="subscribe-card">
-      <h3>Keep it in your calendar</h3>
-      <p>Pick the departments, organizations or topics you care about and get only their events in Apple Calendar, Google Calendar or Outlook, kept up to date.</p>
-      <button class="btn solid block" data-open-subscribe>
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="11" rx="1"/><path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3"/></svg>
-        Subscribe
-      </button>
-    </div>
   </aside>
   <div class="backdrop" id="backdrop"></div>
   <div class="drawer-foot"><button class="btn solid block" id="drawer-done">Show events</button></div>
@@ -454,7 +488,24 @@
           <kbd>/</kbd>
           <button class="clear" id="q-clear" aria-label="Clear search">✕</button>
         </div>
+        <button class="btn quiet ask-btn" id="ask-btn" aria-controls="ask-form" aria-expanded="false" hidden
+                title="Describe what you're looking for and get suggestions">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1.5v3M8 11.5v3M1.5 8h3M11.5 8h3M3.4 3.4l2 2M10.6 10.6l2 2M3.4 12.6l2-2M10.6 5.4l2-2"/></svg>
+          Ask
+        </button>
       </div>
+      <form class="ask-bar" id="ask-form" hidden>
+        <div class="row">
+          <input id="ask-q" type="text" maxlength="200" autocomplete="off" aria-label="Ask for event suggestions"
+                 placeholder="e.g. AI or CS career events in the next two weeks">
+          <button class="btn solid" type="submit" id="ask-go">Suggest</button>
+        </div>
+        <div class="eg">Try:
+          <button type="button">Music tomorrow</button>
+          <button type="button">AI or CS careers in the next two weeks</button>
+          <button type="button">Free food tonight</button>
+        </div>
+      </form>
       <div class="tb-row">
         <div class="ranges" role="group" aria-label="Date range" id="ranges">
           <button data-range="upcoming">Next 3 months</button>
@@ -475,6 +526,7 @@
       <nav class="days" id="days" aria-label="Jump to a date" hidden></nav>
       <div class="status-row" id="status" aria-live="polite"></div>
     </div>
+    <section class="ask" id="ask-results" aria-live="polite" hidden></section>
     <details class="ongoing" id="ongoing" hidden>
       <summary><span class="dow">Ongoing</span><span class="date">exhibitions &amp; open programs</span><span class="n" id="ongoing-n"></span></summary>
       <ul id="ongoing-list"></ul>
@@ -783,7 +835,8 @@ function renderStatus(done) {
 }
 
 // ---------- List ----------
-function rowHTML(e, underway, i) {
+/** One event row. `dated` puts the date in the time column; `reason` adds a line under the title (Ask). */
+function rowHTML(e, underway, i, { dated = newest(), reason = "" } = {}) {
   const v = venue(e.location);
   const cats = e.categories.map((c) => `<span ${catStyle(c)}>${esc(names.category[c] || c)}</span>`).join("");
   const flags = [
@@ -791,10 +844,11 @@ function rowHTML(e, underway, i) {
     e.free_food ? `<span class="flag food">Free food</span>` : "",
   ].join("");
   return `<article class="ev${e.cancelled ? " cancelled" : ""}${i < 14 ? " reveal" : ""}" data-id="${e.id}" style="${i < 14 ? `animation-delay:${i * 28}ms` : ""}">
-    <div class="when">${whenCell(e, underway, newest())}</div>
+    <div class="when">${whenCell(e, underway, dated)}</div>
     <div>
       ${cats ? `<div class="kicker smallcaps">${cats}</div>` : ""}
       <h3 class="title"><a href="#e=${e.id}">${esc(e.title)}</a></h3>
+      ${reason ? `<div class="reason">${esc(reason)}</div>` : ""}
       <div class="meta">
         ${e.location.sign_in_url ? `<span class="venue">${signInLink(e.location)}</span>`
           : v.main ? `<span class="venue"><b>${esc(v.main)}</b>${v.sub ? " · " + esc(v.sub) : ""}</span>` : ""}
@@ -1321,7 +1375,7 @@ function renderSources(sources) {
   const live = sources.filter((s) => s.enabled);
   const total = live.reduce((n, s) => n + s.upcoming, 0);
   const last = live.map((s) => s.last_run_at).filter(Boolean).sort().pop();
-  $("dek").textContent = `${total.toLocaleString()} upcoming events from ${live.length} Yale calendars, in one listing.`;
+  $("dek").textContent = `Currently tracking ${total.toLocaleString()} upcoming events from ${live.length} Yale calendars.`;
   if (last) $("updated").textContent = "Updated " + relTime(last);
   $("foot-sources").textContent = `Collected from ${live.length} public Yale calendars${last ? ", refreshed " + relTime(last) : ""}. Check the event page before you go.`;
   return last;
@@ -1383,9 +1437,82 @@ document.addEventListener("click", (ev) => {
   if (ev.target.closest("[data-widen]")) { state.range = "month"; reload(); }
 });
 
+// ---------- Ask ----------
+// Shown only when the server has suggestions set up (it marks <main data-ask>).
+if (document.querySelector("main").hasAttribute("data-ask")) $("ask-btn").hidden = false;
+let askGen = 0, lastAsk = null;
+function showAskBar(open) {
+  $("ask-form").hidden = !open;
+  $("ask-btn").setAttribute("aria-expanded", open);
+  if (open) $("ask-q").focus();
+}
+$("ask-btn").addEventListener("click", () => showAskBar($("ask-form").hidden));
+$("ask-form").querySelector(".eg").addEventListener("click", (ev) => {
+  const b = ev.target.closest("button");
+  if (b) { $("ask-q").value = b.textContent; ask(b.textContent); }
+});
+$("ask-form").addEventListener("submit", (ev) => { ev.preventDefault(); ask($("ask-q").value); });
+$("ask-q").addEventListener("keydown", (ev) => { if (ev.key === "Escape") { showAskBar(false); $("ask-btn").focus(); } });
+
+async function ask(q) {
+  q = q.trim();
+  if (!q) return;
+  const gen = ++askGen, box = $("ask-results");
+  box.hidden = false;
+  box.innerHTML = askHead(q, false) + `<div class="note">Reading upcoming events…</div>`;
+  $("ask-go").disabled = true;
+  try {
+    const r = await fetch("/ask", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ q }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(typeof j.detail === "string" ? j.detail : "Couldn't get suggestions.");
+    if (gen !== askGen) return;
+    lastAsk = j;
+    renderAsk(j);
+  } catch (err) {
+    if (gen !== askGen) return;
+    box.innerHTML = askHead(q, false) + `<div class="note err">${esc(err.message)}</div>`;
+  } finally {
+    if (gen === askGen) $("ask-go").disabled = false;
+  }
+  window.scrollTo({ top: Math.max(0, box.getBoundingClientRect().top + scrollY - $("toolbar").offsetHeight - 8) });
+}
+function askHead(q, canApply) {
+  return `<div class="ask-h"><span class="dow">Suggestions</span><span class="q">for “${esc(q)}”</span>
+    <span class="acts">${canApply ? `<button class="linkish" data-ask-apply title="Show every event matching how the question was read">Apply these filters</button>` : ""}
+    <button class="linkish" data-ask-close>Close</button></span></div>`;
+}
+function renderAsk(a) {
+  const box = $("ask-results");
+  a.events.forEach((e) => state.byId.set(e.id, e));
+  const rows = a.events.map((e, i) => rowHTML(e, false, i, { dated: true, reason: e.reason }));
+  const f = a.filters, span = f.start === f.end ? fmtLongDate(parseDay(f.start)) : `${fmtShortDate(parseDay(f.start))} – ${fmtShortDate(parseDay(f.end))}`;
+  const note = a.events.length
+    ? `<div class="note">Picked from ${a.considered.toLocaleString()} event${a.considered === 1 ? "" : "s"} · ${span}</div>`
+    : `<div class="note">Nothing fit among ${a.considered.toLocaleString()} event${a.considered === 1 ? "" : "s"} (${span}). Try wording it differently or widening the dates.</div>`;
+  box.innerHTML = askHead(a.q, true) + rows.join("") + note;
+}
+$("ask-results").addEventListener("click", (ev) => {
+  if (ev.target.closest("[data-ask-close]")) { askGen++; $("ask-results").hidden = true; return; }
+  if (ev.target.closest("[data-ask-apply]") && lastAsk) {
+    const f = lastAsk.filters;
+    Object.assign(state, { q: "", range: "custom", start: f.start, end: f.end, free_food: f.free_food });
+    state.category = new Set(f.category); state.org = new Set(f.org); state.area = new Set(f.area); state.source = new Set();
+    $("ask-results").hidden = true;
+    reload();
+  }
+});
+
 // Mobile drawer
 const drawer = (open) => document.body.classList.toggle("filters-open", open);
-$("filters-btn").addEventListener("click", () => drawer(true));
+const wide = matchMedia("(min-width: 881px)");
+function collapseSide(on) {
+  document.body.classList.toggle("side-collapsed", on);
+  try { localStorage.setItem("sideCollapsed", on ? "1" : ""); } catch { /* private mode */ }
+}
+try { if (localStorage.getItem("sideCollapsed")) document.body.classList.add("side-collapsed"); } catch { /* private mode */ }
+$("side-hide").addEventListener("click", () => collapseSide(true));
+// On a wide screen the button brings the collapsed sidebar back; on a narrow one it opens the drawer.
+$("filters-btn").addEventListener("click", () => (wide.matches && document.body.classList.contains("side-collapsed") ? collapseSide(false) : drawer(true)));
 $("backdrop").addEventListener("click", () => drawer(false));
 $("drawer-done").addEventListener("click", () => drawer(false));
 

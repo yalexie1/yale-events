@@ -156,3 +156,28 @@ class SourceOut(BaseModel):
     last_run_status: str | None
     last_run_error: str | None
     upcoming: int
+
+
+class AskIn(BaseModel):
+    q: str
+
+
+class AskFiltersOut(BaseModel):
+    """The filters the question was read as, in /events' query parameters, so the page can apply them."""
+    start: date
+    end: date  # inclusive
+    category: list[str]
+    org: list[str]
+    area: list[str]
+    free_food: bool
+
+
+class SuggestionOut(EventOut):
+    reason: str  # why it fits the question, in a few words
+
+
+class AskOut(BaseModel):
+    q: str
+    filters: AskFiltersOut
+    events: list[SuggestionOut]  # best first
+    considered: int  # events read to choose these

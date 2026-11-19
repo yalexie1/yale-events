@@ -27,6 +27,7 @@ KINDS = {
     "link": "clicks through to the event's own page",
     "ics": "single-event .ics downloads (Add to calendar)",
     "gcal": "Add to Google Calendar clicks",
+    "ask": "questions answered by /ask (plain-English suggestions)",
     "feed": "fetches of /events.ics (subscriptions and one-time downloads)",
 }
 # Set YEV_STATS_SALT (fly secrets) so a restart doesn't count the day's visitors again.
@@ -110,7 +111,7 @@ def build_report(session: Session, days: int, today: date | None = None, top: in
         by_day.setdefault(h.at.astimezone(NEW_HAVEN).date(), []).append(h)
     for d, day_hits in by_day.items():
         c = Counter(h.kind for h in day_hits)
-        c["visitors"] = len({h.visitor for h in day_hits if h.kind in ("page", "view", "link", "ics", "gcal")})
+        c["visitors"] = len({h.visitor for h in day_hits if h.kind in ("page", "view", "link", "ics", "gcal", "ask")})
         c["subscriptions"] = len(subscription_keys([h for h in day_hits if h.kind == "feed"]))
         report.daily[d] = c
 
@@ -133,7 +134,7 @@ def build_report(session: Session, days: int, today: date | None = None, top: in
 
 def format_report(r: Report) -> str:
     cols = [("visitors", "visitors"), ("page", "pages"), ("view", "views"), ("link", "clicks"),
-            ("ics", ".ics"), ("gcal", "google"), ("subscriptions", "subscribed")]  # fmt: skip
+            ("ics", ".ics"), ("gcal", "google"), ("ask", "asks"), ("subscriptions", "subscribed")]  # fmt: skip
     lines = ["date        " + " ".join(f"{h:>10}" for _, h in cols)]
     for d in r.days:
         lines.append(f"{d:%a %b %d}  " + " ".join(f"{r.daily[d][k]:>10}" for k, _ in cols))
@@ -142,7 +143,7 @@ def format_report(r: Report) -> str:
     lines += [
         "",
         "visitors: distinct people that day (page loads, views, adds); views: event details opened;",
-        "clicks: through to the source's event page; .ics/google: Add to calendar;",
+        "clicks: through to the source's event page; .ics/google: Add to calendar; asks: questions to /ask;",
         "subscribed: calendars that fetched a feed that day (Google counts once per feed URL).",
     ]
     for heading, rows in (("Most viewed events", r.top_viewed), ("Most added to calendars", r.top_added)):

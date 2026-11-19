@@ -1,5 +1,6 @@
 from collections import Counter
 from collections.abc import Iterator
+import logging
 import os
 import re
 from dataclasses import asdict
@@ -8,6 +9,7 @@ from datetime import UTC, datetime, time, timedelta
 from pathlib import Path
 from typing import Annotated, Literal
 
+import anthropic
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query, Request, Response
 from fastapi.responses import HTMLResponse
 from sqlalchemy import Select, func, select
@@ -18,8 +20,10 @@ from yale_events.api.query import (
     EventFilters, apply_cursor, build_query, encode_cursor, parse_when, sort_by, split_values, validate,
 )
 from yale_events.api.schemas import (
-    AreaOut, BuildingOut, CategoryOut, DayOut, EventOut, EventPage, OrgOut, SourceOut,
+    AreaOut, AskFiltersOut, AskIn, AskOut, BuildingOut, CategoryOut, DayOut, EventOut, EventPage,
+    OrgOut, SourceOut, SuggestionOut,
 )
+from yale_events.ask import MAX_QUESTION, AnswerCache, Asker, default_asker, default_limiter
 from yale_events.config import load_sources
 from yale_events.db import make_session_factory
 from yale_events.health import check_sources
@@ -27,7 +31,9 @@ from yale_events.models import Event, EventCategory, ScrapeRun, Source
 from yale_events.normalize import default_normalizer
 from yale_events.normalize.time import NEW_HAVEN
 from yale_events.orgs import default_orgs, sort_key
-from yale_events.stats import feed_query, record
+from yale_events.stats import feed_query, record, visitor_hash
+
+log = logging.getLogger(__name__)
 
 DEFAULT_DAYS = 90
 ICS_PAST_DAYS = 7
@@ -39,7 +45,10 @@ TRACKED = {"view", "link", "gcal"}  # hits the page reports through POST /track;
 EVENT_ID = re.compile(r"[\w-]{1,64}")
 
 
-def create_app(session_factory: sessionmaker[Session] | None = None) -> FastAPI:
+_DEFAULT = object()
+
+
+def create_app(session_factory: sessionmaker[Session] | None = None, asker: Asker | None = _DEFAULT) -> FastAPI:
     app = FastAPI(
         title="Yale Events",
         version="0.1.0",
@@ -49,6 +58,9 @@ def create_app(session_factory: sessionmaker[Session] | None = None) -> FastAPI:
         ),
     )
     app.state.session_factory = session_factory or make_session_factory()
+    app.state.asker = default_asker() if asker is _DEFAULT else asker
+    app.state.ask_limiter = default_limiter()
+    app.state.ask_cache = AnswerCache()
     register_routes(app)
     return app
 
@@ -61,12 +73,16 @@ def get_session(request: Request) -> Iterator[Session]:
 SessionDep = Annotated[Session, Depends(get_session)]
 
 
+def client_ip(request: Request) -> str:
+    # Fly's proxy puts the visitor's address in Fly-Client-IP; request.client is the proxy.
+    return request.headers.get("fly-client-ip") or (request.client.host if request.client else "")
+
+
 def count_hit(
     request: Request, background: BackgroundTasks, kind: str, event_id: str | None = None, query: str | None = None
 ) -> None:
     """Record a hit for `yev stats` after the response is sent, so a scrape holding the write lock can't slow it."""
-    # Fly's proxy puts the visitor's address in Fly-Client-IP; request.client is the proxy.
-    ip = request.headers.get("fly-client-ip") or (request.client.host if request.client else "")
+    ip = client_ip(request)
     ua = request.headers.get("user-agent", "")
     background.add_task(record, request.app.state.session_factory, kind, ip, ua, event_id, query)
 
@@ -177,7 +193,10 @@ def register_routes(app: FastAPI) -> None:
         """A small browser UI over the API."""
         count_hit(request, background, "page")
         # Revalidate on every visit so a deploy reaches open-and-reloaded pages, not a heuristically cached copy.
-        return HTMLResponse(index_html(), headers={"Cache-Control": "no-cache"})
+        html = index_html()
+        if request.app.state.asker is not None:  # show the page's Ask button
+            html = html.replace("<main>", "<main data-ask>", 1)
+        return HTMLResponse(html, headers={"Cache-Control": "no-cache"})
 
     @app.post("/track", include_in_schema=False, status_code=204)
     def track(request: Request, background: BackgroundTasks, kind: str, event: str):
@@ -185,6 +204,52 @@ def register_routes(app: FastAPI) -> None:
         if kind not in TRACKED or not EVENT_ID.fullmatch(event):
             raise HTTPException(400, "unknown hit")
         count_hit(request, background, kind, event)
+
+    @app.post("/ask", response_model=AskOut, tags=["events"])
+    def ask(body: AskIn, session: SessionDep, request: Request, background: BackgroundTasks):
+        """Suggestions for a plain-English request ("music tomorrow", "AI or CS career events in the next
+        two weeks"): Claude reads the request as /events filters, then picks the best matches among
+        the events in that window, each with a short reason."""
+        q = " ".join(body.q.split())
+        if not q:
+            raise HTTPException(422, "ask something")
+        if len(q) > MAX_QUESTION:
+            raise HTTPException(422, f"keep it under {MAX_QUESTION} characters")
+        asker: Asker | None = request.app.state.asker
+        if asker is None:
+            raise HTTPException(503, "suggestions aren't set up on this server")
+        if cached := request.app.state.ask_cache.get(q):
+            count_hit(request, background, "ask")
+            return cached
+        visitor = visitor_hash(client_ip(request), request.headers.get("user-agent", ""), datetime.now(NEW_HAVEN).date())
+        if why := request.app.state.ask_limiter.allow(visitor):
+            raise HTTPException(429, "too many questions; try again in an hour" if why == "visitor"
+                                else "suggestions are paused for today; try the filters instead")
+        try:
+            answer = asker.ask(session, q)
+        except anthropic.APIError:
+            log.exception("ask failed")
+            raise HTTPException(502, "couldn't get suggestions right now; try again shortly") from None
+        count_hit(request, background, "ask")
+        f = answer.filters
+        dupes = duplicates_of(session, [s.event.id for s in answer.suggestions])
+        locations = default_normalizer().locations
+        out = AskOut(
+            q=q,
+            filters=AskFiltersOut(
+                start=f.start.astimezone(NEW_HAVEN).date(),
+                end=(f.end - timedelta(microseconds=1)).astimezone(NEW_HAVEN).date(),
+                category=f.category, org=f.org, area=f.area, free_food=bool(f.free_food),
+            ),
+            events=[
+                SuggestionOut(**EventOut.from_event(s.event, locations, dupes.get(s.event.id, [])).model_dump(),
+                              reason=s.reason)
+                for s in answer.suggestions
+            ],
+            considered=answer.candidates,
+        )  # fmt: skip
+        request.app.state.ask_cache.put(q, out)
+        return out
 
     @app.get("/events", response_model=EventPage, tags=["events"])
     def list_events(
